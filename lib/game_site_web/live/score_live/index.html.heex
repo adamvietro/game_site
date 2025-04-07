@@ -1,0 +1,41 @@
+<.header>
+  Listing Scores
+  <:actions>
+    <.link patch={~p"/scores/new"}>
+      <.button>New Score</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="scores"
+  rows={@streams.scores}
+  row_click={fn {_id, score} -> JS.navigate(~p"/scores/#{score}") end}
+>
+  <:col :let={{_id, score}} label="Score">{score.score}</:col>
+  <:action :let={{_id, score}}>
+    <div class="sr-only">
+      <.link navigate={~p"/scores/#{score}"}>Show</.link>
+    </div>
+    <.link patch={~p"/scores/#{score}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, score}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: score.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="score-modal" show on_cancel={JS.patch(~p"/scores")}>
+  <.live_component
+    module={GameSiteWeb.ScoreLive.FormComponent}
+    id={@score.id || :new}
+    title={@page_title}
+    action={@live_action}
+    score={@score}
+    patch={~p"/scores"}
+  />
+</.modal>
