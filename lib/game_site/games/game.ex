@@ -5,6 +5,7 @@ defmodule GameSite.Games.Game do
   schema "games" do
     field :name, :string
 
+    has_many :scores, GameSite.Scores.Score
     timestamps(type: :utc_datetime)
   end
 
