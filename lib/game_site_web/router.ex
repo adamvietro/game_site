@@ -1,4 +1,5 @@
 defmodule GameSiteWeb.Router do
+  # alias GameSiteWeb.GuessingLive
   use GameSiteWeb, :router
 
   import GameSiteWeb.UserAuth
@@ -18,23 +19,27 @@ defmodule GameSiteWeb.Router do
   end
 
   scope "/", GameSiteWeb do
-    pipe_through :browser
-
-    live "/games", GameLive.Index, :index
-    live "/games/new", GameLive.Index, :new
-    live "/games/:id/edit", GameLive.Index, :edit
-
-    live "/games/:id", GameLive.Show, :show
-    live "/games/:id/show/edit", GameLive.Show, :edit
-
-    live "/scores", ScoreLive.Index, :index
-    live "/scores/new", ScoreLive.Index, :new
-    live "/scores/:id/edit", ScoreLive.Index, :edit
-
-    live "/scores/:id", ScoreLive.Show, :show
-    live "/scores/:id/show/edit", ScoreLive.Show, :edit
+    pipe_through [:browser, :require_authenticated_user]
 
     get "/", PageController, :home
+
+    live_session :scores, on_mount: [{GameSiteWeb.UserAuth, :mount_current_user}] do
+      live "/games", GameLive.Index, :index
+      live "/games/new", GameLive.Index, :new
+      live "/games/:id/edit", GameLive.Index, :edit
+
+      live "/games/:id", GameLive.Show, :show
+      live "/games/:id/show/edit", GameLive.Show, :edit
+
+      live "/scores", ScoreLive.Index, :index
+      # live "/scores/new", ScoreLive.Index, :new
+      # live "/scores/:id/edit", ScoreLive.Index, :edit
+
+      # live "/scores/:id", ScoreLive.Show, :show
+      # live "/scores/:id/show/edit", ScoreLive.Show, :edit
+
+      live "/1", GuessingLive, :game
+    end
   end
 
   # Other scopes may use custom stacks.

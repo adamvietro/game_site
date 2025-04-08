@@ -1,19 +1,22 @@
 <.header>
   Listing Scores
-  <:actions>
+  <%!-- <:actions>
     <.link patch={~p"/scores/new"}>
       <.button>New Score</.button>
     </.link>
-  </:actions>
+  </:actions> --%>
 </.header>
 
+  <%!-- row_click={fn {_id, score} -> JS.navigate(~p"/scores/#{score}") end} --%>
 <.table
   id="scores"
   rows={@streams.scores}
-  row_click={fn {_id, score} -> JS.navigate(~p"/scores/#{score}") end}
+  row_click={fn {_id, score} -> JS.navigate(~p"/#{score.game}") end}
 >
   <:col :let={{_id, score}} label="Score">{score.score}</:col>
-  <:action :let={{_id, score}}>
+  <:col :let={{_id, score}} label="Game">{score.game.name}</:col>
+  <:col :let={{_id, score}} label="User">{score.user.id}</:col>
+  <%!-- <:action :let={{_id, score}}>
     <div class="sr-only">
       <.link navigate={~p"/scores/#{score}"}>Show</.link>
     </div>
@@ -26,10 +29,15 @@
     >
       Delete
     </.link>
-  </:action>
+  </:action> --%>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="score-modal" show on_cancel={JS.patch(~p"/scores")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="score-modal"
+  show
+  on_cancel={JS.patch(~p"/scores")}
+>
   <.live_component
     module={GameSiteWeb.ScoreLive.FormComponent}
     id={@score.id || :new}
@@ -37,5 +45,6 @@
     action={@live_action}
     score={@score}
     patch={~p"/scores"}
+    current_user={@current_user}
   />
 </.modal>

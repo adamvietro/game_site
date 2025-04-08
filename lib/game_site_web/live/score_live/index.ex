@@ -38,6 +38,16 @@ defmodule GameSiteWeb.ScoreLive.Index do
   end
 
   @impl true
+  def handle_info({GameSiteWeb.ScoreLive.FormComponent, {:new, game}}, socket) do
+    {:noreply, stream_insert(socket, :games, game, at: 0)}
+  end
+
+  @impl true
+  def handle_info({GameSiteWeb.ScoreLive.FormComponent, {:edit, game}}, socket) do
+    {:noreply, stream_insert(socket, :games, game)}
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     score = Scores.get_score!(id)
     {:ok, _} = Scores.delete_score(score)

@@ -20,6 +20,8 @@ defmodule GameSiteWeb.ScoreLive.FormComponent do
         phx-submit="save"
       >
         <.input field={@form[:score]} type="number" label="Score" />
+        <.input field={@form[:user_id]} type="hidden" value={@current_user.id} />
+        <.input field={@form[:game_id]} type="text" label="Game Id" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Score</.button>
         </:actions>
@@ -51,7 +53,7 @@ defmodule GameSiteWeb.ScoreLive.FormComponent do
   defp save_score(socket, :edit, score_params) do
     case Scores.update_score(socket.assigns.score, score_params) do
       {:ok, score} ->
-        notify_parent({:saved, score})
+        notify_parent({:edit, score})
 
         {:noreply,
          socket
@@ -66,7 +68,7 @@ defmodule GameSiteWeb.ScoreLive.FormComponent do
   defp save_score(socket, :new, score_params) do
     case Scores.create_score(score_params) do
       {:ok, score} ->
-        notify_parent({:saved, score})
+        notify_parent({:new, score})
 
         {:noreply,
          socket
@@ -76,6 +78,18 @@ defmodule GameSiteWeb.ScoreLive.FormComponent do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
     end
+  end
+
+  @impl true
+  def handle_info({GameSiteWeb.ScoreLive.FormComponent, {:new, score}}, socket) do
+    # prepends the new message
+    {:noreply, stream_insert(socket, :scores, score, at: 0)}
+  end
+
+  @impl true
+  def handle_info({GameSiteWeb.ScoreLive.FormComponent, {:edit, score}}, socket) do
+    # updates the new message in its current position
+    {:noreply, stream_insert(socket, :scores, score)}
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})

@@ -1,19 +1,19 @@
 <.header>
   Listing Games
-  <:actions>
+  <%!-- <:actions>
     <.link patch={~p"/games/new"}>
       <.button>New Game</.button>
     </.link>
-  </:actions>
+  </:actions> --%>
 </.header>
 
 <.table
   id="games"
   rows={@streams.games}
-  row_click={fn {_id, game} -> JS.navigate(~p"/games/#{game}") end}
+  row_click={fn {_id, game} -> JS.navigate(~p"/#{game}") end}
 >
   <:col :let={{_id, game}} label="Name">{game.name}</:col>
-  <:action :let={{_id, game}}>
+  <%!-- <:action :let={{_id, game}}>
     <div class="sr-only">
       <.link navigate={~p"/games/#{game}"}>Show</.link>
     </div>
@@ -26,8 +26,10 @@
     >
       Delete
     </.link>
-  </:action>
+  </:action> --%>
 </.table>
+
+<%!-- <div>{@socket} </div> --%>
 
 <.modal :if={@live_action in [:new, :edit]} id="game-modal" show on_cancel={JS.patch(~p"/games")}>
   <.live_component
@@ -37,5 +39,6 @@
     action={@live_action}
     game={@game}
     patch={~p"/games"}
+    current_user={@current_user}
   />
 </.modal>

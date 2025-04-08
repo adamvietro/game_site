@@ -19,6 +19,7 @@ defmodule GameSite.Scores do
   """
   def list_scores do
     Repo.all(Score)
+    |> Repo.preload([:user, :game])
   end
 
   @doc """
@@ -49,10 +50,21 @@ defmodule GameSite.Scores do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_score(attrs \\ %{}) do
-    %Score{}
-    |> Score.changeset(attrs)
-    |> Repo.insert()
+  def create_score(%{"user_id" => user_id, "game_id" => game_id, "score" => score} = attrs) do
+    existing_score =
+      Repo.get_by(Score,
+        user_id: user_id,
+        game_id: game_id,
+        score: score
+      )
+
+    if existing_score do
+      {:duplicate, :already_exists}
+    else
+      %Score{}
+      |> Score.changeset(attrs)
+      |> Repo.insert()
+    end
   end
 
   @doc """

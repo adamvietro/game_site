@@ -10,6 +10,7 @@
 
 <.list>
   <:item title="Score">{@score.score}</:item>
+  <%!-- <:item title="Game">{@score.game.name}</:item> --%>
 </.list>
 
 <.back navigate={~p"/scores"}>Back to scores</.back>
@@ -22,5 +23,6 @@
     action={@live_action}
     score={@score}
     patch={~p"/scores/#{@score}"}
+    current_user={@current_user}
   />
 </.modal>
