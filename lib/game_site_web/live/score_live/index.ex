@@ -6,7 +6,7 @@ defmodule GameSiteWeb.ScoreLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :scores, Scores.list_scores())}
+    {:ok, stream(socket, :scores, Scores.list_top_scores_per_user_per_game())}
   end
 
   @impl true

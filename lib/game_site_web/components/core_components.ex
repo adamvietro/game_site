@@ -272,6 +272,7 @@ defmodule GameSiteWeb.CoreComponents do
   attr :name, :any
   attr :label, :string, default: nil
   attr :value, :any
+  attr :key, :any, default: nil
 
   attr :type, :string,
     default: "text",
@@ -318,6 +319,7 @@ defmodule GameSiteWeb.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
+          key={@key}
           class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
           {@rest}
         />

@@ -22,6 +22,37 @@ defmodule GameSite.Scores do
     |> Repo.preload([:user, :game])
   end
 
+  def list_scores_sorted do
+    from(s in Score,
+      order_by: [asc: s.game_id, desc: s.score],
+      preload: [:user, :game]
+    )
+    |> Repo.all()
+  end
+
+  def list_top_scores_per_user_per_game do
+    max_scores_query =
+      from s in Score,
+        select: %{
+          user_id: s.user_id,
+          game_id: s.game_id,
+          max_score: max(s.score)
+        },
+        group_by: [s.user_id, s.game_id]
+
+    query =
+      from s in Score,
+        join: ms in subquery(max_scores_query),
+        on:
+          s.user_id == ms.user_id and
+            s.game_id == ms.game_id and
+            s.score == ms.max_score,
+        preload: [:user, :game],
+        order_by: [asc: s.game_id, asc: s.user_id]
+
+    Repo.all(query)
+  end
+
   @doc """
   Gets a single score.
 

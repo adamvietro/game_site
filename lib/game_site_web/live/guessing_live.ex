@@ -6,12 +6,16 @@ defmodule GameSiteWeb.GuessingLive do
   def render(assigns) do
     ~H"""
     <p>Score: {@score}</p>
-    <p>Question: {@question}</p>
+    <p>Attempt: {@attempt}</p>
+    <%!-- <p>Answer: {@answer}</p> --%>
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <.input type="number" field={@form[:answer]} label="Answer" />
-      <.input type="hidden" field={@form[:first]} value={@first} />
-      <.input type="hidden" field={@form[:second]} value={@second} />
-      <.input type="hidden" field={@form[:notation]} value={@notation} />
+      <.input
+        type="text"
+        field={@form[:guess]}
+        label="Guess"
+        value={@form[:guess].value}
+        key={@attempt}
+      />
       <:actions>
         <.button>Answer</.button>
       </:actions>
@@ -19,15 +23,12 @@ defmodule GameSiteWeb.GuessingLive do
 
     <body>
       <div>
-        This is a simple Math game that will ask you to solve a simple Math question. It will involve 2
-        digits that are between 1 and 100 and a operand. You will continue to acquire a single point for every
-        correct answer that you give. You can at any point exit and save your high score, however 1 incorrect answer
-        will reduce your score to 0.
-        <br>#todo:
-        <br>add a wager button (for more points)
-        <br>add a param for highest score for the session
-        <br>keep only the highest 5 scores for each player
-        <br>change it to any size of questions
+        This is a simple Guessing Game. The site will pick a random number between 1 and 10 and
+        you will have 5 guesses to get the correct answer. At any point you can exit and save your high score,
+        you will not be able to come back to your streak. You also will lose out on your high score if you get
+        run out of guesses. <br />#TODO: <br />Fix the CSS
+        <br />Add in a param to keep track of a current session high score
+        <br />Add in a betting button to wager your score for more points
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
@@ -42,49 +43,56 @@ defmodule GameSiteWeb.GuessingLive do
   end
 
   def mount(_params, _session, socket) do
-    first = Enum.random(1..100)
-    second = Enum.random(1..100)
-    notation = Enum.random(["+", "-", "*"])
+    answer = Enum.random(1..10)
 
-    {:ok,
-     assign(socket,
-       question: "#{first} #{notation} #{second}",
-       score: 0,
-       form: to_form(%{"answer" => ""}),
-       first: first,
-       second: second,
-       notation: notation
-     )}
+    {:ok, assign(
+      socket,
+      answer: answer,
+      score: 0,
+      attempt: 1,
+      form: to_form(%{"guess" => ""}))}
   end
 
   def handle_event("answer", params, socket) do
-    answer =
-      case params["notation"] do
-        "*" -> String.to_integer(params["first"]) * String.to_integer(params["second"])
-        "+" -> String.to_integer(params["first"]) + String.to_integer(params["second"])
-        "-" -> String.to_integer(params["first"]) - String.to_integer(params["second"])
-      end
+    cond do
+      to_string(socket.assigns.answer) == params["guess"] ->
+        {:noreply,
+         assign(
+           socket
+           |> put_flash(:info, "Correct!"),
+           answer: Enum.random(1..10),
+           score: socket.assigns.score + 1,
+           attempt: 0,
+           form: to_form(%{"guess" => ""})
+         )}
 
-    if params["answer"] == to_string(answer) do
-      first = Enum.random(1..100)
-      second = Enum.random(1..100)
-      notation = Enum.random(["+", "-", "*"])
+      socket.assigns.attempt < 5 ->
+        form_data = %{"guess" => ""}
+        new_form = to_form(form_data, errors: [guess: {"incorrect", []}])
 
-      {:noreply,
-       assign(socket,
-         question: "#{first} #{notation} #{second}",
-         score: socket.assigns.score + 1,
-         form: to_form(%{"answer" => ""}),
-         first: first,
-         second: second,
-         notation: notation
-       )}
-    else
-      {:noreply,
-       assign(socket, score: 0, form: to_form(params, errors: [answer: {"incorrect", []}]))}
+        {:noreply,
+         assign(socket,
+           attempt: socket.assigns.attempt + 1,
+           form: new_form
+         )}
+
+      socket.assigns.attempt >= 5 ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Out of Guesses.")
+         |> assign(
+           attempt: 0,
+           score: 0,
+           answer: Enum.random(1..10),
+           form: to_form(%{"guess" => ""})
+         )}
     end
   end
 
+  @doc """
+  These functions below are used to set the scores for a player. You will have to have unique scores
+  for each game and player.
+  """
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
   end

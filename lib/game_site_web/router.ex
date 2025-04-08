@@ -39,6 +39,7 @@ defmodule GameSiteWeb.Router do
       # live "/scores/:id/show/edit", ScoreLive.Show, :edit
 
       live "/1", GuessingLive, :game
+      live "/2", MathLive, :game
     end
   end
 
