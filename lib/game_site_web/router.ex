@@ -19,9 +19,13 @@ defmodule GameSiteWeb.Router do
   end
 
   scope "/", GameSiteWeb do
-    pipe_through [:browser, :require_authenticated_user]
+    pipe_through :browser
 
     get "/", PageController, :home
+  end
+
+  scope "/", GameSiteWeb do
+    pipe_through [:browser, :require_authenticated_user]
 
     live_session :scores, on_mount: [{GameSiteWeb.UserAuth, :mount_current_user}] do
       live "/games", GameLive.Index, :index
@@ -40,6 +44,9 @@ defmodule GameSiteWeb.Router do
 
       live "/1", GuessingLive, :game
       live "/2", MathLive, :game
+      live "/3", RockPaperScissorsLive, :game
+      live "/4", WordleLive, :game
+      live "/5", PokerLive, :game
     end
   end
 
