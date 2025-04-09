@@ -4,6 +4,34 @@ defmodule GameSiteWeb.WordleLive do
   alias GameSite.Scores
   alias GameSiteWeb.Words
 
+  @starting_state %{
+    0 => "bg-gray-100",
+    1 => "bg-gray-100",
+    2 => "bg-gray-100",
+    3 => "bg-gray-100",
+    4 => "bg-gray-100",
+    5 => "bg-gray-100",
+    6 => "bg-gray-100",
+    7 => "bg-gray-100",
+    8 => "bg-gray-100",
+    9 => "bg-gray-100",
+    10 => "bg-gray-100",
+    11 => "bg-gray-100",
+    12 => "bg-gray-100",
+    13 => "bg-gray-100",
+    14 => "bg-gray-100",
+    15 => "bg-gray-100",
+    16 => "bg-gray-100",
+    17 => "bg-gray-100",
+    18 => "bg-gray-100",
+    19 => "bg-gray-100",
+    20 => "bg-gray-100",
+    21 => "bg-gray-100",
+    22 => "bg-gray-100",
+    23 => "bg-gray-100",
+    24 => "bg-gray-100"
+  }
+
   def render(assigns) do
     ~H"""
     <p>Score: {@score}</p>
@@ -21,14 +49,25 @@ defmodule GameSiteWeb.WordleLive do
         </div>
       <% end %>
     </div>
-    <div class="user-input">
-      <.simple_form id="input-form" for={@form} phx-submit="guess">
-        <.input type="text" field={@form[:guess]} label="Guess" />
-        <:actions>
-          <.button class="px-6 py-2 text-lg">Submit</.button>
-        </:actions>
-      </.simple_form>
-    </div>
+    <%= if @reset == true do %>
+      <div class="reset-input">
+        <.simple_form id="input-form" for={@form} phx-submit="reset">
+          <:actions>
+            <.button class="px-6 py-2 text-lg">Reset</.button>
+          </:actions>
+        </.simple_form>
+      </div>
+    <% end %>
+    <%= if @reset == false do %>
+      <div class="user-input">
+        <.simple_form id="input-form" for={@form} phx-submit="guess">
+          <.input type="text" field={@form[:guess]} label="Guess" />
+          <:actions>
+            <.button class="px-6 py-2 text-lg">Submit</.button>
+          </:actions>
+        </.simple_form>
+      </div>
+    <% end %>
     <body>
       <div>
         Wordle game. For this game you will be asked to find a 5 letter word, once you have submitted a
@@ -37,13 +76,12 @@ defmodule GameSiteWeb.WordleLive do
         it's not in the right place. A grey box means that the letter isn't even in the word. The faster
         (number of guesses) the higher score you will receive.
         <br />Please enjoy below is a list of things I want to add. <br />#todo:
-        <br />add a wager button (for more points) <br />add a param for highest score for the session
-        <br />keep only the highest 5 scores for each player <br />change it to any size of questions
+        <br />add a wager button (for more points)
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
       <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={3} />
+      <.input type="hidden" field={@form[:game_id]} value={4} />
       <.input type="hidden" field={@form[:score]} value={@score} />
       <:actions>
         <.button>Exit and Save Score</.button>
@@ -56,47 +94,63 @@ defmodule GameSiteWeb.WordleLive do
     {:ok,
      assign(
        socket,
-       state: %{
-         0 => "bg-gray-200",
-         1 => "bg-gray-200",
-         2 => "bg-gray-200",
-         3 => "bg-gray-200",
-         4 => "bg-gray-200",
-         5 => "bg-gray-200",
-         6 => "bg-gray-200",
-         7 => "bg-gray-200",
-         8 => "bg-gray-200",
-         9 => "bg-gray-200",
-         10 => "bg-gray-200",
-         11 => "bg-gray-200",
-         12 => "bg-gray-200",
-         13 => "bg-gray-200",
-         14 => "bg-gray-200",
-         15 => "bg-gray-200",
-         16 => "bg-gray-200",
-         17 => "bg-gray-200",
-         18 => "bg-gray-200",
-         19 => "bg-gray-200",
-         20 => "bg-gray-200",
-         21 => "bg-gray-200",
-         22 => "bg-gray-200",
-         23 => "bg-gray-200",
-         24 => "bg-gray-200"
-       },
+       state: @starting_state,
        score: 0,
-       session_high_score: 0,
        form: to_form(%{}),
        word: Words.get_word(),
-       round: 0
+       round: 0,
+       reset: false
      )}
   end
 
   def handle_event("guess", params, socket) do
     colors = feedback(socket.assigns.word, params["guess"])
-    socket = set_colors(colors, socket.assigns.round, socket)
+    state = set_colors(colors, socket.assigns.round, socket.assigns.state)
 
-    {:noreply, assign(socket, round: socket.assigns.round + 1)}
+    cond do
+      correct?(colors) and
+          socket.assigns.round <= 4 ->
+        score = (5 - socket.assigns.round) * 10
 
+        {:noreply,
+         assign(
+           socket,
+           round: 0,
+           score: socket.assigns.score + score,
+           state: state,
+           reset: true
+         )}
+
+      socket.assigns.round < 4 ->
+        {:noreply,
+         assign(
+           socket,
+           round: socket.assigns.round + 1,
+           state: state
+         )}
+
+      socket.assigns.round == 4 ->
+        {:noreply,
+         assign(
+           socket,
+           round: 0,
+           word: Words.get_word(),
+           state: state,
+           reset: true
+         )}
+    end
+  end
+
+  def handle_event("reset", params, socket) do
+    {:noreply,
+     assign(
+       socket,
+       round: 0,
+       state: @starting_state,
+       word: Words.get_word(),
+       reset: false,
+       form: to_form(%{})
+     )}
   end
 
   defp feedback(word, guess) do
@@ -112,15 +166,14 @@ defmodule GameSiteWeb.WordleLive do
 
     Enum.map(index_guess, fn {letter, index} ->
       cond do
-        {letter, index} in index_word -> "bg-green-200"
-        letter in String.split(word, "", trim: true) -> "bg-yellow-200"
-        true -> "bg-gray-200"
+        {letter, index} in index_word -> "bg-green-400"
+        letter in String.split(word, "", trim: true) -> "bg-yellow-300"
+        true -> "bg-gray-300"
       end
     end)
   end
 
   defp set_colors(colors, round, state) do
-    IO.inspect(state)
     case round do
       0 ->
         {color, _list} = List.pop_at(colors, 0, :gray)
@@ -181,6 +234,18 @@ defmodule GameSiteWeb.WordleLive do
         state = put_in(state[23], color)
         {color, _list} = List.pop_at(colors, 4, :gray)
         state = put_in(state[24], color)
+    end
+  end
+
+  def handle_event("exit", params, socket) do
+    save_score(socket, :new, params)
+  end
+
+  defp correct?(colors) do
+    if colors == ["bg-green-400", "bg-green-400", "bg-green-400", "bg-green-400", "bg-green-400"] do
+      true
+    else
+      false
     end
   end
 
