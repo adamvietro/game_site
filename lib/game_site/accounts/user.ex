@@ -1,4 +1,5 @@
 defmodule GameSite.Accounts.User do
+  alias GameSite.Repo
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -8,6 +9,7 @@ defmodule GameSite.Accounts.User do
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
+    field :user_name, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -37,9 +39,11 @@ defmodule GameSite.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:email, :password, :user_name])
     |> validate_email(opts)
     |> validate_password(opts)
+    |> unsafe_validate_unique(:user_name, Repo)
+    |> unique_constraint(:user_name, message: "Name taken")
   end
 
   defp validate_email(changeset, opts) do
