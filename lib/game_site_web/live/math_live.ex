@@ -20,14 +20,12 @@ defmodule GameSiteWeb.MathLive do
     <body>
       <div>
         This is a simple Math game that will ask you to solve a simple Math question. It will involve 2
-        digits that are between 1 and 100 and a operand. You will continue to acquire a single point for every
+        digits that are between 1 and 100 and an operand. You will continue to acquire a single point for every
         correct answer that you give. You can at any point exit and save your high score, however 1 incorrect answer
-        will reduce your score to 0.
-        <br>#todo:
-        <br>add a wager button (for more points)
-        <br>add a param for highest score for the session
-        <br>keep only the highest 5 scores for each player
-        <br>change it to any size of questions
+        will reduce your score to 0. It will not allow you to come back to a previous session.<br />
+        <br />
+        <br />#todo: <br />Add a wager button (for more points)
+        <br />Add a param for highest score for the session <br />Change it to any size of questions
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
@@ -85,6 +83,10 @@ defmodule GameSiteWeb.MathLive do
     end
   end
 
+  @doc """
+  These functions below are used to set the scores for a player. You will have to have unique scores
+  for each game and player.
+  """
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
   end

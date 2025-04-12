@@ -3,7 +3,6 @@ defmodule GameSiteWeb.UserRegistrationLive do
 
   alias GameSite.Accounts
   alias GameSite.Accounts.User
-  alias GameSite.Repo
 
   def render(assigns) do
     ~H"""

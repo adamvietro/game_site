@@ -80,13 +80,11 @@ defmodule GameSiteWeb.ScoreLive.FormComponent do
     end
   end
 
-  @impl true
   def handle_info({GameSiteWeb.ScoreLive.FormComponent, {:new, score}}, socket) do
     # prepends the new message
     {:noreply, stream_insert(socket, :scores, score, at: 0)}
   end
 
-  @impl true
   def handle_info({GameSiteWeb.ScoreLive.FormComponent, {:edit, score}}, socket) do
     # updates the new message in its current position
     {:noreply, stream_insert(socket, :scores, score)}

@@ -8,25 +8,23 @@ defmodule GameSiteWeb.GuessingLive do
     <p>Score: {@score}</p>
     <p>Attempt: {@attempt}</p>
     <%!-- <p>Answer: {@answer}</p> --%>
-    <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <.input
-        type="text"
-        field={@form[:guess]}
-        label="Guess"
-        value={@form[:guess].value}
-        key={@attempt}
-      />
-      <:actions>
-        <.button>Answer</.button>
-      </:actions>
-    </.simple_form>
+    <div class="grid grid-cols-5 gap-x-3 gap-y-1 max-w-md mx-auto mt-4">
+      <%= for guess <- 1..10 do %>
+        <.simple_form for={@form} phx-submit="answer" class="text-center">
+          <.input type="hidden" field={@form[:guess]} value={guess} />
+          <.button type="submit" class="w-full">
+            {guess}
+          </.button>
+        </.simple_form>
+      <% end %>
+    </div>
 
     <body>
       <div>
         This is a simple Guessing Game. The site will pick a random number between 1 and 10 and
         you will have 5 guesses to get the correct answer. At any point you can exit and save your high score,
-        you will not be able to come back to your streak. You also will lose out on your high score if you get
-        run out of guesses. <br />#TODO: <br />Fix the CSS
+        you will not be able to come back to your streak. Your score will also go to 0 if you run out of guesses.<br /><br />
+        <br />#TODO: <br />Fix the CSS
         <br />Add in a param to keep track of a current session high score
         <br />Add in a betting button to wager your score for more points
       </div>
@@ -45,12 +43,14 @@ defmodule GameSiteWeb.GuessingLive do
   def mount(_params, _session, socket) do
     answer = Enum.random(1..10)
 
-    {:ok, assign(
-      socket,
-      answer: answer,
-      score: 0,
-      attempt: 1,
-      form: to_form(%{"guess" => ""}))}
+    {:ok,
+     assign(
+       socket,
+       answer: answer,
+       score: 0,
+       attempt: 1,
+       form: to_form(%{"guess" => ""})
+     )}
   end
 
   def handle_event("answer", params, socket) do
@@ -68,10 +68,12 @@ defmodule GameSiteWeb.GuessingLive do
 
       socket.assigns.attempt < 5 ->
         form_data = %{"guess" => ""}
-        new_form = to_form(form_data, errors: [guess: {"incorrect", []}])
+        new_form = to_form(form_data)
 
         {:noreply,
-         assign(socket,
+         assign(
+           socket
+           |> put_flash(:info, "Incorrect."),
            attempt: socket.assigns.attempt + 1,
            form: new_form
          )}

@@ -52,15 +52,16 @@ defmodule GameSiteWeb.WordleLive do
     <%= if @reset == true do %>
       <p>Word: {@word}</p>
     <% end %>
-    <div class="grid grid-cols-5 gap-4">
-      <%= for {label, index} <- Enum.with_index([
-    @entry.first.l1 , @entry.first.l2, @entry.first.l3, @entry.first.l4, @entry.first.l5,
-    @entry.second.l1, @entry.second.l2, @entry.second.l3, @entry.second.l4, @entry.second.l5,
-    @entry.third.l1 , @entry.third.l2, @entry.third.l3, @entry.third.l4, @entry.third.l5,
-    @entry.fourth.l1, @entry.fourth.l2, @entry.fourth.l3, @entry.fourth.l4, @entry.fourth.l5,
-    @entry.fifth.l1 , @entry.fifth.l2, @entry.fifth.l3, @entry.fifth.l4, @entry.fifth.l5,
-    @entry.sixth.l1 , @entry.sixth.l2, @entry.sixth.l3, @entry.sixth.l4, @entry.sixth.l5
-    ]) do %>
+    <% round_order = [:first, :second, :third, :fourth, :fifth, :sixth] %>
+
+    <% labels =
+      for round <- round_order,
+          letter <- 1..5 do
+        Map.get(@entry[round], :"l#{letter}")
+      end %>
+
+    <div class="grid grid-cols-5 gap-2 sm:gap-4">
+      <%= for {label, index} <- Enum.with_index(labels) do %>
         <div class={"p-4 text-center rounded " <> Map.get(@state, index)}>
           {label}
         </div>
@@ -97,12 +98,13 @@ defmodule GameSiteWeb.WordleLive do
         5 letter word, you will be given feedback on how close you are to the word. A green box means that
         you have the right letter and position. A yellow box means that you have a letter in the word but
         it's not in the right place. A grey box means that the letter isn't even in the word. The faster
-        (number of guesses) the higher score you will receive.
-        <br />Please enjoy below is a list of things I want to add. <br />#todo:
-        <br />add a wager button (for more points) <br />Add a sixth row
-        <br />Add a keyboard with colors <br />Add a streak counter
-        <br />Add in an entry socket to keep track of the entered words
-        <br />Add check for max characters
+        (number of guesses) the higher score you will receive. <br />
+        <br />
+        <br />#todo: <br />Add a wager button (for more points) <br />Add a sixth row
+        <br />Add a keyboard with colors <br />Add a streak counter <br />Add check for max characters
+        <br />Add a check for word entry: 5 letters and is in the word list
+        <br />Make sure that the cell for the answer is cleared every time.
+        <br />Make sure that once a letter is used it can no longer show up as yellow.
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
@@ -189,84 +191,103 @@ defmodule GameSiteWeb.WordleLive do
      )}
   end
 
+  def handle_event("exit", params, socket) do
+    save_score(socket, :new, params)
+  end
+
+  # defp entries(entries, word, round) do
+  #   word =
+  #     word
+  #     |> String.split("", trim: true)
+
+  #   case round do
+  #     0 ->
+  #       {letter, _list} = List.pop_at(word, 0, "")
+  #       entries = put_in(entries.first.l1, letter)
+  #       {letter, _list} = List.pop_at(word, 1, "")
+  #       entries = put_in(entries.first.l2, letter)
+  #       {letter, _list} = List.pop_at(word, 2, "")
+  #       entries = put_in(entries.first.l3, letter)
+  #       {letter, _list} = List.pop_at(word, 3, "")
+  #       entries = put_in(entries.first.l4, letter)
+  #       {letter, _list} = List.pop_at(word, 4, "")
+  #       _entries = put_in(entries.first.l5, letter)
+
+  #     1 ->
+  #       {letter, _list} = List.pop_at(word, 0, "")
+  #       entries = put_in(entries.second.l1, letter)
+  #       {letter, _list} = List.pop_at(word, 1, "")
+  #       entries = put_in(entries.second.l2, letter)
+  #       {letter, _list} = List.pop_at(word, 2, "")
+  #       entries = put_in(entries.second.l3, letter)
+  #       {letter, _list} = List.pop_at(word, 3, "")
+  #       entries = put_in(entries.second.l4, letter)
+  #       {letter, _list} = List.pop_at(word, 4, "")
+  #       _entries = put_in(entries.second.l5, letter)
+
+  #     2 ->
+  #       {letter, _list} = List.pop_at(word, 0, "")
+  #       entries = put_in(entries.third.l1, letter)
+  #       {letter, _list} = List.pop_at(word, 1, "")
+  #       entries = put_in(entries.third.l2, letter)
+  #       {letter, _list} = List.pop_at(word, 2, "")
+  #       entries = put_in(entries.third.l3, letter)
+  #       {letter, _list} = List.pop_at(word, 3, "")
+  #       entries = put_in(entries.third.l4, letter)
+  #       {letter, _list} = List.pop_at(word, 4, "")
+  #       _entries = put_in(entries.third.l5, letter)
+
+  #     3 ->
+  #       {letter, _list} = List.pop_at(word, 0, "")
+  #       entries = put_in(entries.fourth.l1, letter)
+  #       {letter, _list} = List.pop_at(word, 1, "")
+  #       entries = put_in(entries.fourth.l2, letter)
+  #       {letter, _list} = List.pop_at(word, 2, "")
+  #       entries = put_in(entries.fourth.l3, letter)
+  #       {letter, _list} = List.pop_at(word, 3, "")
+  #       entries = put_in(entries.fourth.l4, letter)
+  #       {letter, _list} = List.pop_at(word, 4, "")
+  #       _entries = put_in(entries.fourth.l5, letter)
+
+  #     4 ->
+  #       {letter, _list} = List.pop_at(word, 0, "")
+  #       entries = put_in(entries.fifth.l1, letter)
+  #       {letter, _list} = List.pop_at(word, 1, "")
+  #       entries = put_in(entries.fifth.l2, letter)
+  #       {letter, _list} = List.pop_at(word, 2, "")
+  #       entries = put_in(entries.fifth.l3, letter)
+  #       {letter, _list} = List.pop_at(word, 3, "")
+  #       entries = put_in(entries.fifth.l4, letter)
+  #       {letter, _list} = List.pop_at(word, 4, "")
+  #       _entries = put_in(entries.fifth.l5, letter)
+
+  #     5 ->
+  #       {letter, _list} = List.pop_at(word, 0, "")
+  #       entries = put_in(entries.sixth.l1, letter)
+  #       {letter, _list} = List.pop_at(word, 1, "")
+  #       entries = put_in(entries.sixth.l2, letter)
+  #       {letter, _list} = List.pop_at(word, 2, "")
+  #       entries = put_in(entries.sixth.l3, letter)
+  #       {letter, _list} = List.pop_at(word, 3, "")
+  #       entries = put_in(entries.sixth.l4, letter)
+  #       {letter, _list} = List.pop_at(word, 4, "")
+  #       _entries = put_in(entries.sixth.l5, letter)
+  #   end
+  # end
+
   defp entries(entries, word, round) do
-    word =
-      word
-      |> String.split("", trim: true)
+    word_letters = String.split(word, "", trim: true)
 
-    case round do
-      0 ->
-        {letter, _list} = List.pop_at(word, 0, "")
-        entries = put_in(entries.first.l1, letter)
-        {letter, _list} = List.pop_at(word, 1, "")
-        entries = put_in(entries.first.l2, letter)
-        {letter, _list} = List.pop_at(word, 2, "")
-        entries = put_in(entries.first.l3, letter)
-        {letter, _list} = List.pop_at(word, 3, "")
-        entries = put_in(entries.first.l4, letter)
-        {letter, _list} = List.pop_at(word, 4, "")
-        entries = put_in(entries.first.l5, letter)
+    line_keys = [:first, :second, :third, :fourth, :fifth, :sixth]
+    line_key = Enum.at(line_keys, round)
 
-      1 ->
-        {letter, _list} = List.pop_at(word, 0, "")
-        entries = put_in(entries.second.l1, letter)
-        {letter, _list} = List.pop_at(word, 1, "")
-        entries = put_in(entries.second.l2, letter)
-        {letter, _list} = List.pop_at(word, 2, "")
-        entries = put_in(entries.second.l3, letter)
-        {letter, _list} = List.pop_at(word, 3, "")
-        entries = put_in(entries.second.l4, letter)
-        {letter, _list} = List.pop_at(word, 4, "")
-        _entries = put_in(entries.second.l5, letter)
+    updated_line =
+      Enum.with_index(word_letters)
+      |> Enum.reduce(entries[line_key], fn {letter, i}, acc ->
+        put_in(acc[:"l#{i + 1}"], letter)
+      end)
 
-      2 ->
-        {letter, _list} = List.pop_at(word, 0, "")
-        entries = put_in(entries.third.l1, letter)
-        {letter, _list} = List.pop_at(word, 1, "")
-        entries = put_in(entries.third.l2, letter)
-        {letter, _list} = List.pop_at(word, 2, "")
-        entries = put_in(entries.third.l3, letter)
-        {letter, _list} = List.pop_at(word, 3, "")
-        entries = put_in(entries.third.l4, letter)
-        {letter, _list} = List.pop_at(word, 4, "")
-        _entries = put_in(entries.third.l5, letter)
-
-      3 ->
-        {letter, _list} = List.pop_at(word, 0, "")
-        entries = put_in(entries.fourth.l1, letter)
-        {letter, _list} = List.pop_at(word, 1, "")
-        entries = put_in(entries.fourth.l2, letter)
-        {letter, _list} = List.pop_at(word, 2, "")
-        entries = put_in(entries.fourth.l3, letter)
-        {letter, _list} = List.pop_at(word, 3, "")
-        entries = put_in(entries.fourth.l4, letter)
-        {letter, _list} = List.pop_at(word, 4, "")
-        _entries = put_in(entries.fourth.l5, letter)
-
-      4 ->
-        {letter, _list} = List.pop_at(word, 0, "")
-        entries = put_in(entries.fifth.l1, letter)
-        {letter, _list} = List.pop_at(word, 1, "")
-        entries = put_in(entries.fifth.l2, letter)
-        {letter, _list} = List.pop_at(word, 2, "")
-        entries = put_in(entries.fifth.l3, letter)
-        {letter, _list} = List.pop_at(word, 3, "")
-        entries = put_in(entries.fifth.l4, letter)
-        {letter, _list} = List.pop_at(word, 4, "")
-        _entries = put_in(entries.fifth.l5, letter)
-
-      5 ->
-        {letter, _list} = List.pop_at(word, 0, "")
-        entries = put_in(entries.sixth.l1, letter)
-        {letter, _list} = List.pop_at(word, 1, "")
-        entries = put_in(entries.sixth.l2, letter)
-        {letter, _list} = List.pop_at(word, 2, "")
-        entries = put_in(entries.sixth.l3, letter)
-        {letter, _list} = List.pop_at(word, 3, "")
-        entries = put_in(entries.sixth.l4, letter)
-        {letter, _list} = List.pop_at(word, 4, "")
-        _entries = put_in(entries.sixth.l5, letter)
-    end
+    put_in(entries[line_key], updated_line)
   end
 
   defp feedback(word, guess) do
@@ -290,84 +311,87 @@ defmodule GameSiteWeb.WordleLive do
     end)
   end
 
+  # defp set_colors(colors, round, state) do
+  #   case round do
+  #     0 ->
+  #       {color, _list} = List.pop_at(colors, 0, :gray)
+  #       state = put_in(state[0], color)
+  #       {color, _list} = List.pop_at(colors, 1, :gray)
+  #       state = put_in(state[1], color)
+  #       {color, _list} = List.pop_at(colors, 2, :gray)
+  #       state = put_in(state[2], color)
+  #       {color, _list} = List.pop_at(colors, 3, :gray)
+  #       state = put_in(state[3], color)
+  #       {color, _list} = List.pop_at(colors, 4, :gray)
+  #       _state = put_in(state[4], color)
+
+  #     1 ->
+  #       {color, _list} = List.pop_at(colors, 0, :gray)
+  #       state = put_in(state[5], color)
+  #       {color, _list} = List.pop_at(colors, 1, :gray)
+  #       state = put_in(state[6], color)
+  #       {color, _list} = List.pop_at(colors, 2, :gray)
+  #       state = put_in(state[7], color)
+  #       {color, _list} = List.pop_at(colors, 3, :gray)
+  #       state = put_in(state[8], color)
+  #       {color, _list} = List.pop_at(colors, 4, :gray)
+  #       _state = put_in(state[9], color)
+
+  #     2 ->
+  #       {color, _list} = List.pop_at(colors, 0, :gray)
+  #       state = put_in(state[10], color)
+  #       {color, _list} = List.pop_at(colors, 1, :gray)
+  #       state = put_in(state[11], color)
+  #       {color, _list} = List.pop_at(colors, 2, :gray)
+  #       state = put_in(state[12], color)
+  #       {color, _list} = List.pop_at(colors, 3, :gray)
+  #       state = put_in(state[13], color)
+  #       {color, _list} = List.pop_at(colors, 4, :gray)
+  #       _state = put_in(state[14], color)
+
+  #     3 ->
+  #       {color, _list} = List.pop_at(colors, 0, :gray)
+  #       state = put_in(state[15], color)
+  #       {color, _list} = List.pop_at(colors, 1, :gray)
+  #       state = put_in(state[16], color)
+  #       {color, _list} = List.pop_at(colors, 2, :gray)
+  #       state = put_in(state[17], color)
+  #       {color, _list} = List.pop_at(colors, 3, :gray)
+  #       state = put_in(state[18], color)
+  #       {color, _list} = List.pop_at(colors, 4, :gray)
+  #       _state = put_in(state[19], color)
+
+  #     4 ->
+  #       {color, _list} = List.pop_at(colors, 0, :gray)
+  #       state = put_in(state[20], color)
+  #       {color, _list} = List.pop_at(colors, 1, :gray)
+  #       state = put_in(state[21], color)
+  #       {color, _list} = List.pop_at(colors, 2, :gray)
+  #       state = put_in(state[22], color)
+  #       {color, _list} = List.pop_at(colors, 3, :gray)
+  #       state = put_in(state[23], color)
+  #       {color, _list} = List.pop_at(colors, 4, :gray)
+  #       _state = put_in(state[24], color)
+
+  #     5 ->
+  #       {color, _list} = List.pop_at(colors, 0, :gray)
+  #       state = put_in(state[25], color)
+  #       {color, _list} = List.pop_at(colors, 1, :gray)
+  #       state = put_in(state[26], color)
+  #       {color, _list} = List.pop_at(colors, 2, :gray)
+  #       state = put_in(state[27], color)
+  #       {color, _list} = List.pop_at(colors, 3, :gray)
+  #       state = put_in(state[28], color)
+  #       {color, _list} = List.pop_at(colors, 4, :gray)
+  #       _state = put_in(state[29], color)
+  #   end
   defp set_colors(colors, round, state) do
-    case round do
-      0 ->
-        {color, _list} = List.pop_at(colors, 0, :gray)
-        state = put_in(state[0], color)
-        {color, _list} = List.pop_at(colors, 1, :gray)
-        state = put_in(state[1], color)
-        {color, _list} = List.pop_at(colors, 2, :gray)
-        state = put_in(state[2], color)
-        {color, _list} = List.pop_at(colors, 3, :gray)
-        state = put_in(state[3], color)
-        {color, _list} = List.pop_at(colors, 4, :gray)
-        _state = put_in(state[4], color)
+    offset = round * 5
 
-      1 ->
-        {color, _list} = List.pop_at(colors, 0, :gray)
-        state = put_in(state[5], color)
-        {color, _list} = List.pop_at(colors, 1, :gray)
-        state = put_in(state[6], color)
-        {color, _list} = List.pop_at(colors, 2, :gray)
-        state = put_in(state[7], color)
-        {color, _list} = List.pop_at(colors, 3, :gray)
-        state = put_in(state[8], color)
-        {color, _list} = List.pop_at(colors, 4, :gray)
-        _state = put_in(state[9], color)
-
-      2 ->
-        {color, _list} = List.pop_at(colors, 0, :gray)
-        state = put_in(state[10], color)
-        {color, _list} = List.pop_at(colors, 1, :gray)
-        state = put_in(state[11], color)
-        {color, _list} = List.pop_at(colors, 2, :gray)
-        state = put_in(state[12], color)
-        {color, _list} = List.pop_at(colors, 3, :gray)
-        state = put_in(state[13], color)
-        {color, _list} = List.pop_at(colors, 4, :gray)
-        _state = put_in(state[14], color)
-
-      3 ->
-        {color, _list} = List.pop_at(colors, 0, :gray)
-        state = put_in(state[15], color)
-        {color, _list} = List.pop_at(colors, 1, :gray)
-        state = put_in(state[16], color)
-        {color, _list} = List.pop_at(colors, 2, :gray)
-        state = put_in(state[17], color)
-        {color, _list} = List.pop_at(colors, 3, :gray)
-        state = put_in(state[18], color)
-        {color, _list} = List.pop_at(colors, 4, :gray)
-        _state = put_in(state[19], color)
-
-      4 ->
-        {color, _list} = List.pop_at(colors, 0, :gray)
-        state = put_in(state[20], color)
-        {color, _list} = List.pop_at(colors, 1, :gray)
-        state = put_in(state[21], color)
-        {color, _list} = List.pop_at(colors, 2, :gray)
-        state = put_in(state[22], color)
-        {color, _list} = List.pop_at(colors, 3, :gray)
-        state = put_in(state[23], color)
-        {color, _list} = List.pop_at(colors, 4, :gray)
-        _state = put_in(state[24], color)
-
-      5 ->
-        {color, _list} = List.pop_at(colors, 0, :gray)
-        state = put_in(state[25], color)
-        {color, _list} = List.pop_at(colors, 1, :gray)
-        state = put_in(state[26], color)
-        {color, _list} = List.pop_at(colors, 2, :gray)
-        state = put_in(state[27], color)
-        {color, _list} = List.pop_at(colors, 3, :gray)
-        state = put_in(state[28], color)
-        {color, _list} = List.pop_at(colors, 4, :gray)
-        _state = put_in(state[29], color)
-    end
-  end
-
-  def handle_event("exit", params, socket) do
-    save_score(socket, :new, params)
+    Enum.reduce(0..4, state, fn i, acc ->
+      {color, _} = List.pop_at(colors, i, :gray)
+      put_in(acc[offset + i], color)
+    end)
   end
 
   defp correct?(colors) do

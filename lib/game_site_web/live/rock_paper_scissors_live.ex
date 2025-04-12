@@ -36,13 +36,12 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     <body>
       <div>
         Rock Paper Scissors. Yeah it's simple but fun. Each win will give you 10 points each loss will lose you
-        ten points draws will not effect your points. You will simply click a button and roll the dice, or scissors?
+        ten points draws will not effect your points. You will simply click a button and roll the dice, or ?scissors?
         At any point you can exit this page it will submit your current score (know when to hold'en and fold'em). You
-        can't come back to a current streak once you exit or refresh the page.
-        <br />Please enjoy below is a list of things I want to add.
-        <br />#todo:
-        <br />add a wager button (for more points) <br />add a param for highest score for the session
-        <br />keep only the highest 5 scores for each player <br />change it to any size of questions
+        can't come back to a current streak once you exit or refresh the page. <br />
+        <br />
+        <br />#todo: <br />Add a wager button (for more points)
+        <br />Add a param for highest score for the session
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
