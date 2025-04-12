@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" class="[scrollbar-gutter:stable]">
   <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title default="GameSite" suffix=" · Phoenix Framework">
+      {assigns[:page_title]}
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
+  </head>
+  <head>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
@@ -52,7 +63,9 @@
       <.link navigate={~p"/scores"} class="link bg-gray-400 hover:bg-gray-200">Scores</.link>
       <.link navigate={~p"/1"} class="link bg-gray-400 hover:bg-gray-200">Guessing Game</.link>
       <.link navigate={~p"/2"} class="link bg-gray-400 hover:bg-gray-200">Math Game</.link>
-      <.link navigate={~p"/3"} class="link bg-gray-400 hover:bg-gray-200">Rock Paper Scissors</.link>
+      <.link navigate={~p"/3"} class="link bg-gray-400 hover:bg-gray-200">
+        Rock Paper Scissors
+      </.link>
       <.link navigate={~p"/4"} class="link bg-gray-400 hover:bg-gray-200">
         Wordle
       </.link>
@@ -61,7 +74,8 @@
   </body>
 </html>
 
-<script defer type="text/javascript" src={~p"/assets/app.js"}></script>
+<script defer type="text/javascript" src={~p"/assets/app.js"}>
+</script>
 
 <style>
   .topnavcontainer {
