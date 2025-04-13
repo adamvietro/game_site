@@ -8,7 +8,7 @@ defmodule GameSiteWeb.GuessingLive do
     <p>Session High Score: {@highest_score}</p>
     <p>Score: {@score}</p>
     <p>Attempt: {@attempt}</p>
-    <p>Answer: {@answer}</p>
+    <%!-- <p>Answer: {@answer}</p> --%>
 
     <div class="grid grid-cols-5 gap-x-3 gap-y-1 max-w-md mx-auto mt-4">
       <%= for guess <- 1..10 do %>
