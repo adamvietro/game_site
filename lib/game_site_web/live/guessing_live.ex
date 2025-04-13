@@ -83,7 +83,7 @@ defmodule GameSiteWeb.GuessingLive do
          socket
          |> put_flash(:info, "Out of Guesses.")
          |> assign(
-           attempt: 0,
+           attempt: 1,
            score: 0,
            answer: Enum.random(1..10),
            form: to_form(%{"guess" => ""})
