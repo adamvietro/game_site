@@ -2,6 +2,7 @@ defmodule GameSiteWeb.GuessingLive do
   use GameSiteWeb, :live_view
 
   alias GameSite.Scores
+  alias GameSiteWeb.HelperFunctions, as: Helper
 
   def render(assigns) do
     ~H"""
@@ -77,8 +78,8 @@ defmodule GameSiteWeb.GuessingLive do
 
   def handle_event("answer", %{"guess" => guess, "wager" => wager}, socket) do
     parsed_wager =
-      parse_wager(wager)
-      |> add_subtract_wager(guess, to_string(socket.assigns.answer))
+      Helper.parse_wager(wager)
+      |> Helper.add_subtract_wager(guess, to_string(socket.assigns.answer))
 
     event_info =
       %{
@@ -93,7 +94,7 @@ defmodule GameSiteWeb.GuessingLive do
 
     cond do
       event_info.answer == event_info.guess ->
-        highest_score = highest_score(event_info)
+        highest_score = Helper.highest_score(event_info)
 
         {:noreply,
          assign(
@@ -143,27 +144,7 @@ defmodule GameSiteWeb.GuessingLive do
     save_score(socket, :new, params)
   end
 
-  defp highest_score(event_info), do: max(event_info.current_score, event_info.highest_score)
-
   defp new_answer(), do: Enum.random(1..10)
-
-  defp parse_wager(nil), do: 1
-  defp parse_wager(""), do: 1
-
-  defp parse_wager(wager) do
-    case Integer.parse(wager) do
-      {int, _} -> int
-      :error -> 1
-    end
-  end
-
-  defp add_subtract_wager(wager, guess, answer) do
-    if guess == answer do
-      wager
-    else
-      wager * -1
-    end
-  end
 
   defp save_score(socket, :new, score_params) do
     case Scores.create_score(score_params) do
