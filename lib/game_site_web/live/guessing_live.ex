@@ -32,7 +32,7 @@ defmodule GameSiteWeb.GuessingLive do
         id="wager_input"
         name="wager_visible"
         min="1"
-        value="1"
+        value={@wager}
         max={@score}
         step="1"
         class="w-full rounded-md border-gray-300 shadow-sm"
@@ -70,7 +70,8 @@ defmodule GameSiteWeb.GuessingLive do
        attempt: 1,
        form: to_form(%{"guess" => ""}),
        highest_score: 0,
-       score: 10
+       score: 10,
+       wager: 1
      )}
   end
 
@@ -101,7 +102,8 @@ defmodule GameSiteWeb.GuessingLive do
            answer: new_answer(),
            score: event_info.current_score,
            attempt: 1,
-           highest_score: highest_score
+           highest_score: highest_score,
+           wager: wager
          )}
 
       event_info.attempt < 5 ->
@@ -109,7 +111,8 @@ defmodule GameSiteWeb.GuessingLive do
          assign(
            socket
            |> put_flash(:info, "Incorrect."),
-           attempt: event_info.attempt + 1
+           attempt: event_info.attempt + 1,
+           wager: wager
          )}
 
       event_info.attempt >= 5 and event_info.current_score == 0 ->
@@ -119,7 +122,8 @@ defmodule GameSiteWeb.GuessingLive do
          |> assign(
            attempt: 1,
            score: 10,
-           answer: new_answer()
+           answer: new_answer(),
+           wager: 1
          )}
 
       event_info.attempt >= 5 ->
@@ -129,7 +133,8 @@ defmodule GameSiteWeb.GuessingLive do
          |> assign(
            attempt: 1,
            score: event_info.current_score,
-           answer: new_answer()
+           answer: new_answer(),
+           wager: min(wager, event_info.current_score)
          )}
     end
   end
