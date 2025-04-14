@@ -3,6 +3,12 @@ defmodule GameSiteWeb.MathLive do
 
   alias GameSite.Scores
   alias GameSiteWeb.HelperFunctions, as: Helper
+  alias Ecto.Changeset
+
+  import Ecto.Changeset
+
+  @types %{guess: :integer, wager: :integer, question: :string, answer: :integer}
+  @default %{guess: nil, wager: 1, question: nil, answer: nil}
 
   def render(assigns) do
     ~H"""
@@ -12,21 +18,8 @@ defmodule GameSiteWeb.MathLive do
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
       <.input type="hidden" field={@form[:question]} value={@question} />
       <.input type="hidden" field={@form[:answer]} value={@answer} />
-      <.input
-        type="number"
-        field={@form[:guess]}
-        label="Guess"
-        phx-hook="FocusGuess"
-        value={@guess}
-      />
-      <.input
-        type="number"
-        field={@form[:wager]}
-        label="Wager"
-        min="1"
-        max={@score}
-        value={@wager}
-      />
+      <.input type="number" field={@form[:guess]} label="Guess" phx-hook="FocusGuess" value={@guess} />
+      <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
       <:actions>
         <.button>Answer</.button>
       </:actions>
@@ -56,43 +49,55 @@ defmodule GameSiteWeb.MathLive do
 
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      new_q =
+      new_question =
         new_question()
         |> IO.inspect(label: "First Question")
 
-      form =
-        to_form(%{
-          "guess" => "",
-          "wager" => 1,
-          "question" => new_q.question,
-          "answer" => new_q.answer
-        })
+      changeset =
+        changeset(
+          %{
+            guess: "",
+            wager: 1,
+            question: new_question.question,
+            answer: new_question.answer
+          },
+          10
+        )
 
       socket =
-        assign(socket,
-          question: new_q.question,
-          answer: new_q.answer,
-          variables: new_q.variables,
-          score: 10,
-          form: form,
-          highest_score: 0,
-          wager: 1,
-          guess: ""
-        )
+        socket
+        |> assign(:question, new_question.question)
+        |> assign(:answer, new_question.answer)
+        |> assign(:guess, nil)
+        |> assign(variables: new_question.variables)
+        |> assign(:score, 10)
+        |> assign(:highest_score, 0)
+        |> assign(:wager, 1)
+        |> assign_form(changeset)
 
       {:ok, socket}
     else
-      socket =
-        assign(socket,
-          question: "Loading...",
-          answer: nil,
-          variables: nil,
-          score: 10,
-          form: to_form(%{"guess" => ""}),
-          highest_score: 0,
-          wager: 1,
-          guess: ""
+      changeset =
+        changeset(
+          %{
+            guess: "",
+            wager: 1,
+            question: "Loading",
+            answer: nil
+          },
+          10
         )
+
+      socket =
+        socket
+        |> assign(:question, "Loading...")
+        |> assign(:answer, nil)
+        |> assign(:guess, nil)
+        |> assign(variables: nil)
+        |> assign(:score, 10)
+        |> assign(:highest_score, 0)
+        |> assign(:wager, 1)
+        |> assign_form(changeset)
 
       {:ok, socket}
     end
@@ -132,14 +137,14 @@ defmodule GameSiteWeb.MathLive do
 
     cond do
       event_info.correct ->
-        question_assigns = Map.take(new_question, ~w[question answer variables]a)
+        new_question = Map.take(new_question, ~w[question answer variables]a)
         highest_score = Helper.highest_score(event_info)
         answer_form = to_form(%{"guess" => "", "wager" => event_info.wager})
 
         socket =
           socket
           |> push_event("focus-guess", %{})
-          |> assign(question_assigns)
+          |> assign(new_question)
           |> assign(:score, event_info.current_score)
           |> assign(:highest_score, highest_score)
           |> assign(:wager, event_info.wager)
@@ -187,6 +192,21 @@ defmodule GameSiteWeb.MathLive do
     save_score(socket, :new, params)
   end
 
+  defp assign_form(socket_or_assigns, %Changeset{} = changeset) do
+    form = to_form(changeset, as: :language)
+
+    assign(socket_or_assigns, :form, form)
+  end
+
+  defp assign_form(socket, changeset), do: assign(socket, form: changeset)
+
+  defp changeset(params, score) do
+    {@default, @types}
+    |> cast(params, [:guess, :wager, :question, :answer])
+    |> validate_required([:wager])
+    |> validate_number(:wager, greater_than: 1, less_than: score)
+  end
+
   defp new_variables() do
     %{
       first: Enum.random(1..100),
@@ -215,7 +235,7 @@ defmodule GameSiteWeb.MathLive do
     %{variables: variables, question: question, answer: answer}
   end
 
-  defp set_event_info(socket, %{"wager" => wager, "guess" => guess, "answer" => answer}) do
+  defp set_event_info(socket, %{"wager" => wager, "guess" => guess, "answer" => answer, "question" => question}) do
     parsed_wager =
       Helper.add_subtract_wager(wager, guess, answer)
 
