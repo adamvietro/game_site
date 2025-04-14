@@ -8,10 +8,7 @@ defmodule GameSiteWeb.MathLive do
     <p>Score: {@score}</p>
     <p>Question: {@question}</p>
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <.input type="number" field={@form[:answer]} label="Answer" />
-      <.input type="hidden" field={@form[:first]} value={@first} />
-      <.input type="hidden" field={@form[:second]} value={@second} />
-      <.input type="hidden" field={@form[:notation]} value={@notation} />
+      <.input type="number" field={@form[:answer]} label="Answer" value={@form.params["answer"]} />
       <:actions>
         <.button>Answer</.button>
       </:actions>
@@ -40,42 +37,29 @@ defmodule GameSiteWeb.MathLive do
   end
 
   def mount(_params, _session, socket) do
-    first = Enum.random(1..100)
-    second = Enum.random(1..100)
-    notation = Enum.random(["+", "-", "*"])
+    variables = new_variables()
 
     {:ok,
      assign(socket,
-       question: "#{first} #{notation} #{second}",
+       question: get_question(variables),
        score: 0,
        form: to_form(%{"answer" => ""}),
-       first: first,
-       second: second,
-       notation: notation
+       variables: variables
      )}
   end
 
   def handle_event("answer", params, socket) do
-    answer =
-      case params["notation"] do
-        "*" -> String.to_integer(params["first"]) * String.to_integer(params["second"])
-        "+" -> String.to_integer(params["first"]) + String.to_integer(params["second"])
-        "-" -> String.to_integer(params["first"]) - String.to_integer(params["second"])
-      end
+    {answer, _} = Code.eval_string(socket.assigns.question)
 
     if params["answer"] == to_string(answer) do
-      first = Enum.random(1..100)
-      second = Enum.random(1..100)
-      notation = Enum.random(["+", "-", "*"])
+      variables = new_variables()
 
       {:noreply,
        assign(socket,
-         question: "#{first} #{notation} #{second}",
+         question: get_question(variables),
          score: socket.assigns.score + 1,
          form: to_form(%{"answer" => ""}),
-         first: first,
-         second: second,
-         notation: notation
+         variables: variables
        )}
     else
       {:noreply,
@@ -83,12 +67,20 @@ defmodule GameSiteWeb.MathLive do
     end
   end
 
-  @doc """
-  These functions below are used to set the scores for a player. You will have to have unique scores
-  for each game and player.
-  """
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
+  end
+
+  defp new_variables() do
+    %{
+      first: Enum.random(1..100),
+      second: Enum.random(1..100),
+      notation: Enum.random(["+", "-", "*"])
+    }
+  end
+
+  defp get_question(%{first: first, second: second, notation: notation}) do
+    "#{first} #{notation} #{second}"
   end
 
   defp save_score(socket, :new, score_params) do
