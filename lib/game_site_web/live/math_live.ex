@@ -2,13 +2,24 @@ defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
   alias GameSite.Scores
+  alias GameSiteWeb.HelperFunctions, as: Helper
 
   def render(assigns) do
     ~H"""
+    <p>Highest Score: {@highest_score}</p>
     <p>Score: {@score}</p>
     <p>Question: {@question}</p>
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <.input type="number" field={@form[:answer]} label="Answer" value={@form.params["answer"]} />
+      <.input type="number" field={@form[:guess]} label="Guess" value={@form.params["guess"]} />
+      <.input
+        type="number"
+        field={@form[:wager]}
+        label="Wager"
+        value={@form.params["wager"]}
+        min="1"
+        max={@score}
+        value={@wager}
+      />
       <:actions>
         <.button>Answer</.button>
       </:actions>
@@ -37,33 +48,74 @@ defmodule GameSiteWeb.MathLive do
   end
 
   def mount(_params, _session, socket) do
-    variables = new_variables()
+    # Set placeholders initially
+    socket =
+      assign(socket,
+        question: "Loading...",  # Placeholder for question
+        answer: nil,              # No answer yet
+        variables: nil,           # No variables yet
+        score: 10,
+        form: to_form(%{"guess" => ""}),
+        highest_score: 10,
+        wager: 1
+      )
 
-    {:ok,
+    if connected?(socket) do
+      # Once connected, generate the real question
+      send(self(), :generate_question)
+    end
+
+    {:ok, socket}
+  end
+
+  # Generate the question once the websocket is connected
+  def handle_info(:generate_question, socket) do
+    variables = new_variables()
+    question = get_question(variables)
+    {answer, _} = Code.eval_string(question)
+
+    {:noreply,
      assign(socket,
-       question: get_question(variables),
-       score: 0,
-       form: to_form(%{"answer" => ""}),
+       question: question,
+       answer: to_string(answer),
        variables: variables
      )}
   end
 
   def handle_event("answer", params, socket) do
-    {answer, _} = Code.eval_string(socket.assigns.question)
+    event_info =
+      set_event_info(socket, params)
 
-    if params["answer"] == to_string(answer) do
+    if event_info.guess == event_info.answer do
       variables = new_variables()
+      question = get_question(variables)
+      {answer, _} = Code.eval_string(question)
 
       {:noreply,
        assign(socket,
-         question: get_question(variables),
-         score: socket.assigns.score + 1,
-         form: to_form(%{"answer" => ""}),
-         variables: variables
+         question: question,
+         answer: to_string(answer),
+         score: socket.assigns.score + event_info.wager,
+         form: to_form(%{"guess" => ""}),
+         variables: variables,
+         highest_score: Helper.highest_score(event_info),
+         wager: event_info.wager
        )}
     else
+      variables = new_variables()
+      question = get_question(variables)
+      {answer, _} = Code.eval_string(question)
+
       {:noreply,
-       assign(socket, score: 0, form: to_form(params, errors: [answer: {"incorrect", []}]))}
+       assign(
+         socket
+         |> put_flash(:info, "Incorrect resetting."),
+         question: question,
+         answer: to_string(answer),
+         score: 10,
+         form: to_form(%{"guess" => ""}),
+         variables: variables
+       )}
     end
   end
 
@@ -76,6 +128,18 @@ defmodule GameSiteWeb.MathLive do
       first: Enum.random(1..100),
       second: Enum.random(1..100),
       notation: Enum.random(["+", "-", "*"])
+    }
+  end
+
+  defp set_event_info(socket, params) do
+    %{
+      question: socket.assigns.question,
+      answer: socket.assigns.answer,
+      current_score: socket.assigns.score,
+      variables: socket.assigns.variables,
+      highest_score: socket.assigns.highest_score,
+      guess: params["guess"],
+      wager: String.to_integer(params["wager"])
     }
   end
 
