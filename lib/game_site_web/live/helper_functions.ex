@@ -18,9 +18,9 @@ defmodule GameSiteWeb.HelperFunctions do
 
   def add_subtract_wager(wager, guess, answer) do
     if guess == answer do
-      wager
+      String.to_integer(wager)
     else
-      wager * -1
+      String.to_integer(wager) * -1
     end
   end
 end

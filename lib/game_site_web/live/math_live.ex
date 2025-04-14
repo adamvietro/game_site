@@ -10,6 +10,8 @@ defmodule GameSiteWeb.MathLive do
     <p>Score: {@score}</p>
     <p>Question: {@question}</p>
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
+      <.input type="hidden" field={@form[:question]} value={@question} />
+      <.input type="hidden" field={@form[:answer]} value={@answer} />
       <.input type="number" field={@form[:guess]} label="Guess" value={@form.params["guess"]} />
       <.input
         type="number"
@@ -48,14 +50,10 @@ defmodule GameSiteWeb.MathLive do
   end
 
   def mount(_params, _session, socket) do
-    # Set placeholders initially
     socket =
       assign(socket,
-        # Placeholder for question
         question: "Loading...",
-        # No answer yet
         answer: nil,
-        # No variables yet
         variables: nil,
         score: 10,
         form: to_form(%{"guess" => ""}),
@@ -64,7 +62,6 @@ defmodule GameSiteWeb.MathLive do
       )
 
     if connected?(socket) do
-      # Once connected, generate the real question
       send(self(), :generate_question)
     end
 
@@ -73,71 +70,65 @@ defmodule GameSiteWeb.MathLive do
 
   # Generate the question once the websocket is connected
   def handle_info(:generate_question, socket) do
-    variables = new_variables()
-    question = get_question(variables)
-    {answer, _} = Code.eval_string(question)
+    new_question =
+      new_question()
+      |> IO.inspect(label: "First Question")
 
     {:noreply,
      assign(socket,
-       question: question,
-       answer: to_string(answer),
-       variables: variables
+       question: new_question.question,
+       answer: new_question.answer,
+       variables: new_question.variables
      )}
   end
 
   def handle_event("answer", params, socket) do
     event_info =
       set_event_info(socket, params)
+      |> IO.inspect(label: "Event Info")
+
+    new_question =
+      new_question()
+      |> IO.inspect(label: "New Question")
 
     cond do
       event_info.correct ->
-        variables = new_variables()
-        question = get_question(variables)
-        {answer, _} = Code.eval_string(question)
-
         {:noreply,
          assign(socket,
-           question: question,
-           answer: to_string(answer),
+           question: new_question.question,
+           answer: new_question.answer,
+           variables: new_question.variables,
            score: event_info.current_score,
-           form: to_form(%{"guess" => ""}),
-           variables: variables,
            highest_score: Helper.highest_score(event_info),
-           wager: event_info.wager
+           wager: event_info.wager,
+           form: to_form(%{"guess" => "", "wager" => event_info.wager})
          )}
 
       event_info.current_score == 0 ->
-        variables = new_variables()
-        question = get_question(variables)
-        {answer, _} = Code.eval_string(question)
-
         {:noreply,
          assign(
            socket
-           |> put_flash(:info, "0 Score resetting."),
-           question: question,
-           answer: to_string(answer),
+           |> put_flash(:info, "Score is 0 Resetting"),
+           question: new_question.question,
+           answer: new_question.answer,
+           variables: new_question.variables,
            score: 10,
-           form: to_form(%{"guess" => ""}),
-           variables: variables
+           wager: event_info.wager,
+           form: to_form(%{"guess" => "", "wager" => event_info.wager})
          )}
 
       event_info.correct == false ->
-        variables = new_variables()
-        question = get_question(variables)
-        {answer, _} = Code.eval_string(question)
-
         {:noreply,
          assign(
            socket
-           |> put_flash(:info, "Incorrect."),
-           question: question,
-           answer: to_string(answer),
+           |> put_flash(:info, "Incorrect"),
+           question: new_question.question,
+           answer: new_question.answer,
+           variables: new_question.variables,
            score: event_info.current_score,
-           form: to_form(%{"guess" => ""}),
-           variables: variables,
            highest_score: Helper.highest_score(event_info),
-           wager: event_info.wager
+           wager: event_info.wager,
+           form: to_form(%{"guess" => "", "wager" => event_info.wager})
          )}
     end
   end
@@ -154,29 +145,37 @@ defmodule GameSiteWeb.MathLive do
     }
   end
 
-  defp set_event_info(socket, params) do
-    parsed_wager =
-      Helper.add_subtract_wager(
-        String.to_integer(params["wager"]),
-        params["guess"],
-        socket.assigns.answer
-      )
-
-    %{
-      question: socket.assigns.question,
-      answer: socket.assigns.answer,
-      current_score: socket.assigns.score + parsed_wager,
-      variables: socket.assigns.variables,
-      highest_score: socket.assigns.highest_score,
-      guess: params["guess"],
-      wager: String.to_integer(params["wager"]),
-      score: socket.assigns.score,
-      correct: params["guess"] == socket.assigns.answer
-    }
+  defp get_answer(question) do
+    {answer, _} = Code.eval_string(question)
+    answer
   end
 
   defp get_question(%{first: first, second: second, notation: notation}) do
     "#{first} #{notation} #{second}"
+  end
+
+  defp new_question() do
+    variables = new_variables()
+    question = get_question(variables)
+
+    answer =
+      get_answer(question)
+      |> to_string()
+
+    %{variables: variables, question: question, answer: answer}
+  end
+
+  defp set_event_info(socket, %{"wager" => wager, "guess" => guess, "answer" => answer}) do
+    parsed_wager =
+      Helper.add_subtract_wager(wager, guess, answer)
+
+    %{
+      current_score: socket.assigns.score + parsed_wager,
+      highest_score: socket.assigns.highest_score,
+      guess: guess,
+      wager: wager,
+      correct: guess == answer
+    }
   end
 
   defp save_score(socket, :new, score_params) do

@@ -61,13 +61,10 @@ defmodule GameSiteWeb.GuessingLive do
   end
 
   def mount(_params, _session, socket) do
-    new_answer =
-      new_answer()
-
     {:ok,
      assign(
        socket,
-       answer: new_answer,
+       answer: new_answer(),
        attempt: 1,
        form: to_form(%{"guess" => ""}),
        highest_score: 0,
@@ -76,24 +73,11 @@ defmodule GameSiteWeb.GuessingLive do
      )}
   end
 
-  def handle_event("answer", %{"guess" => guess, "wager" => wager}, socket) do
-    parsed_wager =
-      Helper.parse_wager(wager)
-      |> Helper.add_subtract_wager(guess, to_string(socket.assigns.answer))
-
-    event_info =
-      %{
-        score: socket.assigns.score,
-        attempt: socket.assigns.attempt,
-        highest_score: socket.assigns.highest_score,
-        answer: to_string(socket.assigns.answer),
-        guess: guess,
-        wager: parsed_wager,
-        current_score: socket.assigns.score + parsed_wager
-      }
+  def handle_event("answer", params, socket) do
+    event_info = set_event_info(socket, params)
 
     cond do
-      event_info.answer == event_info.guess ->
+      event_info.correct ->
         highest_score = Helper.highest_score(event_info)
 
         {:noreply,
@@ -104,7 +88,7 @@ defmodule GameSiteWeb.GuessingLive do
            score: event_info.current_score,
            attempt: 1,
            highest_score: highest_score,
-           wager: wager
+           wager: event_info.wager
          )}
 
       event_info.attempt < 5 ->
@@ -113,7 +97,7 @@ defmodule GameSiteWeb.GuessingLive do
            socket
            |> put_flash(:info, "Incorrect."),
            attempt: event_info.attempt + 1,
-           wager: wager
+           wager: event_info.wager
          )}
 
       event_info.attempt >= 5 and event_info.current_score == 0 ->
@@ -135,7 +119,7 @@ defmodule GameSiteWeb.GuessingLive do
            attempt: 1,
            score: event_info.current_score,
            answer: new_answer(),
-           wager: min(wager, event_info.current_score)
+           wager: min(event_info.wager, event_info.current_score)
          )}
     end
   end
@@ -145,6 +129,19 @@ defmodule GameSiteWeb.GuessingLive do
   end
 
   defp new_answer(), do: Enum.random(1..10)
+
+  defp set_event_info(socket, %{"wager" => wager, "guess" => guess}) do
+    parsed_wager =
+      Helper.add_subtract_wager(wager, guess, socket.assigns.answer)
+
+    %{
+      current_score: socket.assigns.score + parsed_wager,
+      highest_score: socket.assigns.highest_score,
+      wager: String.to_integer(wager),
+      attempt: socket.assigns.attempt,
+      correct: socket.assigns.answer == guess
+    }
+  end
 
   defp save_score(socket, :new, score_params) do
     case Scores.create_score(score_params) do
