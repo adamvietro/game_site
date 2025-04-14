@@ -88,7 +88,6 @@ defmodule GameSiteWeb.MathLive do
   def handle_event("answer", params, socket) do
     event_info =
       set_event_info(socket, params)
-      |> IO.inspect()
 
     cond do
       event_info.correct ->
@@ -123,7 +122,7 @@ defmodule GameSiteWeb.MathLive do
            variables: variables
          )}
 
-         event_info.correct == false ->
+      event_info.correct == false ->
         variables = new_variables()
         question = get_question(variables)
         {answer, _} = Code.eval_string(question)
