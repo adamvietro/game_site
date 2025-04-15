@@ -37,18 +37,29 @@ Hooks.CopyBonus = {
   }
 }
 
-// Hooks.submit_form = {
-//   mounted() {
-//     // Prevent the default form submission behavior and let LiveView handle it
-//     this.el.addEventListener("submit", (event) => {
-//       event.preventDefault()
-//       this.pushEvent("answer", {
-//         guess: this.el.querySelector("[name='guess']").value,
-//         wager: this.el.querySelector("[name='wager']").value
-//       })
-//     })
-//   }
-// }
+Hooks.submit_form = {
+  mounted() {
+    // Prevent the default form submission behavior and let LiveView handle it
+    this.el.addEventListener("submit", (event) => {
+      event.preventDefault()
+      this.pushEvent("answer", {
+        guess: this.el.querySelector("[name='guess']").value,
+        wager: this.el.querySelector("[name='wager']").value
+      })
+    })
+  }
+}
+
+Hooks.FocusGuess = {
+  mounted() {
+    this.el.focus()
+    this.el.select?.()
+  },
+  updated() {
+    this.el.focus()
+    this.el.select?.()
+  }
+}
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
