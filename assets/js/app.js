@@ -37,18 +37,18 @@ Hooks.CopyBonus = {
   }
 }
 
-Hooks.submit_form = {
-  mounted() {
-    // Prevent the default form submission behavior and let LiveView handle it
-    this.el.addEventListener("submit", (event) => {
-      event.preventDefault()
-      this.pushEvent("answer", {
-        guess: this.el.querySelector("[name='guess']").value,
-        wager: this.el.querySelector("[name='wager']").value
-      })
-    })
-  }
-}
+// Hooks.submit_form = {
+//   mounted() {
+//     // Prevent the default form submission behavior and let LiveView handle it
+//     this.el.addEventListener("submit", (event) => {
+//       event.preventDefault()
+//       this.pushEvent("answer", {
+//         guess: this.el.querySelector("[name='guess']").value,
+//         wager: this.el.querySelector("[name='wager']").value
+//       })
+//     })
+//   }
+// }
 
 Hooks.FocusGuess = {
   mounted() {

@@ -18,22 +18,8 @@ defmodule GameSiteWeb.MathLive do
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
       <.input type="hidden" field={@form[:question]} value={@question} />
       <.input type="hidden" field={@form[:answer]} value={@answer} />
-      <.input
-        type="number"
-        field={@form[:guess]}
-        label="Guess"
-        value={@form.params["guess"] || ""}
-        phx-hook="FocusGuess"
-      />
-      <.input
-        type="number"
-        field={@form[:wager]}
-        label="Wager"
-        value={@form.params["wager"]}
-        min="1"
-        max={@score}
-        value={@wager}
-      />
+      <.input type="number" field={@form[:guess]} label="Guess" phx-hook="FocusGuess" />
+      <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
       <:actions>
         <.button>Answer</.button>
       </:actions>
@@ -47,7 +33,7 @@ defmodule GameSiteWeb.MathLive do
         If your score drops to 0 the session will be reset. You can at any point exit and save your high score.
         It will not allow you to come back to a previous session.<br />
         <br />
-        <br />#todo: <br />Fix issue with the first mount not being the right question.
+        <br />#todo: <br />Clear the cell when reloading the page.
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
@@ -63,8 +49,9 @@ defmodule GameSiteWeb.MathLive do
 
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      new_q = new_question()
-      |> IO.inspect()
+      new_q =
+        new_question()
+        |> IO.inspect()
 
       form =
         to_form(%{
@@ -75,7 +62,9 @@ defmodule GameSiteWeb.MathLive do
         })
 
       socket =
-        assign(socket,
+        assign(
+          socket
+          |> push_event("focus-guess", %{}),
           question: new_q.question,
           answer: new_q.answer,
           variables: new_q.variables,
@@ -86,10 +75,11 @@ defmodule GameSiteWeb.MathLive do
         )
 
       {:ok, socket}
-
     else
       socket =
-        assign(socket,
+        assign(
+          socket
+          |> push_event("focus-guess", %{}),
           question: "Loading...",
           answer: nil,
           variables: nil,
@@ -132,7 +122,9 @@ defmodule GameSiteWeb.MathLive do
     cond do
       event_info.correct ->
         {:noreply,
-         assign(socket,
+         assign(
+           socket
+           |> push_event("focus-guess", %{}),
            question: new_question.question,
            answer: new_question.answer,
            variables: new_question.variables,
@@ -146,7 +138,8 @@ defmodule GameSiteWeb.MathLive do
         {:noreply,
          assign(
            socket
-           |> put_flash(:info, "Score is 0 Resetting"),
+           |> put_flash(:info, "Score is 0 Resetting")
+           |> push_event("focus-guess", %{}),
            question: new_question.question,
            answer: new_question.answer,
            variables: new_question.variables,
@@ -159,7 +152,8 @@ defmodule GameSiteWeb.MathLive do
         {:noreply,
          assign(
            socket
-           |> put_flash(:info, "Incorrect"),
+           |> put_flash(:info, "Incorrect")
+           |> push_event("focus-guess", %{}),
            question: new_question.question,
            answer: new_question.answer,
            variables: new_question.variables,
@@ -173,6 +167,13 @@ defmodule GameSiteWeb.MathLive do
 
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
+  end
+
+  def changeset(params, score) do
+    {@default, @types}
+    |> cast(params, [:guess, :wager, :question, :answer])
+    |> validate_required([:wager])
+    |> validate_number(:wager, greater_than: 0, less_than: score)
   end
 
   defp new_variables() do
@@ -220,6 +221,23 @@ defmodule GameSiteWeb.MathLive do
       correct: guess == answer
     }
   end
+
+  defp assign_form(socket_or_assigns, %Changeset{} = changeset) do
+    form = to_form(changeset, as: :form)
+
+    assign(socket_or_assigns, :form, form)
+  end
+
+  def parse(params, score) do
+    params
+    |> changeset(score)
+    |> apply_action(:insert)
+  end
+
+  defp assign_form(socket_or_assigns, form),
+    do: assign(socket_or_assigns, :form, form)
+
+  def default_values(overrides \\ %{}), do: Map.merge(@default, overrides)
 
   defp save_score(socket, :new, score_params) do
     case Scores.create_score(score_params) do
