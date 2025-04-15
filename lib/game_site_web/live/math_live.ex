@@ -7,8 +7,8 @@ defmodule GameSiteWeb.MathLive do
 
   # import Ecto.Changeset
 
-  @types %{guess: :integer, wager: :integer, question: :string, answer: :integer}
-  @default %{guess: nil, wager: 1, question: nil, answer: nil}
+  # @types %{guess: :integer, wager: :integer, question: :string, answer: :integer}
+  # @default %{guess: nil, wager: 1, question: nil, answer: nil}
 
   def render(assigns) do
     ~H"""
@@ -39,7 +39,7 @@ defmodule GameSiteWeb.MathLive do
         If your score drops to 0 the session will be reset. You can at any point exit and save your high score.
         It will not allow you to come back to a previous session.<br />
         <br />
-        <br />#todo: <br />Clear the cell when reloading the page.
+        <br />#TODO: <br />Fix CSS
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">

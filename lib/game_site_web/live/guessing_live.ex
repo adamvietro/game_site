@@ -61,66 +61,73 @@ defmodule GameSiteWeb.GuessingLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok,
-     assign(
-       socket,
-       answer: new_answer(),
-       attempt: 1,
-       form: to_form(%{"guess" => ""}),
-       highest_score: 0,
-       score: 10,
-       wager: 1
-     )}
+    socket =
+      socket
+      |> assign(answer: new_answer())
+      |> assign(score: 10)
+      |> assign(attempt: 1)
+      |> assign(highest_score: 0)
+      |> assign(wager: 1)
+      |> assign(form: to_form(%{}))
+
+    {:ok, socket}
   end
 
   def handle_event("answer", params, socket) do
-    event_info = set_event_info(socket, params)
+    event_info =
+      set_event_info(socket, params)
 
     cond do
       event_info.correct ->
         highest_score = Helper.highest_score(event_info)
 
-        {:noreply,
-         assign(
-           socket
-           |> put_flash(:info, "Correct!"),
-           answer: new_answer(),
-           score: event_info.current_score,
-           attempt: 1,
-           highest_score: highest_score,
-           wager: event_info.wager
-         )}
+        socket =
+          socket
+          |> assign(answer: new_answer())
+          |> assign(score: event_info.current_score)
+          |> assign(attempt: 1)
+          |> assign(highest_score: highest_score)
+          |> assign(wager: event_info.wager)
+          |> assign(form: to_form(%{}))
+          |> put_flash(:info, "Correct!")
+
+        {:noreply, socket}
 
       event_info.attempt < 5 ->
-        {:noreply,
-         assign(
-           socket
-           |> put_flash(:info, "Incorrect."),
-           attempt: event_info.attempt + 1,
-           wager: event_info.wager
-         )}
+        socket =
+          socket
+          |> assign(attempt: event_info.attempt + 1)
+          |> assign(wager: event_info.wager)
+          |> assign(form: to_form(%{}))
+          |> put_flash(:info, "Incorrect.")
+
+        {:noreply, socket}
 
       event_info.attempt >= 5 and event_info.current_score == 0 ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Out of Points, resetting.")
-         |> assign(
-           attempt: 1,
-           score: 10,
-           answer: new_answer(),
-           wager: 1
-         )}
+        socket =
+          socket
+          |> assign(attempt: 1)
+          |> assign(score: 10)
+          |> assign(answer: new_answer())
+          |> assign(wager: 1)
+          |> assign(form: to_form(%{}))
+          |> put_flash(:info, "Out of Points, resetting.")
+
+        {:noreply, socket}
 
       event_info.attempt >= 5 ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Out of Guesses.")
-         |> assign(
-           attempt: 1,
-           score: event_info.current_score,
-           answer: new_answer(),
-           wager: min(event_info.wager, event_info.current_score)
-         )}
+        IO.inspect([event_info.wager, event_info.current_score])
+
+        socket =
+          socket
+          |> assign(attempt: 1)
+          |> assign(score: event_info.current_score)
+          |> assign(answer: new_answer())
+          |> assign(wager: min(event_info.wager, event_info.current_score))
+          |> assign(form: to_form(%{}))
+          |> put_flash(:info, "Out of Guesses.")
+
+        {:noreply, socket}
     end
   end
 
@@ -139,7 +146,7 @@ defmodule GameSiteWeb.GuessingLive do
       highest_score: socket.assigns.highest_score,
       wager: String.to_integer(wager),
       attempt: socket.assigns.attempt,
-      correct: socket.assigns.answer == guess
+      correct: to_string(socket.assigns.answer) == guess
     }
   end
 
