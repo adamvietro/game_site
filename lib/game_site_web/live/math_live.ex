@@ -18,7 +18,13 @@ defmodule GameSiteWeb.MathLive do
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
       <.input type="hidden" field={@form[:question]} value={@question} />
       <.input type="hidden" field={@form[:answer]} value={@answer} />
-      <.input type="number" field={@form[:guess]} label="Guess" phx-hook="FocusGuess" />
+      <.input
+        type="number"
+        field={@form[:guess]}
+        label="Guess"
+        phx-hook="FocusGuess"
+        key={@question}
+      />
       <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
       <:actions>
         <.button>Answer</.button>
@@ -48,24 +54,22 @@ defmodule GameSiteWeb.MathLive do
   end
 
   def mount(_params, _session, socket) do
+    form =
+      to_form(%{
+        "guess" => "",
+        "wager" => 1
+      })
+
     if connected?(socket) do
-      new_q =
+      new_question =
         new_question()
         |> IO.inspect()
 
-      form =
-        to_form(%{
-          "guess" => "",
-          "wager" => 1,
-          "question" => new_q.question,
-          "answer" => new_q.answer
-        })
+      question_assigns = Map.take(new_question, ~w[question answer variables]a)
 
       socket =
         socket
-        |> assign(question: new_q.question)
-        |> assign(answer: new_q.answer)
-        |> assign(variables: new_q.variables)
+        |> assign(question_assigns)
         |> assign(score: 10)
         |> assign(highest_score: 0)
         |> assign(wager: 1)
@@ -95,7 +99,7 @@ defmodule GameSiteWeb.MathLive do
       new_question()
       |> IO.inspect(label: "First Question")
 
-    question_assigns = Map.take(new_question, ~w[question answer variables])
+    question_assigns = Map.take(new_question, ~w[question answer variables]a)
 
     socket =
       socket
@@ -113,7 +117,7 @@ defmodule GameSiteWeb.MathLive do
       new_question()
       |> IO.inspect(label: "New Question")
 
-    question_assigns = Map.take(new_question, ~w[question answer variables])
+    question_assigns = Map.take(new_question, ~w[question answer variables]a)
     answer_form = to_form(%{"guess" => "", "wager" => event_info.wager})
 
     cond do
