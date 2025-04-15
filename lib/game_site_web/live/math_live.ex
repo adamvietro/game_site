@@ -109,26 +109,31 @@ defmodule GameSiteWeb.MathLive do
       new_question()
       |> IO.inspect(label: "First Question")
 
-    form =
-      to_form(%{
-        "guess" => "",
-        "wager" => socket.assigns.wager,
-        "question" => new_question.question,
-        "answer" => new_question.answer
-      })
+    changeset =
+      changeset(
+        %{
+          guess: "",
+          wager: 1,
+          question: new_question.question,
+          answer: new_question.answer
+        },
+        10
+      )
 
     {:noreply,
      assign(socket,
        question: new_question.question,
        answer: new_question.answer,
        variables: new_question.variables,
-       form: form
+       form: changeset
      )}
   end
 
   def handle_event("answer", params, socket) do
+    IO.inspect(params)
+
     event_info =
-      set_event_info(socket, params)
+      set_event_info(socket, params["language"])
       |> IO.inspect(label: "Event Info")
 
     new_question =
@@ -137,9 +142,18 @@ defmodule GameSiteWeb.MathLive do
 
     cond do
       event_info.correct ->
-        new_question = Map.take(new_question, ~w[question answer variables]a)
         highest_score = Helper.highest_score(event_info)
-        answer_form = to_form(%{"guess" => "", "wager" => event_info.wager})
+
+        changeset =
+          changeset(
+            %{
+              guess: "",
+              wager: event_info.wager,
+              question: new_question.question,
+              answer: new_question.answer
+            },
+            event_info.current_score
+          )
 
         socket =
           socket
@@ -148,12 +162,23 @@ defmodule GameSiteWeb.MathLive do
           |> assign(:score, event_info.current_score)
           |> assign(:highest_score, highest_score)
           |> assign(:wager, event_info.wager)
-          |> assign(:form, answer_form)
+          |> assign(:form, changeset)
           |> assign(:guess, "")
 
         {:noreply, socket}
 
       event_info.current_score == 0 ->
+        changeset =
+          changeset(
+            %{
+              guess: "",
+              wager: event_info.wager,
+              question: new_question.question,
+              answer: new_question.answer
+            },
+            10
+          )
+
         socket =
           assign(
             socket
@@ -164,12 +189,23 @@ defmodule GameSiteWeb.MathLive do
             variables: new_question.variables,
             score: 10,
             wager: event_info.wager,
-            form: to_form(%{"guess" => "", "wager" => event_info.wager})
+            form: changeset
           )
 
         {:noreply, socket}
 
       event_info.correct == false ->
+        changeset =
+          changeset(
+            %{
+              guess: "",
+              wager: event_info.wager,
+              question: new_question.question,
+              answer: new_question.answer
+            },
+            event_info.current_score
+          )
+
         socket =
           assign(
             socket
@@ -181,7 +217,7 @@ defmodule GameSiteWeb.MathLive do
             score: event_info.current_score,
             highest_score: Helper.highest_score(event_info),
             wager: min(event_info.wager, event_info.current_score),
-            form: to_form(%{"guess" => "", "wager" => event_info.wager})
+            form: changeset
           )
 
         {:noreply, socket}
@@ -220,6 +256,12 @@ defmodule GameSiteWeb.MathLive do
     answer
   end
 
+  # defp parse(params, score) do
+  #   params
+  #   |> change_answer(score)
+  #   |> apply_action(:insert)
+  # end
+
   defp get_question(%{first: first, second: second, notation: notation}) do
     "#{first} #{notation} #{second}"
   end
@@ -235,7 +277,11 @@ defmodule GameSiteWeb.MathLive do
     %{variables: variables, question: question, answer: answer}
   end
 
-  defp set_event_info(socket, %{"wager" => wager, "guess" => guess, "answer" => answer, "question" => question}) do
+  defp set_event_info(socket, %{
+         "wager" => wager,
+         "guess" => guess,
+         "answer" => answer
+       }) do
     parsed_wager =
       Helper.add_subtract_wager(wager, guess, answer)
 
