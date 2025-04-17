@@ -3,7 +3,6 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
 
   alias GameSite.Scores
   alias Ecto.Changeset
-  alias GameSiteWeb.HelperFunctions, as: Helper
 
   import Ecto.Changeset
 
@@ -71,7 +70,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
      assign(
        socket,
        computer: computer_choose(),
-       score: 0,
+       score: 10,
        highest_score: 0,
        form: to_form(%{}),
        outcome: "",
@@ -87,23 +86,22 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     set_assign(socket, params)
   end
 
-  defp set_event_info(
-         %{"computer" => computer, "score" => score} = socket,
-         %{"wager" => wager, "guess" => guess} = params
-       ) do
-    parsed_wager =
-      Helper.add_subtract_wager(params.wager, params.player.choice, socket.assigns.computer)
+  defp set_event_info(socket, %{"wager" => wager, "player_choice" => player}) do
+    parsed_wager = parsed_wager(wager, player, socket.assigns.computer)
 
     %{
+      player: player,
       computer: socket.assigns.computer,
-      player: params.player.choice,
-      correct: params.player.choice == socket.assigns.computer,
       current_score: socket.assigns.score + parsed_wager,
-      wager: params["wager"],
-      parsed_wager: parsed_wager,
+      score: socket.assigns.score,
+      wager: wager,
       highest_score: max(socket.assigns.score + parsed_wager, socket.assigns.highest_score),
       form: to_form(%{})
     }
+  end
+
+  defp parsed_wager(wager, player, computer) do
+    if beats?(player, computer), do: String.to_integer(wager), else: -1 * String.to_integer(wager)
   end
 
   defp computer_choose() do
@@ -119,38 +117,44 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       |> IO.inspect(label: "Event info")
 
     cond do
-      socket.assigns.computer == params.player_choice ->
-        {:noreply,
-         assign(
-           socket,
-           computer: computer_choose(),
-           score: socket.assigns.score,
-           highest_score: 0,
-           form: to_form(%{}),
-           outcome: "You Tie!"
-         )}
+      event_info.computer == event_info.player ->
+        IO.inspect("Tied")
 
-      beats?(params.player_choice, socket.assigns.computer) ->
-        {:noreply,
-         assign(
-           socket,
-           computer: computer_choose(),
-           score: socket.assigns.score + 10,
-           highest_score: 0,
-           form: to_form(%{}),
-           outcome: "You Win!"
-         )}
+        socket =
+          socket
+          |> assign(computer: computer_choose())
+          |> assign(wager: event_info.wager)
+          |> assign(form: to_form(%{"wager" => event_info.wager}))
+          |> assign(outcome: "You Tie!")
+
+        {:noreply, socket}
+
+      beats?(event_info.player, event_info.computer) ->
+        IO.inspect("Won")
+
+        socket =
+          socket
+          |> assign(computer: computer_choose())
+          |> assign(score: event_info.current_score)
+          |> assign(wager: event_info.wager)
+          |> assign(highest_score: max(event_info.current_score, event_info.highest_score))
+          |> assign(form: to_form(%{"wager" => event_info.wager}))
+          |> assign(outcome: "You Win!")
+
+        {:noreply, socket}
 
       true ->
-        {:noreply,
-         assign(
-           socket,
-           computer: computer_choose(),
-           score: socket.assigns.score - 10,
-           highest_score: 0,
-           form: to_form(%{}),
-           outcome: "You Lose!"
-         )}
+        IO.inspect("Lost")
+
+        socket =
+          socket
+          |> assign(computer: computer_choose())
+          |> assign(wager: min(event_info.wager, event_info.current_score))
+          |> assign(score: event_info.current_score)
+          |> assign(form: to_form(%{"wager" => event_info.wager}))
+          |> assign(outcome: "You Lose!")
+
+        {:noreply, socket}
     end
   end
 
