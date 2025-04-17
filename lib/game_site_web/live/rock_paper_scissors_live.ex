@@ -16,27 +16,33 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     <% end %>
     <div class="flex justify-center mt-8">
       <div class="flex gap-6">
-        <.simple_form id="rock-form" for={@form} phx-submit="rock">
-          <.input type="hidden" field={@form[:player_choice]} />
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Rock</.button>
-          </:actions>
-        </.simple_form>
+        <%= for choice <- ["rock", "paper", "scissors"] do %>
+          <.simple_form for={@form} phx-submit="answer" class="text-center">
+            <.input type="hidden" field={@form[:player_choice]} value={choice} />
+            <input type="hidden" name="wager" id={"wager_hidden_#{choice}"} />
 
-        <.simple_form id="paper-form" for={@form} phx-submit="paper">
-          <.input type="hidden" field={@form[:player_choice]} />
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Paper</.button>
-          </:actions>
-        </.simple_form>
-
-        <.simple_form id="scissors-form" for={@form} phx-submit="scissors">
-          <.input type="hidden" field={@form[:player_choice]} />
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Scissors</.button>
-          </:actions>
-        </.simple_form>
+            <.button type="submit" class="w-full" phx-hook="CopyBonus">
+              {choice}
+            </.button>
+          </.simple_form>
+        <% end %>
       </div>
+    </div>
+
+    <div class="max-w-md mx-auto mt-4">
+      <label for="bonus_input" class="block text-sm font-medium text-gray-700 mb-1">
+        Wager
+      </label>
+      <input
+        type="number"
+        id="wager_input"
+        name="wager_visible"
+        min="1"
+        value={@wager}
+        max={@score}
+        step="1"
+        class="w-full rounded-md border-gray-300 shadow-sm"
+      />
     </div>
     <body>
       <div>
@@ -77,19 +83,14 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     save_score(socket, :new, params)
   end
 
-  def handle_event("rock", params, socket) do
+  def handle_event("answer", params, socket) do
     set_assign(socket, params)
   end
 
-  def handle_event("paper", params, socket) do
-    set_assign(socket, params)
-  end
-
-  def handle_event("scissors", params, socket) do
-    set_assign(socket, params)
-  end
-
-  defp set_event_info(socket, params) do
+  defp set_event_info(
+         %{"computer" => computer, "score" => score} = socket,
+         %{"wager" => wager, "guess" => guess} = params
+       ) do
     parsed_wager =
       Helper.add_subtract_wager(params.wager, params.player.choice, socket.assigns.computer)
 
@@ -98,7 +99,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       player: params.player.choice,
       correct: params.player.choice == socket.assigns.computer,
       current_score: socket.assigns.score + parsed_wager,
-      wager: params.wager,
+      wager: params["wager"],
       parsed_wager: parsed_wager,
       highest_score: max(socket.assigns.score + parsed_wager, socket.assigns.highest_score),
       form: to_form(%{})
@@ -113,8 +114,9 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     do: {player, computer} in [{"rock", "scissor"}, {"scissor", "paper"}, {"paper", "rock"}]
 
   defp set_assign(socket, params) do
-    event_info = set_event_info(socket, params)
-    |> IO.inspect(label: "Event info")
+    event_info =
+      set_event_info(socket, params)
+      |> IO.inspect(label: "Event info")
 
     cond do
       socket.assigns.computer == params.player_choice ->
