@@ -2,9 +2,6 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
   use GameSiteWeb, :live_view
 
   alias GameSite.Scores
-  alias Ecto.Changeset
-
-  import Ecto.Changeset
 
   def render(assigns) do
     ~H"""
@@ -45,19 +42,18 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     </div>
     <body>
       <div>
-        Rock Paper Scissors. Yeah it's simple but fun. Each win will give you 10 points each loss will lose you
-        ten points draws will not effect your points. You will simply click a button and roll the dice, or ?scissors?
-        At any point you can exit this page it will submit your current score (know when to hold'en and fold'em). You
-        can't come back to a current streak once you exit or refresh the page. <br />
+        Rock Paper Scissors. Yeah it's simple but fun. Each win will give/take the amount of points wagered.
+        You will simply click a button and roll the dice, or ?scissors? At any point you can Exit and Save Score
+         it will submit your highest score of the session. You can't come back to a session once you exit
+          or refresh the page. <br />
         <br />
-        <br />#todo: <br />Add a wager button (for more points)
-        <br />Add a param for highest score for the session
+        <br />#todo: <br />Fix CSS
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
       <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
       <.input type="hidden" field={@form[:game_id]} value={3} />
-      <.input type="hidden" field={@form[:score]} value={@score} />
+      <.input type="hidden" field={@form[:score]} value={@highest_score} />
       <:actions>
         <.button>Exit and Save Score</.button>
       </:actions>
@@ -66,16 +62,16 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok,
-     assign(
-       socket,
-       computer: computer_choose(),
-       score: 10,
-       highest_score: 0,
-       form: to_form(%{}),
-       outcome: "",
-       wager: 1
-     )}
+    socket =
+      socket
+      |> assign(computer: computer_choose())
+      |> assign(score: 10)
+      |> assign(highest_score: 0)
+      |> assign(wager: 1)
+      |> assign(form: to_form(%{"wager" => 1}))
+      |> assign(outcome: "")
+
+    {:ok, socket}
   end
 
   def handle_event("exit", params, socket) do
@@ -94,7 +90,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       computer: socket.assigns.computer,
       current_score: socket.assigns.score + parsed_wager,
       score: socket.assigns.score,
-      wager: wager,
+      wager: String.to_integer(wager),
       highest_score: max(socket.assigns.score + parsed_wager, socket.assigns.highest_score),
       form: to_form(%{})
     }
@@ -117,6 +113,20 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       |> IO.inspect(label: "Event info")
 
     cond do
+      event_info.current_score == 0 ->
+        IO.inspect("Reset")
+
+        socket =
+          socket
+          |> put_flash(:info, "Score at 0, resetting.")
+          |> assign(computer: computer_choose())
+          |> assign(score: 10)
+          |> assign(wager: 1)
+          |> assign(form: to_form(%{"wager" => 1}))
+          |> assign(outcome: "")
+
+        {:noreply, socket}
+
       event_info.computer == event_info.player ->
         IO.inspect("Tied")
 

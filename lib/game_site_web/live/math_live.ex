@@ -18,13 +18,7 @@ defmodule GameSiteWeb.MathLive do
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
       <.input type="hidden" field={@form[:question]} value={@question} />
       <.input type="hidden" field={@form[:answer]} value={@answer} />
-      <.input
-        type="number"
-        field={@form[:guess]}
-        label="Guess"
-        phx-hook="FocusGuess"
-        key={@question}
-      />
+      <.input type="number" field={@form[:guess]} label="Guess" phx-hook="FocusGuess" key={@question} />
       <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
       <:actions>
         <.button>Answer</.button>
@@ -39,7 +33,7 @@ defmodule GameSiteWeb.MathLive do
         If your score drops to 0 the session will be reset. You can at any point exit and save your high score.
         It will not allow you to come back to a previous session.<br />
         <br />
-        <br />#TODO: <br />Fix CSS
+        <br />#TODO: <br />Fix CSS<br />Add in a helper so that it's easier to multiply the values.
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
@@ -232,28 +226,4 @@ defmodule GameSiteWeb.MathLive do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
-
-  # def changeset(params, score) do
-  #   {@default, @types}
-  #   |> cast(params, [:guess, :wager, :question, :answer])
-  #   |> validate_required([:wager])
-  #   |> validate_number(:wager, greater_than: 0, less_than: score)
-  # end
-
-  # defp assign_form(socket_or_assigns, %Changeset{} = changeset) do
-  #   form = to_form(changeset, as: :form)
-
-  #   assign(socket_or_assigns, :form, form)
-  # end
-
-  # def parse(params, score) do
-  #   params
-  #   |> changeset(score)
-  #   |> apply_action(:insert)
-  # end
-
-  # defp assign_form(socket_or_assigns, form),
-  #   do: assign(socket_or_assigns, :form, form)
-
-  # def default_values(overrides \\ %{}), do: Map.merge(@default, overrides)
 end
