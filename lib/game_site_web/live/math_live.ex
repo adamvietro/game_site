@@ -45,7 +45,7 @@ defmodule GameSiteWeb.MathLive do
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
       <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
       <.input type="hidden" field={@form[:game_id]} value={2} />
-      <.input type="hidden" field={@form[:score]} value={@score} />
+      <.input type="hidden" field={@form[:score]} value={@highest_score} />
       <:actions>
         <.button>Exit and Save Score</.button>
       </:actions>
