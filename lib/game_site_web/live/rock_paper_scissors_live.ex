@@ -2,9 +2,14 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
   use GameSiteWeb, :live_view
 
   alias GameSite.Scores
+  alias Ecto.Changeset
+  alias GameSiteWeb.HelperFunctions, as: Helper
+
+  import Ecto.Changeset
 
   def render(assigns) do
     ~H"""
+    <p>Highest Score: {@highest_score}</p>
     <p>Score: {@score}</p>
     <%= if @outcome != "" do %>
       <p>Outcome: {@outcome}</p>
@@ -61,9 +66,10 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
        socket,
        computer: computer_choose(),
        score: 0,
-       session_high_score: 0,
+       highest_score: 0,
        form: to_form(%{}),
-       outcome: ""
+       outcome: "",
+       wager: 1
      )}
   end
 
@@ -71,16 +77,32 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     save_score(socket, :new, params)
   end
 
-  def handle_event("rock", _params, socket) do
-    set_assign("rock", socket)
+  def handle_event("rock", params, socket) do
+    set_assign(socket, params)
   end
 
-  def handle_event("paper", _params, socket) do
-    set_assign("rock", socket)
+  def handle_event("paper", params, socket) do
+    set_assign(socket, params)
   end
 
-  def handle_event("scissors", _params, socket) do
-    set_assign("rock", socket)
+  def handle_event("scissors", params, socket) do
+    set_assign(socket, params)
+  end
+
+  defp set_event_info(socket, params) do
+    parsed_wager =
+      Helper.add_subtract_wager(params.wager, params.player.choice, socket.assigns.computer)
+
+    %{
+      computer: socket.assigns.computer,
+      player: params.player.choice,
+      correct: params.player.choice == socket.assigns.computer,
+      current_score: socket.assigns.score + parsed_wager,
+      wager: params.wager,
+      parsed_wager: parsed_wager,
+      highest_score: max(socket.assigns.score + parsed_wager, socket.assigns.highest_score),
+      form: to_form(%{})
+    }
   end
 
   defp computer_choose() do
@@ -90,26 +112,29 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
   defp beats?(player, computer),
     do: {player, computer} in [{"rock", "scissor"}, {"scissor", "paper"}, {"paper", "rock"}]
 
-  defp set_assign(player, socket) do
+  defp set_assign(socket, params) do
+    event_info = set_event_info(socket, params)
+    |> IO.inspect(label: "Event info")
+
     cond do
-      socket.assigns.computer == player ->
+      socket.assigns.computer == params.player_choice ->
         {:noreply,
          assign(
            socket,
            computer: computer_choose(),
            score: socket.assigns.score,
-           session_high_score: 0,
+           highest_score: 0,
            form: to_form(%{}),
            outcome: "You Tie!"
          )}
 
-      beats?("rock", socket.assigns.computer) ->
+      beats?(params.player_choice, socket.assigns.computer) ->
         {:noreply,
          assign(
            socket,
            computer: computer_choose(),
            score: socket.assigns.score + 10,
-           session_high_score: 0,
+           highest_score: 0,
            form: to_form(%{}),
            outcome: "You Win!"
          )}
@@ -120,7 +145,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
            socket,
            computer: computer_choose(),
            score: socket.assigns.score - 10,
-           session_high_score: 0,
+           highest_score: 0,
            form: to_form(%{}),
            outcome: "You Lose!"
          )}
