@@ -113,7 +113,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       |> IO.inspect(label: "Event info")
 
     cond do
-      event_info.current_score == 0 ->
+      event_info.current_score <= 0 ->
         IO.inspect("Reset")
 
         socket =

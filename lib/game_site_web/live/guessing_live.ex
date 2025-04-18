@@ -103,7 +103,7 @@ defmodule GameSiteWeb.GuessingLive do
 
         {:noreply, socket}
 
-      event_info.attempt >= 5 and event_info.current_score == 0 ->
+      event_info.attempt >= 5 and event_info.current_score <= 0 ->
         socket =
           socket
           |> assign(attempt: 1)

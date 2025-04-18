@@ -129,7 +129,7 @@ defmodule GameSiteWeb.MathLive do
 
         {:noreply, socket}
 
-      event_info.current_score == 0 ->
+      event_info.current_score <= 0 ->
         socket =
           socket
           |> assign(question_assigns)
