@@ -40,14 +40,14 @@ defmodule GameSiteWeb.MathLive do
       <form phx-change="toggle">
         <label class="toggle-switch">
           <input
+            class="toggle-switch-check"
             type="checkbox"
             name="toggle-switch-check"
-            class="toggle-switch-check"
             checked={@toggle}
           />
-          <%!-- <span aria-hidden="true" class="toggle-switch-bar">
+          <span aria-hidden="true" class="toggle-switch-bar">
             <span class="toggle-switch-handle"></span>
-          </span> --%>
+          </span>
         </label>
       </form>
       <%= if @toggle do %>
@@ -77,7 +77,7 @@ defmodule GameSiteWeb.MathLive do
         If your score drops to 0 the session will be reset. You can at any point exit and save your high score.
         It will not allow you to come back to a previous session.<br />
         <br />
-        <br />#TODO: <br />Fix CSS<br />Add in a helper so that it's easier to multiply the values.
+        <br />#TODO: <br />Fix CSS
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
@@ -136,19 +136,19 @@ defmodule GameSiteWeb.MathLive do
     end
   end
 
-  def handle_info(:generate_question, socket) do
-    new_question =
-      new_question()
-      |> IO.inspect(label: "First Question")
+  # def handle_info(:generate_question, socket) do
+  #   new_question =
+  #     new_question()
+  #     |> IO.inspect(label: "First Question")
 
-    question_assigns = Map.take(new_question, ~w[question answer variables]a)
+  #   question_assigns = Map.take(new_question, ~w[question answer variables]a)
 
-    socket =
-      socket
-      |> assign(question_assigns)
+  #   socket =
+  #     socket
+  #     |> assign(question_assigns)
 
-    {:noreply, socket}
-  end
+  #   {:noreply, socket}
+  # end
 
   def handle_event("toggle", %{"toggle-switch-check" => "on"}, socket) do
     {:noreply, assign(socket, toggle: true)}
@@ -194,7 +194,7 @@ defmodule GameSiteWeb.MathLive do
           |> assign(:wager, event_info.wager)
           |> assign(:form, answer_form)
           |> assign(helper: get_helper(question_assigns.variables))
-          |> put_flash(:info, "Score is 0 Resetting")
+          |> put_flash(:error, "Score is 0 Resetting")
           |> push_event("focus-guess", %{})
 
         {:noreply, socket}
@@ -207,7 +207,7 @@ defmodule GameSiteWeb.MathLive do
           |> assign(:wager, min(event_info.wager, event_info.current_score))
           |> assign(:form, answer_form)
           |> assign(helper: get_helper(question_assigns.variables))
-          |> put_flash(:info, "Incorrect")
+          |> put_flash(:error, "Incorrect")
           |> push_event("focus-guess", %{})
 
         {:noreply, socket}
@@ -266,8 +266,10 @@ defmodule GameSiteWeb.MathLive do
 
       "+" ->
         %{
-          first: "#{first.tens} #{notation} #{second.tens} =",
-          second: "#{first.ones} #{notation} #{second.ones} =",
+          first:
+            "#{String.pad_leading("#{first.tens}", 2)} #{notation} #{String.pad_leading("#{second.tens}", 2)} =",
+          second:
+            "#{String.pad_leading("#{first.ones}", 2)} #{notation} #{String.pad_leading("#{second.ones}", 2)} =",
           third: " ",
           fourth: " "
         }
@@ -278,25 +280,24 @@ defmodule GameSiteWeb.MathLive do
             first:
               "#{String.pad_leading("#{first.tens}", 2)} #{notation} #{String.pad_leading("#{second.tens}", 2)} =",
             second:
-              "#{String.pad_leading("#{first.tens}", 2)} #{notation} #{String.pad_leading("#{second.ones}", 2)} =",
+              "#{String.pad_leading("#{first.ones}", 2)} #{notation} #{String.pad_leading("#{second.ones}", 2)} =",
             third:
-              "If the second ones is greater than the first ones borrow from the first answer",
+              "If the second ones is greater than the first ones borrow from the first answer.",
             fourth: " "
           }
         else
           %{
             first: "#{second.tens} #{notation} #{first.tens} =",
             second: "#{second.ones} #{notation} #{first.ones} =",
-            third: " ",
-            fourth: " "
+            third:
+              "If the second ones is greater than the first ones borrow from the first answer.",
+            fourth: "Don't forget the sign."
           }
         end
     end
   end
 
-  defp tens_ones(value) do
-    %{tens: div(value, 10) * 10, ones: rem(value, 10)}
-  end
+  defp tens_ones(value), do: %{tens: div(value, 10) * 10, ones: rem(value, 10)}
 
   defp set_event_info(socket, %{
          "wager" => wager,
