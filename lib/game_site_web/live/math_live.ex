@@ -37,19 +37,12 @@ defmodule GameSiteWeb.MathLive do
         Here is a helper function for the current problem you are working on.<br />
         If you want to see it or turn it off just toggle the helper button below.<br />
       </p>
-      <form phx-change="toggle">
-        <label class="toggle-switch">
-          <input
-            class="toggle-switch-check"
-            type="checkbox"
-            name="toggle-switch-check"
-            checked={@toggle}
-          />
-          <span aria-hidden="true" class="toggle-switch-bar">
-            <span class="toggle-switch-handle"></span>
-          </span>
-        </label>
-      </form>
+      <label class="toggle-switch" phx-click="toggle">
+        <input type="checkbox" class="toggle-switch-check" phx-click="toggle" checked={@toggle} />
+        <span aria-hidden="true" class="toggle-switch-bar">
+          <span class="toggle-switch-handle"></span>
+        </span>
+      </label>
       <%= if @toggle do %>
         <div style="white-space: pre; font-family: monospace;">
           <p>{@helper.first}</p>
@@ -139,7 +132,7 @@ defmodule GameSiteWeb.MathLive do
   # def handle_info(:generate_question, socket) do
   #   new_question =
   #     new_question()
-  #     |> IO.inspect(label: "First Question")
+  #     |> IO.inspect(label: ":generate_question Question")
 
   #   question_assigns = Map.take(new_question, ~w[question answer variables]a)
 
@@ -150,11 +143,20 @@ defmodule GameSiteWeb.MathLive do
   #   {:noreply, socket}
   # end
 
+  # def handle_event("toggle", _params, socket) do
+  #   toggle = not socket.assigns.toggle
+  #   {:noreply, assign(socket, toggle: toggle)}
+  # end
+
   def handle_event("toggle", %{"toggle-switch-check" => "on"}, socket) do
+    IO.inspect(socket.assigns.question, label: "Toggle ON — Question")
+    IO.inspect(socket.assigns.answer, label: "Toggle ON — Answer")
     {:noreply, assign(socket, toggle: true)}
   end
 
   def handle_event("toggle", _params, socket) do
+    IO.inspect(socket.assigns.question, label: "Toggle OFF — Question")
+    IO.inspect(socket.assigns.answer, label: "Toggle OFF — Answer")
     {:noreply, assign(socket, toggle: false)}
   end
 
@@ -287,8 +289,10 @@ defmodule GameSiteWeb.MathLive do
           }
         else
           %{
-            first: "#{second.tens} #{notation} #{first.tens} =",
-            second: "#{second.ones} #{notation} #{first.ones} =",
+            first:
+              "#{String.pad_leading("#{second.tens}", 2)} #{notation} #{String.pad_leading("#{first.tens}", 2)} =",
+            second:
+              "#{String.pad_leading("#{second.ones}", 2)} #{notation} #{String.pad_leading("#{first.ones}", 2)} =",
             third:
               "If the second ones is greater than the first ones borrow from the first answer.",
             fourth: "Don't forget the sign."
