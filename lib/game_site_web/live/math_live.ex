@@ -10,6 +10,13 @@ defmodule GameSiteWeb.MathLive do
   # @types %{guess: :integer, wager: :integer, question: :string, answer: :integer}
   # @default %{guess: nil, wager: 1, question: nil, answer: nil}
 
+  @helper_start %{
+    first: "Loading...",
+    second: "Loading...",
+    third: "Loading...",
+    fourth: "Loading..."
+  }
+
   def render(assigns) do
     ~H"""
     <p>Highest Score: {@highest_score}</p>
@@ -24,6 +31,43 @@ defmodule GameSiteWeb.MathLive do
         <.button>Answer</.button>
       </:actions>
     </.simple_form>
+
+    <div>
+      <p>
+        Here is a helper function for the current problem you are working on.<br />
+        If you want to see it or turn it off just toggle the helper button below.<br />
+      </p>
+      <form phx-change="toggle">
+        <label class="toggle-switch">
+          <input
+            type="checkbox"
+            name="toggle-switch-check"
+            class="toggle-switch-check"
+            checked={@toggle}
+          />
+          <%!-- <span aria-hidden="true" class="toggle-switch-bar">
+            <span class="toggle-switch-handle"></span>
+          </span> --%>
+        </label>
+      </form>
+      <%= if @toggle do %>
+        <div style="white-space: pre; font-family: monospace;">
+          <p>{@helper.first}</p>
+          <p>{@helper.second}</p>
+          <p>{@helper.third}</p>
+          <p>{@helper.fourth}</p>
+        </div>
+      <% else %>
+        <div style="white-space: pre; font-family: monospace;">
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+        </div>
+      <% end %>
+    </div>
 
     <body>
       <div>
@@ -57,7 +101,7 @@ defmodule GameSiteWeb.MathLive do
     if connected?(socket) do
       new_question =
         new_question()
-        |> IO.inspect()
+        |> IO.inspect(label: "First Question")
 
       question_assigns = Map.take(new_question, ~w[question answer variables]a)
 
@@ -68,6 +112,8 @@ defmodule GameSiteWeb.MathLive do
         |> assign(highest_score: 0)
         |> assign(wager: 1)
         |> assign(form: form)
+        |> assign(helper: get_helper(question_assigns.variables))
+        |> assign(toggle: true)
         |> push_event("focus-guess", %{})
 
       {:ok, socket}
@@ -80,10 +126,12 @@ defmodule GameSiteWeb.MathLive do
         |> assign(score: 10)
         |> assign(highest_score: 0)
         |> assign(wager: 1)
+        |> assign(helper: @helper_start)
+        |> assign(toggle: false)
         |> assign(form: to_form(%{"guess" => ""}))
         |> push_event("focus-guess", %{})
 
-      send(self(), :generate_question)
+      # send(self(), :generate_question)
       {:ok, socket}
     end
   end
@@ -100,6 +148,14 @@ defmodule GameSiteWeb.MathLive do
       |> assign(question_assigns)
 
     {:noreply, socket}
+  end
+
+  def handle_event("toggle", %{"toggle-switch-check" => "on"}, socket) do
+    {:noreply, assign(socket, toggle: true)}
+  end
+
+  def handle_event("toggle", _params, socket) do
+    {:noreply, assign(socket, toggle: false)}
   end
 
   def handle_event("answer", params, socket) do
@@ -125,6 +181,7 @@ defmodule GameSiteWeb.MathLive do
           |> assign(:highest_score, highest_score)
           |> assign(:wager, event_info.wager)
           |> assign(:form, answer_form)
+          |> assign(helper: get_helper(question_assigns.variables))
           |> push_event("focus-guess", %{})
 
         {:noreply, socket}
@@ -136,6 +193,7 @@ defmodule GameSiteWeb.MathLive do
           |> assign(:score, 10)
           |> assign(:wager, event_info.wager)
           |> assign(:form, answer_form)
+          |> assign(helper: get_helper(question_assigns.variables))
           |> put_flash(:info, "Score is 0 Resetting")
           |> push_event("focus-guess", %{})
 
@@ -148,6 +206,7 @@ defmodule GameSiteWeb.MathLive do
           |> assign(:score, event_info.current_score)
           |> assign(:wager, min(event_info.wager, event_info.current_score))
           |> assign(:form, answer_form)
+          |> assign(helper: get_helper(question_assigns.variables))
           |> put_flash(:info, "Incorrect")
           |> push_event("focus-guess", %{})
 
@@ -187,6 +246,58 @@ defmodule GameSiteWeb.MathLive do
     %{variables: variables, question: question, answer: answer}
   end
 
+  defp get_helper(variables) do
+    first = tens_ones(variables.first)
+    second = tens_ones(variables.second)
+    notation = variables.notation
+
+    case notation do
+      "*" ->
+        %{
+          first:
+            "#{String.pad_leading("#{first.tens}", 2)} #{notation} #{String.pad_leading("#{second.tens}", 2)} =",
+          second:
+            "#{String.pad_leading("#{first.tens}", 2)} #{notation} #{String.pad_leading("#{second.ones}", 2)} =",
+          third:
+            "#{String.pad_leading("#{second.tens}", 2)} #{notation} #{String.pad_leading("#{first.ones}", 2)} =",
+          fourth:
+            "#{String.pad_leading("#{second.ones}", 2)} #{notation} #{String.pad_leading("#{first.ones}", 2)} ="
+        }
+
+      "+" ->
+        %{
+          first: "#{first.tens} #{notation} #{second.tens} =",
+          second: "#{first.ones} #{notation} #{second.ones} =",
+          third: " ",
+          fourth: " "
+        }
+
+      "-" ->
+        if variables.first > variables.second do
+          %{
+            first:
+              "#{String.pad_leading("#{first.tens}", 2)} #{notation} #{String.pad_leading("#{second.tens}", 2)} =",
+            second:
+              "#{String.pad_leading("#{first.tens}", 2)} #{notation} #{String.pad_leading("#{second.ones}", 2)} =",
+            third:
+              "If the second ones is greater than the first ones borrow from the first answer",
+            fourth: " "
+          }
+        else
+          %{
+            first: "#{second.tens} #{notation} #{first.tens} =",
+            second: "#{second.ones} #{notation} #{first.ones} =",
+            third: " ",
+            fourth: " "
+          }
+        end
+    end
+  end
+
+  defp tens_ones(value) do
+    %{tens: div(value, 10) * 10, ones: rem(value, 10)}
+  end
+
   defp set_event_info(socket, %{
          "wager" => wager,
          "guess" => guess,
@@ -199,7 +310,7 @@ defmodule GameSiteWeb.MathLive do
       current_score: socket.assigns.score + parsed_wager,
       highest_score: socket.assigns.highest_score,
       guess: guess,
-      wager: wager,
+      wager: String.to_integer(wager),
       correct: guess == answer
     }
   end
