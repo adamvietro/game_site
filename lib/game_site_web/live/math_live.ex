@@ -2,7 +2,6 @@ defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
   alias GameSite.Scores
-  alias GameSiteWeb.HelperFunctions, as: Helper
 
   @helper_start %{
     first: "Loading...",
