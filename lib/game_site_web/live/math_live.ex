@@ -16,7 +16,8 @@ defmodule GameSiteWeb.MathLive do
     <p>Score: {@score}</p>
     <p>Question: {@question}</p>
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <.input type="number" field={@form[:guess]} label="Guess" />
+      <%!-- I might want to add in phx-hook="FocusGuess below if I get the hook working properly" --%>
+      <.input type="number" field={@form[:guess]} label="Guess" value=""/>
       <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
       <:actions>
         <.button>Answer</.button>
