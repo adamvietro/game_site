@@ -48,7 +48,8 @@ defmodule GameSiteWeb.WordleLive do
 
   def render(assigns) do
     ~H"""
-    <p>Score: {@score}</p>
+    <p>Highest Score/Streak: {@highest_score}/{@highest_streak}</p>
+    <p>Score/Streak: {@score}/{@streak}</p>
     <%= if @reset == true do %>
       <p>Word: {@word}</p>
     <% end %>
@@ -79,13 +80,7 @@ defmodule GameSiteWeb.WordleLive do
     <%= if @reset == false do %>
       <div class="user-input">
         <.simple_form id="input-form" for={@form} phx-submit="guess">
-          <.input
-            type="text"
-            field={@form[:guess]}
-            label="Guess"
-            value={@form[:guess].value}
-            key={@form}
-          />
+          <.input type="text" field={@form[:guess]} label="Guess" key={@form} />
           <:actions>
             <.button class="px-6 py-2 text-lg">Submit</.button>
           </:actions>
@@ -100,9 +95,7 @@ defmodule GameSiteWeb.WordleLive do
         it's not in the right place. A grey box means that the letter isn't even in the word. The faster
         (number of guesses) the higher score you will receive. <br />
         <br />
-        <br />#todo: <br />Add a wager button (for more points) <br />Add a sixth row
-        <br />Add a keyboard with colors <br />Add a streak counter <br />Add check for max characters
-        <br />Add a check for word entry: 5 letters and is in the word list
+        <br />#todo: <br />Add a keyboard with colors
         <br />Make sure that the cell for the answer is cleared every time.
         <br />Make sure that once a letter is used it can no longer show up as yellow.
       </div>
@@ -110,7 +103,7 @@ defmodule GameSiteWeb.WordleLive do
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
       <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
       <.input type="hidden" field={@form[:game_id]} value={4} />
-      <.input type="hidden" field={@form[:score]} value={@score} />
+      <.input type="hidden" field={@form[:score]} value={@highest_score} />
       <:actions>
         <.button>Exit and Save Score</.button>
       </:actions>
@@ -119,161 +112,96 @@ defmodule GameSiteWeb.WordleLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok,
-     assign(
-       socket,
-       state: @starting_state,
-       score: 0,
-       form: to_form(%{guess: ""}),
-       word: Words.get_word(),
-       round: 0,
-       reset: false,
-       entry: @starting_entries
-     )}
+    socket =
+      socket
+      |> assign(score: 0)
+      |> assign(streak: 0)
+      |> assign(highest_score: 0)
+      |> assign(highest_streak: 0)
+      |> assign(round: 0)
+      |> assign(reset: false)
+      |> assign(form: to_form(%{"guess" => ""}))
+      |> assign(word: Words.get_word())
+      |> assign(entry: @starting_entries)
+      |> assign(state: @starting_state)
+
+    {:ok, socket}
   end
 
   def handle_event("guess", params, socket) do
-    colors = feedback(socket.assigns.word, params["guess"])
-    state = set_colors(colors, socket.assigns.round, socket.assigns.state)
+    if Words.is_word?(params["guess"]) do
+      colors = feedback(socket.assigns.word, params["guess"])
+      state = set_colors(colors, socket.assigns.round, socket.assigns.state)
+      entires = entries(socket.assigns.entry, params["guess"], socket.assigns.round)
+      score = (6 - socket.assigns.round) * 10 + socket.assigns.score
+      IO.inspect(socket.assigns.word)
 
-    form_data = %{"guess" => ""}
-    new_form = to_form(form_data, errors: [guess: {"incorrect", []}])
+      cond do
+        correct?(colors) and
+            socket.assigns.round <= 5 ->
+          socket =
+            socket
+            |> assign(score: score)
+            |> assign(highest_score: max(score, socket.assigns.highest_score))
+            |> assign(streak: socket.assigns.streak + 1)
+            |> assign(highest_streak: max(socket.assigns.highest_streak, socket.assigns.streak + 1))
+            |> assign(round: 0)
+            |> assign(reset: true)
+            |> assign(form: to_form(%{"guess" => ""}))
+            |> assign(entry: entires)
+            |> assign(state: state)
 
-    cond do
-      correct?(colors) and
-          socket.assigns.round <= 5 ->
-        score = (5 - socket.assigns.round) * 10
+          {:noreply, socket}
 
-        {:noreply,
-         assign(
-           socket,
-           round: 0,
-           score: socket.assigns.score + score,
-           state: state,
-           reset: true,
-           form: to_form(%{"guess" => ""}),
-           entry: entries(socket.assigns.entry, params["guess"], socket.assigns.round)
-         )}
+        socket.assigns.round < 5 ->
+          socket =
+            socket
+            |> assign(round: socket.assigns.round + 1)
+            |> assign(reset: false)
+            |> assign(form: to_form(%{"guess" => ""}))
+            |> assign(entry: entires)
+            |> assign(state: state)
 
-      socket.assigns.round < 5 ->
-        {:noreply,
-         assign(
-           socket,
-           entry: entries(socket.assigns.entry, params["guess"], socket.assigns.round),
-           round: socket.assigns.round + 1,
-           form: new_form,
-           state: state
-         )}
+          {:noreply, socket}
 
-      socket.assigns.round == 5 ->
-        {:noreply,
-         assign(
-           socket,
-           round: 0,
-           state: state,
-           form: new_form,
-           reset: true,
-           entry: entries(socket.assigns.entry, params["guess"], socket.assigns.round)
-         )}
+        socket.assigns.round == 5 ->
+          socket =
+            socket
+            |> assign(score: 0)
+            |> assign(round: 0)
+            |> assign(streak: 0)
+            |> assign(reset: true)
+            |> assign(form: to_form(%{"guess" => ""}))
+            |> assign(entry: entires)
+            |> assign(state: state)
+
+          {:noreply, socket}
+      end
+    else
+      socket =
+        socket
+        |> assign(form: to_form(%{"guess" => ""}, errors: [guess: {"Not a Valid Word", []}]))
+
+      {:noreply, socket}
     end
   end
 
   def handle_event("reset", _params, socket) do
-    {:noreply,
-     assign(
-       socket,
-       round: 0,
-       state: @starting_state,
-       word: Words.get_word(),
-       reset: false,
-       form: to_form(%{guess: ""}),
-       entry: @starting_entries
-     )}
+    socket =
+      socket
+      |> assign(state: @starting_state)
+      |> assign(round: 0)
+      |> assign(reset: false)
+      |> assign(form: to_form(%{guess: ""}))
+      |> assign(word: Words.get_word())
+      |> assign(entry: @starting_entries)
+
+    {:noreply, socket}
   end
 
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
   end
-
-  # defp entries(entries, word, round) do
-  #   word =
-  #     word
-  #     |> String.split("", trim: true)
-
-  #   case round do
-  #     0 ->
-  #       {letter, _list} = List.pop_at(word, 0, "")
-  #       entries = put_in(entries.first.l1, letter)
-  #       {letter, _list} = List.pop_at(word, 1, "")
-  #       entries = put_in(entries.first.l2, letter)
-  #       {letter, _list} = List.pop_at(word, 2, "")
-  #       entries = put_in(entries.first.l3, letter)
-  #       {letter, _list} = List.pop_at(word, 3, "")
-  #       entries = put_in(entries.first.l4, letter)
-  #       {letter, _list} = List.pop_at(word, 4, "")
-  #       _entries = put_in(entries.first.l5, letter)
-
-  #     1 ->
-  #       {letter, _list} = List.pop_at(word, 0, "")
-  #       entries = put_in(entries.second.l1, letter)
-  #       {letter, _list} = List.pop_at(word, 1, "")
-  #       entries = put_in(entries.second.l2, letter)
-  #       {letter, _list} = List.pop_at(word, 2, "")
-  #       entries = put_in(entries.second.l3, letter)
-  #       {letter, _list} = List.pop_at(word, 3, "")
-  #       entries = put_in(entries.second.l4, letter)
-  #       {letter, _list} = List.pop_at(word, 4, "")
-  #       _entries = put_in(entries.second.l5, letter)
-
-  #     2 ->
-  #       {letter, _list} = List.pop_at(word, 0, "")
-  #       entries = put_in(entries.third.l1, letter)
-  #       {letter, _list} = List.pop_at(word, 1, "")
-  #       entries = put_in(entries.third.l2, letter)
-  #       {letter, _list} = List.pop_at(word, 2, "")
-  #       entries = put_in(entries.third.l3, letter)
-  #       {letter, _list} = List.pop_at(word, 3, "")
-  #       entries = put_in(entries.third.l4, letter)
-  #       {letter, _list} = List.pop_at(word, 4, "")
-  #       _entries = put_in(entries.third.l5, letter)
-
-  #     3 ->
-  #       {letter, _list} = List.pop_at(word, 0, "")
-  #       entries = put_in(entries.fourth.l1, letter)
-  #       {letter, _list} = List.pop_at(word, 1, "")
-  #       entries = put_in(entries.fourth.l2, letter)
-  #       {letter, _list} = List.pop_at(word, 2, "")
-  #       entries = put_in(entries.fourth.l3, letter)
-  #       {letter, _list} = List.pop_at(word, 3, "")
-  #       entries = put_in(entries.fourth.l4, letter)
-  #       {letter, _list} = List.pop_at(word, 4, "")
-  #       _entries = put_in(entries.fourth.l5, letter)
-
-  #     4 ->
-  #       {letter, _list} = List.pop_at(word, 0, "")
-  #       entries = put_in(entries.fifth.l1, letter)
-  #       {letter, _list} = List.pop_at(word, 1, "")
-  #       entries = put_in(entries.fifth.l2, letter)
-  #       {letter, _list} = List.pop_at(word, 2, "")
-  #       entries = put_in(entries.fifth.l3, letter)
-  #       {letter, _list} = List.pop_at(word, 3, "")
-  #       entries = put_in(entries.fifth.l4, letter)
-  #       {letter, _list} = List.pop_at(word, 4, "")
-  #       _entries = put_in(entries.fifth.l5, letter)
-
-  #     5 ->
-  #       {letter, _list} = List.pop_at(word, 0, "")
-  #       entries = put_in(entries.sixth.l1, letter)
-  #       {letter, _list} = List.pop_at(word, 1, "")
-  #       entries = put_in(entries.sixth.l2, letter)
-  #       {letter, _list} = List.pop_at(word, 2, "")
-  #       entries = put_in(entries.sixth.l3, letter)
-  #       {letter, _list} = List.pop_at(word, 3, "")
-  #       entries = put_in(entries.sixth.l4, letter)
-  #       {letter, _list} = List.pop_at(word, 4, "")
-  #       _entries = put_in(entries.sixth.l5, letter)
-  #   end
-  # end
 
   defp entries(entries, word, round) do
     word_letters = String.split(word, "", trim: true)
@@ -311,80 +239,6 @@ defmodule GameSiteWeb.WordleLive do
     end)
   end
 
-  # defp set_colors(colors, round, state) do
-  #   case round do
-  #     0 ->
-  #       {color, _list} = List.pop_at(colors, 0, :gray)
-  #       state = put_in(state[0], color)
-  #       {color, _list} = List.pop_at(colors, 1, :gray)
-  #       state = put_in(state[1], color)
-  #       {color, _list} = List.pop_at(colors, 2, :gray)
-  #       state = put_in(state[2], color)
-  #       {color, _list} = List.pop_at(colors, 3, :gray)
-  #       state = put_in(state[3], color)
-  #       {color, _list} = List.pop_at(colors, 4, :gray)
-  #       _state = put_in(state[4], color)
-
-  #     1 ->
-  #       {color, _list} = List.pop_at(colors, 0, :gray)
-  #       state = put_in(state[5], color)
-  #       {color, _list} = List.pop_at(colors, 1, :gray)
-  #       state = put_in(state[6], color)
-  #       {color, _list} = List.pop_at(colors, 2, :gray)
-  #       state = put_in(state[7], color)
-  #       {color, _list} = List.pop_at(colors, 3, :gray)
-  #       state = put_in(state[8], color)
-  #       {color, _list} = List.pop_at(colors, 4, :gray)
-  #       _state = put_in(state[9], color)
-
-  #     2 ->
-  #       {color, _list} = List.pop_at(colors, 0, :gray)
-  #       state = put_in(state[10], color)
-  #       {color, _list} = List.pop_at(colors, 1, :gray)
-  #       state = put_in(state[11], color)
-  #       {color, _list} = List.pop_at(colors, 2, :gray)
-  #       state = put_in(state[12], color)
-  #       {color, _list} = List.pop_at(colors, 3, :gray)
-  #       state = put_in(state[13], color)
-  #       {color, _list} = List.pop_at(colors, 4, :gray)
-  #       _state = put_in(state[14], color)
-
-  #     3 ->
-  #       {color, _list} = List.pop_at(colors, 0, :gray)
-  #       state = put_in(state[15], color)
-  #       {color, _list} = List.pop_at(colors, 1, :gray)
-  #       state = put_in(state[16], color)
-  #       {color, _list} = List.pop_at(colors, 2, :gray)
-  #       state = put_in(state[17], color)
-  #       {color, _list} = List.pop_at(colors, 3, :gray)
-  #       state = put_in(state[18], color)
-  #       {color, _list} = List.pop_at(colors, 4, :gray)
-  #       _state = put_in(state[19], color)
-
-  #     4 ->
-  #       {color, _list} = List.pop_at(colors, 0, :gray)
-  #       state = put_in(state[20], color)
-  #       {color, _list} = List.pop_at(colors, 1, :gray)
-  #       state = put_in(state[21], color)
-  #       {color, _list} = List.pop_at(colors, 2, :gray)
-  #       state = put_in(state[22], color)
-  #       {color, _list} = List.pop_at(colors, 3, :gray)
-  #       state = put_in(state[23], color)
-  #       {color, _list} = List.pop_at(colors, 4, :gray)
-  #       _state = put_in(state[24], color)
-
-  #     5 ->
-  #       {color, _list} = List.pop_at(colors, 0, :gray)
-  #       state = put_in(state[25], color)
-  #       {color, _list} = List.pop_at(colors, 1, :gray)
-  #       state = put_in(state[26], color)
-  #       {color, _list} = List.pop_at(colors, 2, :gray)
-  #       state = put_in(state[27], color)
-  #       {color, _list} = List.pop_at(colors, 3, :gray)
-  #       state = put_in(state[28], color)
-  #       {color, _list} = List.pop_at(colors, 4, :gray)
-  #       _state = put_in(state[29], color)
-  #   end
   defp set_colors(colors, round, state) do
     offset = round * 5
 
