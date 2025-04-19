@@ -147,8 +147,20 @@ defmodule GameSiteWeb.CoreComponents do
   def flash_group(assigns) do
     ~H"""
     <div id={@id}>
-      <.flash kind={:info} title={gettext("Success!")} flash={@flash} />
-      <.flash kind={:error} title={gettext("Error!")} flash={@flash} />
+      <.flash
+        kind={:info}
+        title={gettext("Success!")}
+        flash={@flash}
+        phx-hook="AutoDismiss"
+        data-timeout="5000"
+      />
+      <.flash
+        kind={:error}
+        title={gettext("Error!")}
+        flash={@flash}
+        phx-hook="AutoDismiss"
+        data-timeout="5000"
+      />
       <.flash
         id="client-error"
         kind={:error}

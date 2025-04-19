@@ -37,18 +37,21 @@ Hooks.CopyBonus = {
   }
 }
 
-// Hooks.submit_form = {
-//   mounted() {
-//     // Prevent the default form submission behavior and let LiveView handle it
-//     this.el.addEventListener("submit", (event) => {
-//       event.preventDefault()
-//       this.pushEvent("answer", {
-//         guess: this.el.querySelector("[name='guess']").value,
-//         wager: this.el.querySelector("[name='wager']").value
-//       })
-//     })
-//   }
-// }
+Hooks.AutoDismiss = {
+  mounted() {
+    // Get the timeout value from the data attribute
+    const timeout = this.el.dataset.timeout || 5000; // Default to 5000ms if not provided
+
+    // Set a timeout to hide the flash message
+    setTimeout(() => {
+      this.el.style.opacity = "0";  // Fade out
+      setTimeout(() => {
+        this.el.remove();  // Completely remove the flash message from DOM after fade-out
+      }, 500);  // Time for fade-out effect
+    }, timeout);
+  }
+}
+
 
 Hooks.FocusGuess = {
   mounted() {

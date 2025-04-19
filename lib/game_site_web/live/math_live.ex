@@ -16,12 +16,18 @@ defmodule GameSiteWeb.MathLive do
     <p>Score: {@score}</p>
     <p>Question: {@question}</p>
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <.input type="number" field={@form[:guess]} label="Guess" phx-hook="FocusGuess" />
+      <.input type="number" field={@form[:guess]} label="Guess" />
       <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
       <:actions>
         <.button>Answer</.button>
       </:actions>
     </.simple_form>
+
+    <%!-- <%= if msg = Phoenix.Flash.get(@flash, :info) do %>
+      <div id="flash" phx-hook="AutoDismiss" class="flash-info transition-opacity duration-500">
+        {msg}
+      </div>
+    <% end %> --%>
 
     <div>
       <p>
@@ -127,6 +133,7 @@ defmodule GameSiteWeb.MathLive do
       |> assign(:answer, question.answer)
       |> assign(:variables, question.variables)
       |> assign(:helper, get_helper(question.variables))
+      |> assign(:wager, min(wager_val, new_score))
       |> assign(:form, to_form(%{"guess" => "", "wager" => wager_val}))
       |> push_event("focus-guess", %{})
 

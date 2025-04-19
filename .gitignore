@@ -38,3 +38,5 @@ npm-debug.log
 # don't need my env files in the setup
 .env
 
+#priv files
+/priv/*
