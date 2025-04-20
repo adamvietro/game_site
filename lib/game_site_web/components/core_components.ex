@@ -152,14 +152,14 @@ defmodule GameSiteWeb.CoreComponents do
         title={gettext("Success!")}
         flash={@flash}
         phx-hook="AutoDismiss"
-        data-timeout="5000"
+        data-timeout="3000"
       />
       <.flash
         kind={:error}
         title={gettext("Error!")}
         flash={@flash}
         phx-hook="AutoDismiss"
-        data-timeout="5000"
+        data-timeout="3000"
       />
       <.flash
         id="client-error"
