@@ -38,12 +38,12 @@ defmodule GameSiteWeb.WordleLive do
   }
 
   @starting_entries %{
-    first: %{l1: "1", l2: "1", l3: "1", l4: "1", l5: "1"},
-    second: %{l1: "2", l2: "2", l3: "2", l4: "2", l5: "2"},
-    third: %{l1: "3", l2: "3", l3: "3", l4: "3", l5: "3"},
-    fourth: %{l1: "4", l2: "4", l3: "4", l4: "4", l5: "4"},
-    fifth: %{l1: "5", l2: "5", l3: "5", l4: "5", l5: "5"},
-    sixth: %{l1: "6", l2: "6", l3: "6", l4: "6", l5: "6"}
+    first:  %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
+    second: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
+    third:  %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
+    fourth: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
+    fifth:  %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
+    sixth:  %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."}
   }
 
   @starting_keyboard %{
@@ -75,11 +75,11 @@ defmodule GameSiteWeb.WordleLive do
     m: "bg-gray-100"
   }
 
-  @keyboard_rows [
-    [:q, :w, :e, :r, :t, :y, :u, :i, :o, :p],
-    [:a, :s, :d, :f, :g, :h, :j, :k, :l],
-    [:z, :x, :c, :v, :b, :n, :m]
-  ]
+  # @keyboard_rows [
+  #   [:q, :w, :e, :r, :t, :y, :u, :i, :o, :p],
+  #   [:a, :s, :d, :f, :g, :h, :j, :k, :l],
+  #   [:z, :x, :c, :v, :b, :n, :m]
+  # ]
 
   def render(assigns) do
     ~H"""
@@ -187,7 +187,7 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(entry: @starting_entries)
       |> assign(state: @starting_state)
       |> assign(keyboard: @starting_keyboard)
-      |> assign(keyboard_rows: @keyboard_rows)
+      # |> assign(keyboard_rows: @keyboard_rows)
 
     {:ok, socket}
   end
@@ -261,6 +261,8 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(form: to_form(%{guess: ""}))
       |> assign(word: Words.get_word())
       |> assign(entry: @starting_entries)
+      |> assign(keyboard: @starting_keyboard)
+      # |> assign(keyboard_rows: @keyboard_rows)
 
     {:noreply, socket}
   end
