@@ -46,6 +46,41 @@ defmodule GameSiteWeb.WordleLive do
     sixth: %{l1: "6", l2: "6", l3: "6", l4: "6", l5: "6"}
   }
 
+  @starting_keyboard %{
+    q: "bg-gray-100",
+    w: "bg-gray-100",
+    e: "bg-gray-100",
+    r: "bg-gray-100",
+    t: "bg-gray-100",
+    y: "bg-gray-100",
+    u: "bg-gray-100",
+    i: "bg-gray-100",
+    o: "bg-gray-100",
+    p: "bg-gray-100",
+    a: "bg-gray-100",
+    s: "bg-gray-100",
+    d: "bg-gray-100",
+    f: "bg-gray-100",
+    g: "bg-gray-100",
+    h: "bg-gray-100",
+    j: "bg-gray-100",
+    k: "bg-gray-100",
+    l: "bg-gray-100",
+    z: "bg-gray-100",
+    x: "bg-gray-100",
+    c: "bg-gray-100",
+    v: "bg-gray-100",
+    b: "bg-gray-100",
+    n: "bg-gray-100",
+    m: "bg-gray-100"
+  }
+
+  @keyboard_rows [
+    [:q, :w, :e, :r, :t, :y, :u, :i, :o, :p],
+    [:a, :s, :d, :f, :g, :h, :j, :k, :l],
+    [:z, :x, :c, :v, :b, :n, :m]
+  ]
+
   def render(assigns) do
     ~H"""
     <p>Highest Score/Streak: {@highest_score}/{@highest_streak}</p>
@@ -87,6 +122,33 @@ defmodule GameSiteWeb.WordleLive do
         </.simple_form>
       </div>
     <% end %>
+
+    <div class="space-y-1 sm:space-y-2 text-sm">
+      <div class="grid grid-cols-10 gap-1 sm:gap-2">
+        <%= for key <- [:q, :w, :e, :r, :t, :y, :u, :i, :o, :p] do %>
+          <div class={"w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}>
+            {Atom.to_string(key) |> String.upcase()}
+          </div>
+        <% end %>
+      </div>
+
+      <div class="grid grid-cols-9 gap-1 sm:gap-2">
+        <%= for key <- [:a, :s, :d, :f, :g, :h, :j, :k, :l] do %>
+          <div class={"w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}>
+            {Atom.to_string(key) |> String.upcase()}
+          </div>
+        <% end %>
+      </div>
+
+      <div class="grid grid-cols-7 gap-1 sm:gap-2">
+        <%= for key <- [:z, :x, :c, :v, :b, :n, :m] do %>
+          <div class={"w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}>
+            {Atom.to_string(key) |> String.upcase()}
+          </div>
+        <% end %>
+      </div>
+    </div>
+
     <body>
       <div>
         Wordle game. For this game you will be asked to find a 5 letter word, once you have submitted a
@@ -124,6 +186,8 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(word: Words.get_word())
       |> assign(entry: @starting_entries)
       |> assign(state: @starting_state)
+      |> assign(keyboard: @starting_keyboard)
+      |> assign(keyboard_rows: @keyboard_rows)
 
     {:ok, socket}
   end
@@ -144,7 +208,9 @@ defmodule GameSiteWeb.WordleLive do
             |> assign(score: score)
             |> assign(highest_score: max(score, socket.assigns.highest_score))
             |> assign(streak: socket.assigns.streak + 1)
-            |> assign(highest_streak: max(socket.assigns.highest_streak, socket.assigns.streak + 1))
+            |> assign(
+              highest_streak: max(socket.assigns.highest_streak, socket.assigns.streak + 1)
+            )
             |> assign(round: 0)
             |> assign(reset: true)
             |> assign(form: to_form(%{"guess" => ""}))
