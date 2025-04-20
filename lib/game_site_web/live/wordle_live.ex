@@ -75,12 +75,6 @@ defmodule GameSiteWeb.WordleLive do
     m: "bg-gray-100"
   }
 
-  # @keyboard_rows [
-  #   [:q, :w, :e, :r, :t, :y, :u, :i, :o, :p],
-  #   [:a, :s, :d, :f, :g, :h, :j, :k, :l],
-  #   [:z, :x, :c, :v, :b, :n, :m]
-  # ]
-
   def render(assigns) do
     ~H"""
     <p>Highest Score/Streak: {@highest_score}/{@highest_streak}</p>
@@ -115,13 +109,15 @@ defmodule GameSiteWeb.WordleLive do
     <%= if @reset == false do %>
       <div class="user-input">
         <.simple_form id="input-form" for={@form} phx-submit="guess">
-          <.input type="text" field={@form[:guess]} label="Guess" key={@form} />
+          <.input type="text" field={@form[:guess]} label="Guess" key={@round} />
           <:actions>
             <.button class="px-6 py-2 text-lg">Submit</.button>
           </:actions>
         </.simple_form>
       </div>
     <% end %>
+
+    <div><br /></div>
 
     <div class="space-y-1 sm:space-y-2 text-sm">
       <div class="grid grid-cols-10 gap-1 sm:gap-2">
@@ -151,15 +147,13 @@ defmodule GameSiteWeb.WordleLive do
 
     <body>
       <div>
+        <br />
         Wordle game. For this game you will be asked to find a 5 letter word, once you have submitted a
         5 letter word, you will be given feedback on how close you are to the word. A green box means that
         you have the right letter and position. A yellow box means that you have a letter in the word but
         it's not in the right place. A grey box means that the letter isn't even in the word. The faster
         (number of guesses) the higher score you will receive. <br />
-        <br />
-        <br />#todo: <br />Add a keyboard with colors
-        <br />Make sure that the cell for the answer is cleared every time.
-        <br />Make sure that once a letter is used it can no longer show up as yellow.
+        <br />#TODO: <br />Make sure that once a letter is used it can no longer show up as yellow.
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">
@@ -183,12 +177,12 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(round: 0)
       |> assign(reset: false)
       |> assign(form: to_form(%{"guess" => ""}))
-      |> assign(word: Words.get_word())
+      |> assign(word: word = Words.get_word())
       |> assign(entry: @starting_entries)
       |> assign(state: @starting_state)
       |> assign(keyboard: @starting_keyboard)
 
-    # |> assign(keyboard_rows: @keyboard_rows)
+      IO.inspect(word)
 
     {:ok, socket}
   end
@@ -199,24 +193,28 @@ defmodule GameSiteWeb.WordleLive do
     if Words.is_word?(guess) do
       letters_colors =
         feedback(socket.assigns.word, guess)
-        # |> IO.inspect(label: "Letters Colors")
+
+      # |> IO.inspect(label: "Letters Colors")
 
       state =
         set_colors(letters_colors, socket.assigns.round, socket.assigns.state)
-        # |> IO.inspect(label: "State")
+
+      # |> IO.inspect(label: "State")
 
       entires =
         entries(socket.assigns.entry, guess, socket.assigns.round)
-        # |> IO.inspect(label: "Entires")
+
+      # |> IO.inspect(label: "Entires")
 
       keyboard =
         set_keyboard(letters_colors, socket.assigns.keyboard)
-        # |> IO.inspect(label: "keyboard")
+
+      # |> IO.inspect(label: "keyboard")
 
       score = (6 - socket.assigns.round) * 10 + socket.assigns.score
 
       cond do
-        correct?(guess, socket.assigns.word) and
+        guess == socket.assigns.word and
             socket.assigns.round <= 5 ->
           socket =
             socket
@@ -277,12 +275,11 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(round: 0)
       |> assign(reset: false)
       |> assign(form: to_form(%{guess: ""}))
-      |> assign(word: Words.get_word())
+      |> assign(word: word = Words.get_word())
       |> assign(entry: @starting_entries)
       |> assign(keyboard: @starting_keyboard)
 
-    # |> assign(keyboard_rows: @keyboard_rows)
-
+      IO.inspect(word)
     {:noreply, socket}
   end
 
@@ -314,7 +311,6 @@ defmodule GameSiteWeb.WordleLive do
           [letter, "bg-gray-300"]
       end
     end)
-    |> IO.inspect()
   end
 
   defp entries(entries, word, round) do
@@ -336,7 +332,7 @@ defmodule GameSiteWeb.WordleLive do
     offset = round * 5
 
     Enum.reduce(0..4, state, fn i, acc ->
-      pair = {[_letter, color], _} = List.pop_at(colors, i, :gray)
+      {[_letter, color], _} = List.pop_at(colors, i, :gray)
       put_in(acc[offset + i], color)
     end)
   end
@@ -345,14 +341,6 @@ defmodule GameSiteWeb.WordleLive do
     Enum.reduce(letters_colors, keyboard, fn [letter, color], acc ->
       Map.replace(acc, String.to_atom(letter), color)
     end)
-  end
-
-  defp correct?(guess, word) do
-    if guess == word do
-      true
-    else
-      false
-    end
   end
 
   defp save_score(socket, :new, score_params) do
