@@ -38,12 +38,12 @@ defmodule GameSiteWeb.WordleLive do
   }
 
   @starting_entries %{
-    first:  %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
+    first: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
     second: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
-    third:  %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
+    third: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
     fourth: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
-    fifth:  %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
-    sixth:  %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."}
+    fifth: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
+    sixth: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."}
   }
 
   @starting_keyboard %{
@@ -187,21 +187,36 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(entry: @starting_entries)
       |> assign(state: @starting_state)
       |> assign(keyboard: @starting_keyboard)
-      # |> assign(keyboard_rows: @keyboard_rows)
+
+    # |> assign(keyboard_rows: @keyboard_rows)
 
     {:ok, socket}
   end
 
-  def handle_event("guess", params, socket) do
-    if Words.is_word?(params["guess"]) do
-      colors = feedback(socket.assigns.word, params["guess"])
-      state = set_colors(colors, socket.assigns.round, socket.assigns.state)
-      entires = entries(socket.assigns.entry, params["guess"], socket.assigns.round)
+  def handle_event("guess", %{"guess" => guess} = _params, socket) do
+    IO.inspect(socket.assigns.word, label: "Current Word")
+
+    if Words.is_word?(guess) do
+      letters_colors =
+        feedback(socket.assigns.word, guess)
+        # |> IO.inspect(label: "Letters Colors")
+
+      state =
+        set_colors(letters_colors, socket.assigns.round, socket.assigns.state)
+        # |> IO.inspect(label: "State")
+
+      entires =
+        entries(socket.assigns.entry, guess, socket.assigns.round)
+        # |> IO.inspect(label: "Entires")
+
+      keyboard =
+        set_keyboard(letters_colors, socket.assigns.keyboard)
+        # |> IO.inspect(label: "keyboard")
+
       score = (6 - socket.assigns.round) * 10 + socket.assigns.score
-      IO.inspect(socket.assigns.word)
 
       cond do
-        correct?(colors) and
+        correct?(guess, socket.assigns.word) and
             socket.assigns.round <= 5 ->
           socket =
             socket
@@ -216,6 +231,7 @@ defmodule GameSiteWeb.WordleLive do
             |> assign(form: to_form(%{"guess" => ""}))
             |> assign(entry: entires)
             |> assign(state: state)
+            |> assign(keyboard: keyboard)
 
           {:noreply, socket}
 
@@ -227,6 +243,7 @@ defmodule GameSiteWeb.WordleLive do
             |> assign(form: to_form(%{"guess" => ""}))
             |> assign(entry: entires)
             |> assign(state: state)
+            |> assign(keyboard: keyboard)
 
           {:noreply, socket}
 
@@ -240,6 +257,7 @@ defmodule GameSiteWeb.WordleLive do
             |> assign(form: to_form(%{"guess" => ""}))
             |> assign(entry: entires)
             |> assign(state: state)
+            |> assign(keyboard: keyboard)
 
           {:noreply, socket}
       end
@@ -262,13 +280,41 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(word: Words.get_word())
       |> assign(entry: @starting_entries)
       |> assign(keyboard: @starting_keyboard)
-      # |> assign(keyboard_rows: @keyboard_rows)
+
+    # |> assign(keyboard_rows: @keyboard_rows)
 
     {:noreply, socket}
   end
 
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
+  end
+
+  defp feedback(word, guess) do
+    index_word =
+      word
+      |> String.split("", trim: true)
+      |> Enum.with_index()
+
+    index_guess =
+      guess
+      |> String.downcase()
+      |> String.split("", trim: true)
+      |> Enum.with_index()
+
+    Enum.map(index_guess, fn {letter, index} ->
+      cond do
+        {letter, index} in index_word ->
+          [letter, "bg-green-400"]
+
+        letter in String.split(word, "", trim: true) ->
+          [letter, "bg-yellow-300"]
+
+        true ->
+          [letter, "bg-gray-300"]
+      end
+    end)
+    |> IO.inspect()
   end
 
   defp entries(entries, word, round) do
@@ -286,38 +332,23 @@ defmodule GameSiteWeb.WordleLive do
     put_in(entries[line_key], updated_line)
   end
 
-  defp feedback(word, guess) do
-    index_word =
-      word
-      |> String.split("", trim: true)
-      |> Enum.with_index()
-
-    index_guess =
-      guess
-      |> String.downcase()
-      |> String.split("", trim: true)
-      |> Enum.with_index()
-
-    Enum.map(index_guess, fn {letter, index} ->
-      cond do
-        {letter, index} in index_word -> "bg-green-400"
-        letter in String.split(word, "", trim: true) -> "bg-yellow-300"
-        true -> "bg-gray-300"
-      end
-    end)
-  end
-
   defp set_colors(colors, round, state) do
     offset = round * 5
 
     Enum.reduce(0..4, state, fn i, acc ->
-      {color, _} = List.pop_at(colors, i, :gray)
+      pair = {[_letter, color], _} = List.pop_at(colors, i, :gray)
       put_in(acc[offset + i], color)
     end)
   end
 
-  defp correct?(colors) do
-    if colors == ["bg-green-400", "bg-green-400", "bg-green-400", "bg-green-400", "bg-green-400"] do
+  defp set_keyboard(letters_colors, keyboard) do
+    Enum.reduce(letters_colors, keyboard, fn [letter, color], acc ->
+      Map.replace(acc, String.to_atom(letter), color)
+    end)
+  end
+
+  defp correct?(guess, word) do
+    if guess == word do
       true
     else
       false
