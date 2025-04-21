@@ -190,7 +190,7 @@ defmodule GameSiteWeb.WordleLive do
   def handle_event("guess", %{"guess" => guess} = _params, socket) do
     IO.inspect(socket.assigns.word, label: "Current Word")
 
-    if Words.is_word?(guess) do
+    if Words.is_word?(String.downcase(guess)) do
       letters_colors =
         feedback(socket.assigns.word, guess)
 
