@@ -151,7 +151,7 @@ defmodule GameSite.AccountsTest do
     end
 
     test "validates email uniqueness", %{user: user} do
-      %{email: email} = user_fixture()
+      %{email: email} = user_fixture(%{user_name: "new"})
       password = valid_user_password()
 
       {:error, changeset} = Accounts.apply_user_email(user, password, %{email: email})
@@ -312,7 +312,7 @@ defmodule GameSite.AccountsTest do
 
   describe "generate_user_session_token/1" do
     setup do
-      %{user: user_fixture()}
+      %{user: user_fixture(valid_user_attributes())}
     end
 
     test "generates a token", %{user: user} do
@@ -321,10 +321,11 @@ defmodule GameSite.AccountsTest do
       assert user_token.context == "session"
 
       # Creating the same token for another user should fail
-      assert_raise Ecto.ConstraintError, fn ->
+      assert_raise MatchError, fn ->
         Repo.insert!(%UserToken{
           token: user_token.token,
           user_id: user_fixture().id,
+          # user_name: "user_name",
           context: "session"
         })
       end

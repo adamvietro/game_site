@@ -81,20 +81,24 @@ defmodule GameSite.Scores do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_score(%{"user_id" => user_id, "game_id" => game_id, "score" => score} = attrs) do
-    existing_score =
-      Repo.get_by(Score,
-        user_id: user_id,
-        game_id: game_id,
-        score: score
-      )
-
-    if existing_score do
-      {:duplicate, :already_exists}
+  def create_score(%{user_id: user_id, game_id: game_id, score: score} = attrs) do
+    if is_nil(score) or is_nil(game_id) or is_nil(user_id) do
+      {:error, %Ecto.Changeset{}}
     else
-      %Score{}
-      |> Score.changeset(attrs)
-      |> Repo.insert()
+      existing_score =
+        Repo.get_by(Score,
+          user_id: user_id,
+          game_id: game_id,
+          score: score
+        )
+
+      if existing_score do
+        {:duplicate, :already_exists}
+      else
+        %Score{}
+        |> Score.changeset(attrs)
+        |> Repo.insert()
+      end
     end
   end
 
