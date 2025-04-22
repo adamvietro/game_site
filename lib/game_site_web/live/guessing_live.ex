@@ -100,7 +100,7 @@ defmodule GameSiteWeb.GuessingLive do
           |> assign(attempt: event_info.attempt + 1)
           |> assign(wager: event_info.wager)
           |> assign(form: to_form(%{}))
-          |> put_flash(:info, "Incorrect.")
+          |> put_flash(:error, "Incorrect.")
 
         {:noreply, socket}
 
@@ -112,13 +112,11 @@ defmodule GameSiteWeb.GuessingLive do
           |> assign(answer: new_answer())
           |> assign(wager: 1)
           |> assign(form: to_form(%{}))
-          |> put_flash(:info, "Out of Points, resetting.")
+          |> put_flash(:error, "Out of Points, resetting.")
 
         {:noreply, socket}
 
       event_info.attempt >= 5 ->
-        IO.inspect([event_info.wager, event_info.current_score])
-
         socket =
           socket
           |> assign(attempt: 1)
@@ -126,7 +124,7 @@ defmodule GameSiteWeb.GuessingLive do
           |> assign(answer: new_answer())
           |> assign(wager: min(event_info.wager, event_info.current_score))
           |> assign(form: to_form(%{}))
-          |> put_flash(:info, "Out of Guesses.")
+          |> put_flash(:error, "Out of Guesses.")
 
         {:noreply, socket}
     end
