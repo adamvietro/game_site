@@ -109,7 +109,9 @@ defmodule GameSiteWeb.WordleLive do
     <%= if @reset == false do %>
       <div class="user-input">
         <.simple_form id="input-form" for={@form} phx-submit="guess">
-          <.input type="text" field={@form[:guess]} label="Guess" key={@round} />
+          <.input type="text" value={@guess_string} label="Guess" disabled name="no-input" />
+          <.input type="hidden" field={@form[:guess]} value={@guess_string} />
+
           <:actions>
             <.button class="px-6 py-2 text-lg">Submit</.button>
           </:actions>
@@ -122,7 +124,11 @@ defmodule GameSiteWeb.WordleLive do
     <div class="space-y-1 sm:space-y-2 text-sm">
       <div class="grid grid-cols-10 gap-1 sm:gap-2">
         <%= for key <- [:q, :w, :e, :r, :t, :y, :u, :i, :o, :p] do %>
-          <div class={"w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}>
+          <div
+            phx-click="add_letter"
+            phx-value-letter={Atom.to_string(key)}
+            class={"cursor-pointer w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}
+          >
             {Atom.to_string(key) |> String.upcase()}
           </div>
         <% end %>
@@ -130,7 +136,11 @@ defmodule GameSiteWeb.WordleLive do
 
       <div class="grid grid-cols-9 gap-1 sm:gap-2">
         <%= for key <- [:a, :s, :d, :f, :g, :h, :j, :k, :l] do %>
-          <div class={"w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}>
+          <div
+            phx-click="add_letter"
+            phx-value-letter={Atom.to_string(key)}
+            class={"cursor-pointer w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}
+          >
             {Atom.to_string(key) |> String.upcase()}
           </div>
         <% end %>
@@ -138,10 +148,22 @@ defmodule GameSiteWeb.WordleLive do
 
       <div class="grid grid-cols-7 gap-1 sm:gap-2">
         <%= for key <- [:z, :x, :c, :v, :b, :n, :m] do %>
-          <div class={"w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}>
+          <div
+            phx-click="add_letter"
+            phx-value-letter={Atom.to_string(key)}
+            class={"cursor-pointer w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}
+          >
             {Atom.to_string(key) |> String.upcase()}
           </div>
         <% end %>
+      </div>
+      <div class="mt-2 grid grid-cols-3 gap-1 sm:gap-2">
+        <div
+          phx-click="delete_letter"
+          class="col-span-1 p-2 text-center rounded bg-red-200 cursor-pointer"
+        >
+          Delete
+        </div>
       </div>
     </div>
 
@@ -152,7 +174,8 @@ defmodule GameSiteWeb.WordleLive do
         5 letter word, you will be given feedback on how close you are to the word. A green box means that
         you have the right letter and position. A yellow box means that you have a letter in the word but
         it's not in the right place. A grey box means that the letter isn't even in the word. The faster
-        (number of guesses) the higher score you will receive. <br />
+        (number of guesses) the higher score you will receive. You can only use the on screen keyboard to
+        enter a word.<br />
         <br />#TODO: <br />Make sure that once a letter is used it can no longer show up as yellow.
       </div>
     </body>
@@ -176,21 +199,43 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(highest_streak: 0)
       |> assign(round: 0)
       |> assign(reset: false)
+      |> assign(guess_string: "")
       |> assign(form: to_form(%{"guess" => ""}))
       |> assign(word: word = Words.get_word())
       |> assign(entry: @starting_entries)
       |> assign(state: @starting_state)
       |> assign(keyboard: @starting_keyboard)
 
-      IO.inspect(word)
+    IO.inspect(word)
 
     {:ok, socket}
   end
 
+  def handle_event("delete_letter", _, socket) do
+    if socket.assigns.guess_string == "" do
+      {:noreply, socket}
+    else
+      updated = socket.assigns.guess_string |> String.slice(0..-2//-1)
+      {:noreply, assign(socket, guess_string: updated)}
+    end
+  end
+
+  def handle_event("add_letter", %{"letter" => letter}, socket) do
+    current = socket.assigns.guess_string || ""
+
+    if String.length(current) < 5 do
+      {:noreply, assign(socket, guess_string: current <> letter)}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_event("guess", %{"guess" => guess} = _params, socket) do
-    IO.inspect(socket.assigns.word, label: "Current Word")
+    IO.inspect(%{answer: socket.assigns.word, guess: guess}, label: "Words")
 
     if Words.is_word?(String.downcase(guess)) do
+      IO.inspect("is word")
+
       letters_colors =
         feedback(socket.assigns.word, guess)
 
@@ -226,6 +271,7 @@ defmodule GameSiteWeb.WordleLive do
             )
             |> assign(round: 0)
             |> assign(reset: true)
+            |> assign(guess_string: "")
             |> assign(form: to_form(%{"guess" => ""}))
             |> assign(entry: entires)
             |> assign(state: state)
@@ -238,6 +284,7 @@ defmodule GameSiteWeb.WordleLive do
             socket
             |> assign(round: socket.assigns.round + 1)
             |> assign(reset: false)
+            |> assign(guess_string: "")
             |> assign(form: to_form(%{"guess" => ""}))
             |> assign(entry: entires)
             |> assign(state: state)
@@ -252,6 +299,7 @@ defmodule GameSiteWeb.WordleLive do
             |> assign(round: 0)
             |> assign(streak: 0)
             |> assign(reset: true)
+            |> assign(guess_string: "")
             |> assign(form: to_form(%{"guess" => ""}))
             |> assign(entry: entires)
             |> assign(state: state)
@@ -262,10 +310,16 @@ defmodule GameSiteWeb.WordleLive do
     else
       socket =
         socket
+        |> assign(guess_string: "")
         |> assign(form: to_form(%{"guess" => ""}, errors: [guess: {"Not a Valid Word", []}]))
 
       {:noreply, socket}
     end
+  end
+
+  def handle_event("guess", _, socket) do
+    # maybe log and ignore bad submissions, or show error
+    {:noreply, put_flash(socket, :error, "Invalid guess submission")}
   end
 
   def handle_event("reset", _params, socket) do
@@ -274,12 +328,13 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(state: @starting_state)
       |> assign(round: 0)
       |> assign(reset: false)
-      |> assign(form: to_form(%{guess: ""}))
+      |> assign(guess_string: "")
+      |> assign(form: to_form(%{"guess" => ""}))
       |> assign(word: word = Words.get_word())
       |> assign(entry: @starting_entries)
       |> assign(keyboard: @starting_keyboard)
 
-      IO.inspect(word)
+    IO.inspect(word)
     {:noreply, socket}
   end
 
