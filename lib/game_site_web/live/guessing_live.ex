@@ -14,7 +14,8 @@ defmodule GameSiteWeb.GuessingLive do
     <div class="grid grid-cols-5 gap-x-3 gap-y-1 max-w-md mx-auto mt-4">
       <%= for guess <- 1..10 do %>
         <.simple_form for={@form} phx-submit="answer" class="text-center">
-          <.input type="hidden" field={@form[:guess]} value={guess} />
+          <.input type="hidden" field={@form[:guess]} value={guess} id={"guess_hidden_#{guess}"} />
+
           <input type="hidden" name="wager" id={"wager_hidden_#{guess}"} />
 
           <.button type="submit" class="w-full" phx-hook="CopyBonus">
