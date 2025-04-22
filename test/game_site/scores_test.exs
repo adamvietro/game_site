@@ -10,14 +10,14 @@ defmodule GameSite.ScoresTest do
   describe "scores" do
     alias GameSite.Scores.Score
 
-    @invalid_attrs %{score: nil, game_id: nil, user_id: nil}
+    @invalid_attrs %{"score" => nil, "game_id" => nil, "user_id" => nil}
 
     setup do
       user = user_fixture()
       game = game_fixture()
 
       score =
-        score_fixture(%{user_id: user.id, game_id: game.id})
+        score_fixture(%{"user_id" =>  user.id, "game_id" => game.id, "score" => 42})
 
       %{score: score}
     end
@@ -38,6 +38,9 @@ defmodule GameSite.ScoresTest do
       valid_attrs =
         score
         |> Repo.preload([:user, :game])
+        |> Map.from_struct()
+        |> Map.take([:user_id, :game_id, :score])
+        |> Map.new(fn {k, v} -> {to_string(k), v} end)
 
       assert {:duplicate, :already_exists} = Scores.create_score(valid_attrs)
       assert score.score == 42

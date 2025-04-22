@@ -11,7 +11,7 @@ defmodule GameSiteWeb.ScoreLiveTest do
     game = game_fixture()
 
     score =
-      score_fixture(%{user_id: user.id, game_id: game.id})
+      score_fixture(%{"user_id" =>  user.id, "game_id" => game.id})
 
     %{score: score, user: user}
   end

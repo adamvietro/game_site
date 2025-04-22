@@ -81,7 +81,7 @@ defmodule GameSite.Scores do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_score(%{user_id: user_id, game_id: game_id, score: score} = attrs) do
+  def create_score(%{"user_id" => user_id, "game_id" => game_id, "score" => score} = attrs) do
     if is_nil(score) or is_nil(game_id) or is_nil(user_id) do
       {:error, %Ecto.Changeset{}}
     else

@@ -156,7 +156,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
       {:noreply, updated_socket} =
         GameSiteWeb.GuessingLive.handle_event(
           "exit",
-          %{user_id: user.id, score: updated_socket.assigns.highest_score, game_id: game.id},
+          %{"user_id" => user.id, "score" => updated_socket.assigns.highest_score, "game_id" => game.id},
           updated_socket
         )
 
