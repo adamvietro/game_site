@@ -14,7 +14,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       <div class="flex gap-6">
         <%= for choice <- ["rock", "paper", "scissors"] do %>
           <.simple_form for={@form} phx-submit="answer" class="text-center">
-            <.input type="hidden" field={@form[:player_choice]} value={choice} />
+            <.input type="hidden" field={@form[:player_choice]} value={choice} id={choice} />
             <input type="hidden" name="wager" id={"wager_hidden_#{choice}"} />
 
             <.button type="submit" class="w-full" phx-hook="CopyBonus">
@@ -44,8 +44,8 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       <div>
         Rock Paper Scissors. Yeah it's simple but fun. Each win will give/take the amount of points wagered.
         You will simply click a button and roll the dice, or ?scissors? At any point you can Exit and Save Score
-         it will submit your highest score of the session. You can't come back to a session once you exit
-          or refresh the page. <br />
+        it will submit your highest score of the session. You can't come back to a session once you exit
+        or refresh the page. <br />
         <br />
         <br />#todo: <br />Fix CSS
       </div>
@@ -90,10 +90,14 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       computer: socket.assigns.computer,
       current_score: socket.assigns.score + parsed_wager,
       score: socket.assigns.score,
-      wager: String.to_integer(wager),
+      wager: if(wager == "", do: 1, else: String.to_integer(wager)),
       highest_score: max(socket.assigns.score + parsed_wager, socket.assigns.highest_score),
       form: to_form(%{})
     }
+  end
+
+  defp parsed_wager("", player, computer) do
+    if beats?(player, computer), do: 1, else: -1
   end
 
   defp parsed_wager(wager, player, computer) do
@@ -110,15 +114,16 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
   defp set_assign(socket, params) do
     event_info =
       set_event_info(socket, params)
-      |> IO.inspect(label: "Event info")
+
+    # |> IO.inspect(label: "Event info")
 
     cond do
       event_info.current_score <= 0 ->
-        IO.inspect("Reset")
+        # IO.inspect("Reset")
 
         socket =
           socket
-          |> put_flash(:info, "Score at 0, resetting.")
+          |> put_flash(:error, "Score at 0, resetting.")
           |> assign(computer: computer_choose())
           |> assign(score: 10)
           |> assign(wager: 1)
@@ -128,7 +133,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
         {:noreply, socket}
 
       event_info.computer == event_info.player ->
-        IO.inspect("Tied")
+        # IO.inspect("Tied")
 
         socket =
           socket
@@ -140,7 +145,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
         {:noreply, socket}
 
       beats?(event_info.player, event_info.computer) ->
-        IO.inspect("Won")
+        # IO.inspect("Won")
 
         socket =
           socket
@@ -154,7 +159,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
         {:noreply, socket}
 
       true ->
-        IO.inspect("Lost")
+        # IO.inspect("Lost")
 
         socket =
           socket
