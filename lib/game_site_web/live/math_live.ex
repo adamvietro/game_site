@@ -2,6 +2,7 @@ defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
   alias GameSite.Scores
+  alias GameSiteWeb.HelperFunctions, as: Helper
 
   @helper_start %{
     first: "Loading...",
@@ -17,7 +18,7 @@ defmodule GameSiteWeb.MathLive do
     <p>Question: {@question}</p>
     <.simple_form id="answer-form" for={@form} phx-submit="answer">
       <%!-- I might want to add in phx-hook="FocusGuess below if I get the hook working properly" --%>
-      <.input type="number" field={@form[:guess]} label="Guess" value=""/>
+      <.input type="number" field={@form[:guess]} label="Guess" value="" />
       <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
       <:actions>
         <.button>Answer</.button>
@@ -113,16 +114,18 @@ defmodule GameSiteWeb.MathLive do
   end
 
   def handle_event("answer", %{"guess" => guess, "wager" => wager}, socket) do
-    is_correct = guess == socket.assigns.answer
-    wager_val = String.to_integer(wager)
+    correct = Helper.correct?(guess, socket.assigns.answer)
+    wager = Helper.wager_parse(wager)
 
     new_score =
-      if is_correct, do: socket.assigns.score + wager_val, else: socket.assigns.score - wager_val
+      if correct,
+        do: socket.assigns.score + wager,
+        else: socket.assigns.score - wager
 
     question = new_question()
 
-    flash_type = if is_correct, do: :info, else: :error
-    flash_message = if is_correct, do: "Correct!", else: "Incorrect"
+    flash_type = if correct, do: :info, else: :error
+    flash_message = if correct, do: "Correct!", else: "Incorrect"
 
     put_flash(socket, flash_type, flash_message)
 
@@ -134,8 +137,8 @@ defmodule GameSiteWeb.MathLive do
       |> assign(:answer, question.answer)
       |> assign(:variables, question.variables)
       |> assign(:helper, get_helper(question.variables))
-      |> assign(:wager, min(wager_val, new_score))
-      |> assign(:form, to_form(%{"guess" => "", "wager" => wager_val}))
+      |> assign(:wager, min(wager, new_score))
+      |> assign(:form, to_form(%{"guess" => "", "wager" => wager}))
       |> push_event("focus-guess", %{})
 
     socket =

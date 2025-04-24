@@ -5,30 +5,30 @@ defmodule GameSiteWeb.GuessingLiveTest do
   import GameSite.GamesFixtures
   import GameSite.AccountsFixtures
 
+  defp get_socket(view) do
+    state = :sys.get_state(view.pid)
+    state.socket
+  end
+
+  def run_five_times(socket, wager) do
+    Enum.reduce(1..5, socket, fn _n, acc_socket ->
+      {:noreply, new_socket} =
+        GameSiteWeb.GuessingLive.handle_event(
+          "answer",
+          %{"guess" => "11", "wager" => wager},
+          acc_socket
+        )
+
+      new_socket
+    end)
+  end
+
   describe "Guessing" do
     setup do
       user = user_fixture()
       game = game_fixture(%{game_id: 1})
 
       %{user: user, game: game}
-    end
-
-    defp get_socket(view) do
-      state = :sys.get_state(view.pid)
-      state.socket
-    end
-
-    def run_five_times(socket, wager) do
-      Enum.reduce(1..5, socket, fn _n, acc_socket ->
-        {:noreply, new_socket} =
-          GameSiteWeb.GuessingLive.handle_event(
-            "answer",
-            %{"guess" => "11", "wager" => wager},
-            acc_socket
-          )
-
-        new_socket
-      end)
     end
 
     test "access route", %{conn: conn, user: user} do
@@ -42,6 +42,29 @@ defmodule GameSiteWeb.GuessingLiveTest do
     end
 
     test "good guess", %{conn: conn, user: user} do
+      conn =
+        conn
+        |> log_in_user(user)
+
+      {:ok, view, _html} = live(conn, ~p"/1")
+
+      socket = get_socket(view)
+      answer = socket.assigns.answer
+
+      {:noreply, new_socket} =
+        GameSiteWeb.GuessingLive.handle_event(
+          "answer",
+          %{"guess" => to_string(answer), "wager" => "2"},
+          socket
+        )
+
+      assert new_socket.assigns.attempt == 1
+      assert new_socket.assigns.wager == 2
+      assert new_socket.assigns.score == 12
+      assert Phoenix.Flash.get(new_socket.assigns.flash, :info) == "Correct!"
+    end
+
+    test "good guess, no wager", %{conn: conn, user: user} do
       conn =
         conn
         |> log_in_user(user)
@@ -156,14 +179,18 @@ defmodule GameSiteWeb.GuessingLiveTest do
       {:noreply, updated_socket} =
         GameSiteWeb.GuessingLive.handle_event(
           "exit",
-          %{"user_id" => user.id, "score" => updated_socket.assigns.highest_score, "game_id" => game.id},
+          %{
+            "user_id" => user.id,
+            "score" => updated_socket.assigns.highest_score,
+            "game_id" => game.id
+          },
           updated_socket
         )
 
+      # assert redirected_to(conn) == ~p"/scores"
 
-        # assert redirected_to(conn) == ~p"/scores"
-
-        assert Phoenix.Flash.get(updated_socket.assigns.flash, :info) == "Score created successfully"
+      assert Phoenix.Flash.get(updated_socket.assigns.flash, :info) ==
+               "Score created successfully"
     end
   end
 end
