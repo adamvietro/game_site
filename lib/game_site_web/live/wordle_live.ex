@@ -215,7 +215,7 @@ defmodule GameSiteWeb.WordleLive do
     if socket.assigns.guess_string == "" do
       {:noreply, socket}
     else
-      updated = socket.assigns.guess_string |> String.slice(0..-2//-1)
+      updated = socket.assigns.guess_string |> String.slice(0..-2//1)
       {:noreply, assign(socket, guess_string: updated)}
     end
   end
@@ -340,6 +340,14 @@ defmodule GameSiteWeb.WordleLive do
     save_score(socket, :new, params)
   end
 
+  defp letter_count(word) do
+    word_list = String.split(word, "", trim: true)
+
+    Enum.reduce(word_list, %{}, fn letter, acc ->
+      Map.update(acc, letter, 1, fn count -> count + 1 end)
+    end)
+  end
+
   defp feedback(word, guess) do
     index_word =
       word
@@ -352,18 +360,28 @@ defmodule GameSiteWeb.WordleLive do
       |> String.split("", trim: true)
       |> Enum.with_index()
 
-    Enum.map(index_guess, fn {letter, index} ->
-      cond do
-        {letter, index} in index_word ->
-          [letter, "bg-green-400"]
+    letter_count =
+      letter_count(word)
+      |> IO.inspect(label: "Letter Count")
 
-        letter in String.split(word, "", trim: true) ->
-          [letter, "bg-yellow-300"]
+    {result, _final_letter_count} =
+      Enum.map_reduce(index_guess, letter_count, fn {letter, index}, letter_count ->
+        cond do
+          {letter, index} in index_word ->
+            letter_count = Map.update!(letter_count, letter, fn count -> count - 1 end)
+            IO.inspect(letter_count, label: "green")
+            {[letter, "bg-green-400"], letter_count}
 
-        true ->
-          [letter, "bg-gray-300"]
-      end
-    end)
+          letter in String.split(word, "", trim: true) and letter_count[letter] > 0 ->
+            letter_count = Map.update!(letter_count, letter, fn count -> count - 1 end)
+            IO.inspect(letter_count, label: "yellow")
+            {[letter, "bg-yellow-300"], letter_count}
+
+          true ->
+            {[letter, "bg-gray-300"], letter_count}
+        end
+      end)
+      result
   end
 
   defp entries(entries, word, round) do
