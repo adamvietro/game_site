@@ -234,8 +234,6 @@ defmodule GameSiteWeb.WordleLive do
     IO.inspect(%{answer: socket.assigns.word, guess: guess}, label: "Words")
 
     if Words.is_word?(String.downcase(guess)) do
-      IO.inspect("is word")
-
       letters_colors =
         feedback(socket.assigns.word, guess)
 
