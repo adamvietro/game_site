@@ -174,9 +174,8 @@ defmodule GameSiteWeb.WordleLive do
         5 letter word, you will be given feedback on how close you are to the word. A green box means that
         you have the right letter and position. A yellow box means that you have a letter in the word but
         it's not in the right place. A grey box means that the letter isn't even in the word. The faster
-        (number of guesses) the higher score you will receive. You can only use the on screen keyboard to
-        enter a word.<br />
-        <br />#TODO: <br />Make sure that once a letter is used it can no longer show up as yellow.
+        (number of guesses) the higher score you will receive. You can use the on screen keyboard or your own
+        keyboard to enter a word.
       </div>
     </body>
     <.simple_form id="exit-form" for={@form} phx-submit="exit">

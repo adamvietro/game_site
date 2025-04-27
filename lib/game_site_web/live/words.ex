@@ -7,7 +7,6 @@ defmodule GameSiteWeb.Words do
   end
 
   def is_word?(word) do
-    # if word in @words, do: true, else: false
-    true
+    if word in @words, do: true, else: false
   end
 end

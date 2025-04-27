@@ -45,7 +45,7 @@ defmodule GameSiteWeb.WordleLiveTest do
     end)
   end
 
-  describe "Wordle" do
+  describe "html/live" do
     setup do
       user = user_fixture()
       game = game_fixture(%{game_id: 4})
@@ -200,6 +200,12 @@ defmodule GameSiteWeb.WordleLiveTest do
 
       assert Phoenix.Flash.get(updated_socket.assigns.flash, :info) ==
                "Score created successfully"
+    end
+  end
+
+  describe "functions" do
+    test "feedback/2 all grey" do
+      colors = feedback("glove", "loveg")
     end
   end
 end
