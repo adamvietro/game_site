@@ -109,7 +109,7 @@ defmodule GameSiteWeb.WordleLive do
     <%= if @reset == false do %>
       <div class="user-input">
         <.simple_form id="input-form" for={@form} phx-submit="guess">
-          <.input type="text" value={@guess_string} label="Guess" disabled name="no-input" />
+          <.input type="text" value={@guess_string} label="Guess" name="no-input" />
           <.input type="hidden" field={@form[:guess]} value={@guess_string} />
 
           <:actions>
@@ -230,8 +230,10 @@ defmodule GameSiteWeb.WordleLive do
     end
   end
 
-  def handle_event("guess", %{"guess" => guess} = _params, socket) do
+  def handle_event("guess", %{"guess" => guess, "no-input" => guess_string} = _params, socket) do
     IO.inspect(%{answer: socket.assigns.word, guess: guess}, label: "Words")
+
+    guess = if guess == "", do: guess_string
 
     if Words.is_word?(String.downcase(guess)) do
       letters_colors =
