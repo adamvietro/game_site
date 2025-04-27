@@ -364,7 +364,7 @@ defmodule GameSiteWeb.WordleLive do
       letter_count(word)
       |> IO.inspect(label: "Letter Count")
 
-    {result, _final_letter_count} =
+    {green_results, letter_count_after_greens} =
       Enum.map_reduce(index_guess, letter_count, fn {letter, index}, letter_count ->
         cond do
           {letter, index} in index_word ->
@@ -372,16 +372,28 @@ defmodule GameSiteWeb.WordleLive do
             IO.inspect(letter_count, label: "green")
             {[letter, "bg-green-400"], letter_count}
 
-          letter in String.split(word, "", trim: true) and letter_count[letter] > 0 ->
+          true ->
+            {{letter, index}, letter_count}
+        end
+      end)
+
+    {result, _letter_count} =
+      Enum.map_reduce(green_results, letter_count_after_greens, fn
+        {letter, _index}, letter_count ->
+          if letter in String.split(word, "", trim: true) and letter_count[letter] > 0 do
             letter_count = Map.update!(letter_count, letter, fn count -> count - 1 end)
             IO.inspect(letter_count, label: "yellow")
             {[letter, "bg-yellow-300"], letter_count}
-
-          true ->
+          else
             {[letter, "bg-gray-300"], letter_count}
-        end
+          end
+
+        [letter, color], letter_count ->
+          {[letter, color], letter_count}
       end)
-      result
+
+    IO.inspect(result)
+    result
   end
 
   defp entries(entries, word, round) do
