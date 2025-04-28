@@ -205,7 +205,7 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(state: @starting_state)
       |> assign(keyboard: @starting_keyboard)
 
-    IO.inspect(word)
+    IO.inspect(word, label: "Starting Word")
 
     {:ok, socket}
   end
@@ -230,9 +230,9 @@ defmodule GameSiteWeb.WordleLive do
   end
 
   def handle_event("guess", %{"guess" => guess, "no-input" => guess_string} = _params, socket) do
-    IO.inspect(%{answer: socket.assigns.word, guess: guess}, label: "Words")
+    IO.inspect(%{answer: socket.assigns.word, guess: guess}, label: "Guess Event")
 
-    guess = if guess == "", do: guess_string
+    guess = if guess == "", do: guess_string, else: guess
 
     if Words.is_word?(String.downcase(guess)) do
       letters_colors =
@@ -349,7 +349,7 @@ defmodule GameSiteWeb.WordleLive do
     end)
   end
 
-  defp feedback(word, guess) do
+  def feedback(word, guess) do
     index_word =
       word
       |> String.split("", trim: true)
@@ -363,14 +363,14 @@ defmodule GameSiteWeb.WordleLive do
 
     letter_count =
       letter_count(word)
-      |> IO.inspect(label: "Letter Count")
+      # |> IO.inspect(label: "Letter Count")
 
     {green_results, letter_count_after_greens} =
       Enum.map_reduce(index_guess, letter_count, fn {letter, index}, letter_count ->
         cond do
           {letter, index} in index_word ->
             letter_count = Map.update!(letter_count, letter, fn count -> count - 1 end)
-            IO.inspect(letter_count, label: "green")
+            # IO.inspect(letter_count, label: "green")
             {[letter, "bg-green-400"], letter_count}
 
           true ->
@@ -383,7 +383,7 @@ defmodule GameSiteWeb.WordleLive do
         {letter, _index}, letter_count ->
           if letter in String.split(word, "", trim: true) and letter_count[letter] > 0 do
             letter_count = Map.update!(letter_count, letter, fn count -> count - 1 end)
-            IO.inspect(letter_count, label: "yellow")
+            # IO.inspect(letter_count, label: "yellow")
             {[letter, "bg-yellow-300"], letter_count}
           else
             {[letter, "bg-gray-300"], letter_count}
@@ -393,7 +393,7 @@ defmodule GameSiteWeb.WordleLive do
           {[letter, color], letter_count}
       end)
 
-    IO.inspect(result)
+    # IO.inspect(result)
     result
   end
 
@@ -412,7 +412,7 @@ defmodule GameSiteWeb.WordleLive do
     put_in(entries[line_key], updated_line)
   end
 
-  defp set_colors(colors, round, state) do
+  def set_colors(colors, round, state) do
     offset = round * 5
 
     Enum.reduce(0..4, state, fn i, acc ->
@@ -421,7 +421,7 @@ defmodule GameSiteWeb.WordleLive do
     end)
   end
 
-  defp set_keyboard(letters_colors, keyboard) do
+  def set_keyboard(letters_colors, keyboard) do
     Enum.reduce(letters_colors, keyboard, fn [letter, color], acc ->
       Map.replace(acc, String.to_atom(letter), color)
     end)
