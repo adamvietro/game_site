@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# Run database migrations in the release
-echo "Running database migrations..."
-bin/game_site eval "GameSite.Release.migrate"

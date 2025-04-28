@@ -9,15 +9,7 @@ defmodule GameSite.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps(),
-      releases: [
-        game_site: [
-          applications: [runtime_tools: :permanent],
-          commands: [
-            migrate: "rel/commands/migrate"
-          ]
-        ]
-      ]
+      deps: deps()
     ]
   end
 
