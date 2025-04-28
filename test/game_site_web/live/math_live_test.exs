@@ -112,9 +112,7 @@ defmodule GameSiteWeb.MathLiveTest do
           updated_socket
         )
 
-      # assert redirected_to(conn) == ~p"/scores"
-
-      assert Phoenix.Flash.get(updated_socket.assigns.flash, :info) ==
+            assert Phoenix.Flash.get(updated_socket.assigns.flash, :info) ==
                "Score created successfully"
     end
   end
