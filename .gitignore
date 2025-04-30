@@ -35,6 +35,8 @@ game_site-*.tar
 npm-debug.log
 /assets/node_modules/
 
-# don't need my env files in the settup
+# don't need my env files in the setup
 .env
 
+#priv files
+/priv/*
