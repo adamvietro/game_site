@@ -109,8 +109,7 @@ defmodule GameSiteWeb.WordleLive do
     <%= if @reset == false do %>
       <div class="user-input">
         <.simple_form id="input-form" for={@form} phx-submit="guess">
-          <.input type="text" value={@guess_string} label="Guess" name="no-input" />
-          <.input type="hidden" field={@form[:guess]} value={@guess_string} />
+          <.input type="text" field={@form[:guess]} value={@guess_string} label="Guess" />
 
           <:actions>
             <.button class="px-6 py-2 text-lg">Submit</.button>
@@ -121,7 +120,7 @@ defmodule GameSiteWeb.WordleLive do
 
     <div><br /></div>
 
-    <div class="space-y-1 sm:space-y-2 text-sm">
+    <div class="space-y-1 sm:space-y-2 text-sm" phx-hook="KeyInput" id="keyboard">
       <div class="grid grid-cols-10 gap-1 sm:gap-2">
         <%= for key <- [:q, :w, :e, :r, :t, :y, :u, :i, :o, :p] do %>
           <div
@@ -223,16 +222,17 @@ defmodule GameSiteWeb.WordleLive do
     current = socket.assigns.guess_string || ""
 
     if String.length(current) < 5 do
-      {:noreply, assign(socket, guess_string: current <> letter)}
+      updated = String.slice(current <> letter, 0, 5)
+      {:noreply, assign(socket, guess_string: updated)}
     else
       {:noreply, socket}
     end
   end
 
-  def handle_event("guess", %{"guess" => guess, "no-input" => guess_string} = _params, socket) do
+  def handle_event("guess", %{"guess" => guess} = _params, socket) do
     IO.inspect(%{answer: socket.assigns.word, guess: guess}, label: "Guess Event")
 
-    guess = if guess == "", do: guess_string, else: guess
+    # guess = if guess == "", do: guess_string, else: guess?
 
     if Words.is_word?(String.downcase(guess)) do
       letters_colors =
@@ -333,7 +333,7 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(entry: @starting_entries)
       |> assign(keyboard: @starting_keyboard)
 
-    IO.inspect(word)
+    IO.inspect(word, label: "Resetting Word")
     {:noreply, socket}
   end
 
@@ -363,7 +363,8 @@ defmodule GameSiteWeb.WordleLive do
 
     letter_count =
       letter_count(word)
-      # |> IO.inspect(label: "Letter Count")
+
+    # |> IO.inspect(label: "Letter Count")
 
     {green_results, letter_count_after_greens} =
       Enum.map_reduce(index_guess, letter_count, fn {letter, index}, letter_count ->
