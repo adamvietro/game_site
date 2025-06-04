@@ -58,7 +58,7 @@
         </li>
       <% end %>
     </ul>
-    <div class="topnavcontainer sticky top-0">
+    <div class="topnavcontainer sticky top-0 xs:text-xs md:text-md lg:text-lg">
       <.link navigate={~p"/"} class="link bg-gray-400 hover:bg-gray-200">Home</.link>
       <.link navigate={~p"/scores"} class="link bg-gray-400 hover:bg-gray-200">Scores</.link>
       <.link navigate={~p"/1"} class="link bg-gray-400 hover:bg-gray-200">Guessing Game</.link>
@@ -70,11 +70,13 @@
         Wordle
       </.link>
     </div>
+    <br />
     {@inner_content}
   </body>
 </html>
 
 <script defer type="text/javascript" src={~p"/assets/app.js"}>
+  <br />
 </script>
 
 <style>
@@ -85,8 +87,22 @@
     border: 2px solid rgb(95 97 110);
     background:gray;
     margin: auto;
-    max-width: fit-content;
-    text: base, sm;
+    max-width: fit-content;    
+  }
+
+  .topnavcontainer (min-width: lg ) {
+    text: md;
+    font: bold;
+  }
+
+  .topnavcontainer (max-width < md ) and (min-width > sm) {
+    text: sm;
+    font: normal;
+  }
+
+  .topnavcontainer (max-width: sm ) {
+    text: xs;
+    font: thin;
   }
 
   .link{
@@ -101,6 +117,7 @@
   .top_image {
     display: block;
     margin: auto;
-    width: 100%;
+    width: 80%;
+    hight: auto;
   }
 </style>
