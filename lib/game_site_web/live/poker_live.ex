@@ -1,57 +1,48 @@
 defmodule GameSiteWeb.PokerLive do
   use GameSiteWeb, :live_view
-
+  alias GameSiteWeb.PokerForm
   alias GameSite.Scores
-  alias GameSiteWeb.Forms.PokerForm
-
-  @suits ["spades", "clubs", "diamonds", "hearts"]
-  # 11 = J, 12 = Q, 13 = K, 14 = A
-  @ranks [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+  alias GameSiteWeb.PokerHelpers, as: Helper
 
   def render(assigns) do
     ~H"""
     <p>Highest Score: {@highest_score}</p>
     <p>Score: {@score}</p>
-    <%!-- <.simple_form id="answer-form" for={@form} phx-submit="answer"> --%>
-    <%!-- I might want to add in phx-hook="FocusGuess below if I get the hook working properly" --%>
-    <%!-- <.input type="number" field={@form[:guess]} label="Guess" value="" /> --%>
-    <%!-- <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} /> --%>
-    <%!-- <:actions> --%>
-    <%!-- <.button>Answer</.button> --%>
-    <%!-- </:actions> --%>
-    <%!-- </.simple_form> --%>
+    <p>Number of cards left: <%= "#{length(@cards)}" %></p>
 
-    <%!-- <%= if msg = Phoenix.Flash.get(@flash, :info) do %>
+    <%= if msg = Phoenix.Flash.get(@flash, :info) do %>
       <div id="flash" phx-hook="AutoDismiss" class="flash-info transition-opacity duration-500">
         {msg}
       </div>
-    <% end %> --%>
-
-    <div>
-      <p>
-        Here is a helper function for the current problem you are working on.<br />
-        If you want to see it or turn it off just toggle the helper button below.<br />
-      </p>
-      <label class="toggle-switch" phx-click="toggle">
-        <input type="checkbox" class="toggle-switch-check" checked={@toggle} readonly />
-        <span aria-hidden="true" class="toggle-switch-bar">
-          <span class="toggle-switch-handle"></span>
-        </span>
-      </label>
-      <%= if @toggle do %>
-        <div style="white-space: pre; font-family: monospace;">
-          <p>{@helper.first}</p>
-          <p>{@helper.second}</p>
-          <p>{@helper.third}</p>
-          <p>{@helper.fourth}</p>
-        </div>
-      <% else %>
-        <div style="white-space: pre; font-family: monospace;">
-          <br /><br /><br /><br /><br /><br />
-        </div>
+    <% end %>
+    <div class="display-flex flex-wrap-wrap">
+      <%= if @hand != [] do %>
+        <.form for={@form} phx-submit="redraw">
+          <div class="flex gap-4">
+            <%= for card <- @hand do %>
+              <div class="flex flex-col items-center">
+                <label>
+                  <input type="checkbox" name="replace[]" value={card_to_param(card)} />
+                  <div class="border p-2 mt-1">
+                    {card_to_string(card)}
+                  </div>
+                </label>
+              </div>
+            <% end %>
+          </div>
+          <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
+            Replace Selected Cards
+          </button>
+        </.form>
+      <% end %>
+      <%= if @hand == [] do %>
+        <.simple_form id="new-form" for={@form} phx-submit="new">
+          <:actions>
+            <.button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">New</.button>
+          </:actions>
+        </.simple_form>
       <% end %>
     </div>
-
     <div>
       This is my Poker Game. You will be able to draw 5 cards and then choose which ones to
       keep. Before you draw cards, before you pick new cards you will be able to increase your wager.
@@ -60,87 +51,92 @@ defmodule GameSiteWeb.PokerLive do
       <br />Fix CSS
     </div>
 
-    <.simple_form id="exit-form" for={@form} phx-submit="exit">
+    <%!-- <.simple_form id="exit-form" for={@form} phx-submit="exit">
       <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={2} />
+      <.input type="hidden" field={@form[:game_id]} value={5} />
       <.input type="hidden" field={@form[:score]} value={@highest_score} />
       <:actions>
         <.button>Exit and Save Score</.button>
       </:actions>
-    </.simple_form>
+    </.simple_form> --%>
     """
   end
 
   def mount(_params, _session, socket) do
+    default = PokerForm.default_values()
+
+    socket =
+      socket
+      |> assign(default)
+
     {:ok, socket}
   end
 
-  def cards do
-    for rank <- @ranks, suit <- @suits do
-      {rank, suit}
+  def handle_event("new", _, socket) do
+    {hand, cards} =
+      Helper.cards()
+      |> Helper.shuffle()
+      |> Helper.choose_5()
+
+    valid =
+      PokerForm.passed?(%{
+        cards: cards,
+        hand: hand,
+        highest_score: max(socket.assigns.score, socket.assigns.highest_score)
+      })
+
+    socket =
+      socket
+      |> assign(valid)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("redraw", %{"replace" => raw_cards}, socket) do
+    number_of_cards = length(raw_cards)
+    IO.inspect(raw_cards, label: "raw")
+
+    selected_cards =
+      Enum.map(raw_cards, fn string ->
+        [rank, suit] = String.split(string, ":")
+        {String.to_integer(rank), suit}
+      end)
+
+    new_hand = Helper.remove_cards(selected_cards, socket.assigns.hand)
+    [new_hand, cards] = Helper.choose(socket.assigns.cards, new_hand, number_of_cards)
+
+    {:noreply, assign(socket, hand: new_hand, cards: cards)}
+  end
+
+  def handle_event("redraw", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("exit", params, socket) do
+    save_score(socket, :new, params)
+  end
+
+  def card_to_string({rank, suit}), do: "#{rank} of #{String.capitalize(suit)}"
+
+  @spec card_to_param({any(), any()}) :: nonempty_binary()
+  def card_to_param({rank, suit}), do: "#{rank}:#{suit}"
+
+  defp save_score(socket, :new, score_params) do
+    case Scores.create_score(score_params) do
+      {:ok, score} ->
+        notify_parent({:new, score})
+
+        {:noreply,
+         socket |> put_flash(:info, "Score created successfully") |> push_navigate(to: "/scores")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset))}
+
+      {:duplicate, :already_exists} ->
+        {:noreply,
+         socket |> put_flash(:info, "No new High Score") |> push_navigate(to: "/scores")}
     end
   end
 
-  def shuffle(cards) do
-    Enum.shuffle(cards)
-  end
-
-  def choose_5(cards) do
-    {card1, cards} = List.pop_at(cards, 1)
-    {card2, cards} = List.pop_at(cards, 1)
-    {card3, cards} = List.pop_at(cards, 1)
-    {card4, cards} = List.pop_at(cards, 1)
-    {card5, cards} = List.pop_at(cards, 1)
-
-    hand =
-      [card1, card2, card3, card4, card5]
-      |> Enum.sort()
-
-    {hand, cards}
-  end
-
-  def choose(cards, hand, number) do
-    [new_cards, cards] = Enum.reduce(1..number, [[], cards], fn _, [chosen, remaining] ->
-      {card, new_remaining} = List.pop_at(remaining, 0)
-      [[card | chosen], new_remaining]
-    end)
-    [new_cards ++ hand, cards]
-  end
-
-  def remove_cards(list, hand) do
-    Enum.reject(hand, fn card ->
-      card in list
-    end)
-  end
-
-  def classify(hand) when length(hand) == 5 do
-    {ranks, suits} = Enum.unzip(hand)
-    rank_counts = Enum.frequencies(ranks)
-    suit_counts = Enum.frequencies(suits)
-
-    is_flush = map_size(suit_counts) == 1
-    sorted_ranks = Enum.sort(ranks)
-    is_straight = straight?(sorted_ranks)
-
-    cond do
-      is_straight and is_flush and Enum.max(ranks) == 14 -> {:royal_flush, Enum.max(suits)}
-      is_straight and is_flush -> {:straight_flush, Enum.max(sorted_ranks)}
-      4 in Map.values(rank_counts) -> {:four_of_a_kind, Map.filter(rank_counts, fn {_key, value} -> value == 4 end)}
-      Map.values(rank_counts) |> Enum.sort() == [2, 3] -> {:full_house, Map.filter(rank_counts, fn {_key, value} -> value == 3 end)}
-      is_flush -> {:flush, Enum.max(suits)}
-      is_straight -> {:straight, Enum.max(sorted_ranks)}
-      3 in Map.values(rank_counts) -> {:three_of_a_kind, Map.filter(rank_counts, fn {_key, value} -> value == 3 end)}
-      Enum.count(rank_counts, fn {_r, c} -> c == 2 end) == 2 -> {:two_pair, Map.filter(rank_counts, fn {_key, value} -> value == 2 end)}
-      2 in Map.values(rank_counts) -> {:one_pair, Map.filter(rank_counts, fn {_key, value} -> value == 2 end)}
-      true -> {:high_card, Enum.max(ranks)}
-    end
-  end
-
-  def straight?(ranks) do
-    sorted = Enum.sort(ranks)
-    # Handle ace-low straight: A-2-3-4-5
-    Enum.chunk_every(sorted, 2, 1, :discard)
-    |> Enum.all?(fn [a, b] -> b - a == 1 end) or
-      sorted == [2, 3, 4, 5, 14]
-  end
+  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

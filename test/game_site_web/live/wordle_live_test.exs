@@ -35,58 +35,6 @@ defmodule GameSiteWeb.WordleLiveTest do
     m: "bg-gray-100"
   }
 
-  defp log_in_and_socket(conn, user) do
-    conn =
-      conn
-      |> log_in_user(user)
-
-    {:ok, view, _html} = live(conn, ~p"/4")
-
-    state = :sys.get_state(view.pid)
-    socket = state.socket
-
-    [conn, socket]
-  end
-
-  defp get_answer(socket) do
-    socket.assigns.word
-  end
-
-  defp get_row_colors(state, round) do
-    start = round * 5
-    last = round * 5 + 4
-
-    colors =
-      Enum.map(start..last, fn key ->
-        Map.get(state, key)
-      end)
-
-    colors
-  end
-
-  defp get_row_colors(socket) do
-    round = socket.assigns.round
-    start = round * 5
-    last = round * 5 + 4
-
-    colors =
-      Enum.map(start..last, fn key ->
-        Map.get(socket.assigns.state, key)
-      end)
-
-    colors
-  end
-
-  defp rotate_letters(word) do
-    word_list = to_charlist(word)
-    {first_letter, _} = List.pop_at(word_list, 0)
-
-    Enum.map(0..4, fn index ->
-      {letter, _} = List.pop_at(word_list, index + 1, first_letter)
-      letter
-    end)
-  end
-
   describe "html/live" do
     setup do
       user = user_fixture()
@@ -107,7 +55,6 @@ defmodule GameSiteWeb.WordleLiveTest do
 
     test "good guess", %{conn: conn, user: user} do
       [_conn, socket] = log_in_and_socket(conn, user)
-
       answer = get_answer(socket)
 
       {:noreply, new_socket} =
@@ -415,6 +362,57 @@ defmodule GameSiteWeb.WordleLiveTest do
                m: "bg-gray-100"
              }
     end
+  end
 
+  defp log_in_and_socket(conn, user) do
+    conn =
+      conn
+      |> log_in_user(user)
+
+    {:ok, view, _html} = live(conn, ~p"/4")
+
+    state = :sys.get_state(view.pid)
+    socket = state.socket
+
+    [conn, socket]
+  end
+
+  defp get_answer(socket) do
+    socket.assigns.word
+  end
+
+  defp get_row_colors(state, round) do
+    start = round * 5
+    last = round * 5 + 4
+
+    colors =
+      Enum.map(start..last, fn key ->
+        Map.get(state, key)
+      end)
+
+    colors
+  end
+
+  defp get_row_colors(socket) do
+    round = socket.assigns.round
+    start = round * 5
+    last = round * 5 + 4
+
+    colors =
+      Enum.map(start..last, fn key ->
+        Map.get(socket.assigns.state, key)
+      end)
+
+    colors
+  end
+
+  defp rotate_letters(word) do
+    word_list = to_charlist(word)
+    {first_letter, _} = List.pop_at(word_list, 0)
+
+    Enum.map(0..4, fn index ->
+      {letter, _} = List.pop_at(word_list, index + 1, first_letter)
+      letter
+    end)
   end
 end
