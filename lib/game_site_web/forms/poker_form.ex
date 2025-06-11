@@ -6,10 +6,10 @@ defmodule GameSiteWeb.PokerForm do
     hand: {:array, :any},
     score: :integer,
     wager: :integer,
+    bet: :integer,
     highest_score: :integer,
     form: :map,
-    final: :boolean
-
+    state: :string
   }
   @default_values %{
     score: 100,
@@ -17,8 +17,9 @@ defmodule GameSiteWeb.PokerForm do
     wager: 10,
     form: %{},
     hand: [],
-    final: false,
-    cards: []
+    state: :reset,
+    cards: [],
+    bet: 0
   }
   def default_values(overrides \\ %{}) do
     Map.merge(@default_values, overrides)
@@ -30,6 +31,8 @@ defmodule GameSiteWeb.PokerForm do
     |> validate_number(:score, greater_than_or_equal_to: 0)
     |> validate_number(:highest_score, greater_than_or_equal_to: 0)
     |> validate_number(:wager, greater_than_or_equal_to: 0)
+    |> validate_wager_less_than_or_equal_to_score()
+    |> validate_inclusion(:state, ["initial", "dealt", "final", "reset"])
     |> apply_action(:insert)
   end
 
@@ -42,6 +45,17 @@ defmodule GameSiteWeb.PokerForm do
     case parse(params) do
       {:ok, valid} -> valid
       {:error, changeset} -> {:error, changeset}
+    end
+  end
+
+  defp validate_wager_less_than_or_equal_to_score(changeset) do
+    score = get_field(changeset, :score)
+    wager = get_field(changeset, :wager)
+
+    if is_number(score) and is_number(wager) and wager > score do
+      add_error(changeset, :wager, "must be less than or equal to your score")
+    else
+      changeset
     end
   end
 end

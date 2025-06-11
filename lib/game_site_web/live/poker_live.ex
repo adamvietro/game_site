@@ -8,16 +8,16 @@ defmodule GameSiteWeb.PokerLive do
     ~H"""
     <p>Highest Score: {@highest_score}</p>
     <p>Score: {@score}</p>
-    <p>Number of cards left: <%= "#{length(@cards)}" %></p>
+    <%!-- <p>Number of cards left: {"#{length(@cards)}"}</p> --%>
 
     <%= if msg = Phoenix.Flash.get(@flash, :info) do %>
       <div id="flash" phx-hook="AutoDismiss" class="flash-info transition-opacity duration-500">
         {msg}
       </div>
     <% end %>
-    <div class="display-flex flex-wrap-wrap">
+    <div class="display-flex">
       <%= if @hand != [] do %>
-        <.form for={@form} phx-submit="redraw">
+        <.form for={@form} phx-submit="advance">
           <div class="flex gap-4">
             <%= for card <- @hand do %>
               <div class="flex flex-col items-center">
@@ -30,12 +30,13 @@ defmodule GameSiteWeb.PokerLive do
               </div>
             <% end %>
           </div>
+          <.input field={@form[:wager]} label="wager" name="wager" value={@wager} />
           <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
-            Replace Selected Cards
+            Replace Cards/Showdown
           </button>
         </.form>
       <% end %>
-      <%= if @hand == [] do %>
+      <%= if @state == "initial" or "reset" do %>
         <.simple_form id="new-form" for={@form} phx-submit="new">
           <:actions>
             <.button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">New</.button>
@@ -51,10 +52,10 @@ defmodule GameSiteWeb.PokerLive do
       <br />Fix CSS
     </div>
 
-    <%!-- <.simple_form id="exit-form" for={@form} phx-submit="exit">
-      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={5} />
-      <.input type="hidden" field={@form[:score]} value={@highest_score} />
+    <%!-- <.simple_form id="exit-form" for={@form} phx-submit="exit" name="exit-form">
+      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} name="exit-user.id" />
+      <.input type="hidden" field={@form[:game_id]} value={5} name="exit-game.id" />
+      <.input type="hidden" field={@form[:score]} value={@highest_score} name="exit-score" />
       <:actions>
         <.button>Exit and Save Score</.button>
       </:actions>
@@ -82,7 +83,8 @@ defmodule GameSiteWeb.PokerLive do
       PokerForm.passed?(%{
         cards: cards,
         hand: hand,
-        highest_score: max(socket.assigns.score, socket.assigns.highest_score)
+        highest_score: max(socket.assigns.score, socket.assigns.highest_score),
+        state: "dealt"
       })
 
     socket =
@@ -92,34 +94,68 @@ defmodule GameSiteWeb.PokerLive do
     {:noreply, socket}
   end
 
-  def handle_event("redraw", %{"replace" => raw_cards}, socket) do
-    number_of_cards = length(raw_cards)
-    IO.inspect(raw_cards, label: "raw")
+  def handle_event("advance", %{"wager" => wager} = params, socket) do
+    raw_cards = Map.get(params, "replace", [])
 
-    selected_cards =
-      Enum.map(raw_cards, fn string ->
-        [rank, suit] = String.split(string, ":")
-        {String.to_integer(rank), suit}
-      end)
+    case socket.assigns.state do
+      "dealt" ->
+        number_of_cards = length(raw_cards)
+        selected_cards = selected_cards(raw_cards)
 
-    new_hand = Helper.remove_cards(selected_cards, socket.assigns.hand)
-    [new_hand, cards] = Helper.choose(socket.assigns.cards, new_hand, number_of_cards)
+        new_hand = Helper.remove_cards(selected_cards, socket.assigns.hand)
+        [new_hand, cards] = Helper.choose(socket.assigns.cards, new_hand, number_of_cards)
 
-    {:noreply, assign(socket, hand: new_hand, cards: cards)}
-  end
+        {:noreply,
+         assign(socket,
+           hand: new_hand,
+           cards: cards,
+           score: socket.assigns.score - String.to_integer(wager),
+           state: "final",
+           bet: socket.assigns.bet + String.to_integer(wager)
+         )}
 
-  def handle_event("redraw", _params, socket) do
-    {:noreply, socket}
+      "final" ->
+        hand = socket.assigns.hand
+
+        case Helper.classify(hand) do
+          {:high_card, rank} ->
+            # not a winner
+            # keep the score the same
+            # set state: "reset"
+            #
+            nil
+
+          {:one_pair, rank} ->
+            # winner if jack or higher if 11 or higher
+            # keep the
+            nil
+
+          {hand, rank_suit} ->
+            # do above for all the rest.
+            nil
+        end
+
+        {:no_reply, socket}
+    end
   end
 
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
   end
 
-  def card_to_string({rank, suit}), do: "#{rank} of #{String.capitalize(suit)}"
+  defp selected_cards([]), do: []
+
+  defp selected_cards(raw_cards) do
+    Enum.map(raw_cards, fn string ->
+      [rank, suit] = String.split(string, ":")
+      {String.to_integer(rank), suit}
+    end)
+  end
+
+  defp card_to_string({rank, suit}), do: "#{rank} of #{String.capitalize(suit)}"
 
   @spec card_to_param({any(), any()}) :: nonempty_binary()
-  def card_to_param({rank, suit}), do: "#{rank}:#{suit}"
+  defp card_to_param({rank, suit}), do: "#{rank}:#{suit}"
 
   defp save_score(socket, :new, score_params) do
     case Scores.create_score(score_params) do

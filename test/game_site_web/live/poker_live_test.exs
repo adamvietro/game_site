@@ -217,10 +217,11 @@ defmodule GameSiteWeb.PokerHelpersTest do
 
       [_hand, cards_to_remove] = select_n_cards(socket.assigns.hand, 3)
 
+
       {:noreply, socket} =
         GameSiteWeb.PokerLive.handle_event(
           "redraw",
-          cards_to_remove,
+          %{"replace" => cards_to_remove},
           socket
         )
 
@@ -231,8 +232,9 @@ defmodule GameSiteWeb.PokerHelpersTest do
 
   defp select_n_cards(hand, number) do
     Enum.reduce(0..(number - 1), [hand, []], fn _, [hand, selected] ->
-      {card, hand} = List.pop_at(hand, 0)
-      [hand, [card | selected]]
+      {{rank, suit}, hand} = List.pop_at(hand, 0)
+
+      [hand, ["#{rank}:#{suit}" | selected]]
     end)
   end
 
