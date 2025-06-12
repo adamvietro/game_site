@@ -17,10 +17,12 @@ defmodule GameSiteWeb.PokerForm do
     wager: 10,
     form: %{},
     hand: [],
-    state: :reset,
+    state: "initial",
     cards: [],
     bet: 0
   }
+
+  @allowed_fields [:score, :highest_score, :wager, :hand, :cards, :state, :bet, :form]
   def default_values(overrides \\ %{}) do
     Map.merge(@default_values, overrides)
   end
@@ -41,10 +43,29 @@ defmodule GameSiteWeb.PokerForm do
     |> cast(%{}, Map.keys(@fields))
   end
 
-  def passed?(params) do
-    case parse(params) do
-      {:ok, valid} -> valid
-      {:error, changeset} -> {:error, changeset}
+  def merge_assigns(socket_assigns, changes) do
+    updated =
+      socket_assigns
+      |> Map.take(@allowed_fields)
+      |> Map.merge(changes)
+      |> validate_fields()
+
+    case updated do
+      {:ok, valid} -> {:ok, valid}
+      {:error, msg} -> {:error, msg}
+    end
+  end
+
+  defp validate_fields(assigns) do
+    cond do
+      assigns.wager > assigns.score ->
+        {:error, "Wager cannot exceed score"}
+
+      assigns.state not in ["initial", "dealt", "final", "reset"] ->
+        {:error, "Invalid state"}
+
+      true ->
+        {:ok, assigns}
     end
   end
 

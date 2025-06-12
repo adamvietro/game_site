@@ -8,7 +8,7 @@ defmodule GameSiteWeb.PokerLive do
     ~H"""
     <p>Highest Score: {@highest_score}</p>
     <p>Score: {@score}</p>
-    <%!-- <p>Number of cards left: {"#{length(@cards)}"}</p> --%>
+    <p>Total Bet: {@bet}</p>
 
     <%= if msg = Phoenix.Flash.get(@flash, :info) do %>
       <div id="flash" phx-hook="AutoDismiss" class="flash-info transition-opacity duration-500">
@@ -30,14 +30,24 @@ defmodule GameSiteWeb.PokerLive do
               </div>
             <% end %>
           </div>
-          <.input field={@form[:wager]} label="wager" name="wager" value={@wager} />
-          <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
-            Replace Cards/Showdown
-          </button>
+          <%= if @state != "final" and @state != "reset" do %>
+            <.input field={@form[:wager]} label="Final Wager" name="wager" value={@wager} />
+          <% end %>
+          <%= if @state != "final" and @state != "reset" do %>
+            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
+              Replace Cards
+            </button>
+          <% end %>
+          <%= if @state == "final" and @state != "reset" do %>
+            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
+              Showdown
+            </button>
+          <% end %>
         </.form>
       <% end %>
-      <%= if @state == "initial" or "reset" do %>
+      <%= if @state == "initial" or @state =="reset" do %>
         <.simple_form id="new-form" for={@form} phx-submit="new">
+          <.input field={@form[:wager]} label="Initial Wager" name="wager" value={@wager} />
           <:actions>
             <.button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">New</.button>
           </:actions>
@@ -73,74 +83,111 @@ defmodule GameSiteWeb.PokerLive do
     {:ok, socket}
   end
 
-  def handle_event("new", _, socket) do
+  def handle_event("new", %{"wager" => wager}, socket) do
     {hand, cards} =
       Helper.cards()
       |> Helper.shuffle()
       |> Helper.choose_5()
 
-    valid =
-      PokerForm.passed?(%{
+    {:ok, valid} =
+      PokerForm.merge_assigns(socket.assigns, %{
+        bet: String.to_integer(wager),
         cards: cards,
         hand: hand,
         highest_score: max(socket.assigns.score, socket.assigns.highest_score),
         state: "dealt"
       })
 
-    socket =
-      socket
-      |> assign(valid)
-
-    {:noreply, socket}
+    {:noreply, assign(socket, valid)}
   end
 
-  def handle_event("advance", %{"wager" => wager} = params, socket) do
-    raw_cards = Map.get(params, "replace", [])
-
+  def handle_event("advance", params, socket) do
     case socket.assigns.state do
       "dealt" ->
-        number_of_cards = length(raw_cards)
-        selected_cards = selected_cards(raw_cards)
+        wager = params["wager"]
 
-        new_hand = Helper.remove_cards(selected_cards, socket.assigns.hand)
-        [new_hand, cards] = Helper.choose(socket.assigns.cards, new_hand, number_of_cards)
+        [new_hand, cards] = new_hand(params, socket)
 
-        {:noreply,
-         assign(socket,
-           hand: new_hand,
-           cards: cards,
-           score: socket.assigns.score - String.to_integer(wager),
-           state: "final",
-           bet: socket.assigns.bet + String.to_integer(wager)
-         )}
+        {:ok, valid} =
+          PokerForm.merge_assigns(socket.assigns, %{
+            hand: new_hand,
+            cards: cards,
+            score: socket.assigns.score - String.to_integer(wager),
+            state: "final",
+            bet: socket.assigns.bet + String.to_integer(wager)
+          })
+
+        {:noreply, assign(socket, valid)}
 
       "final" ->
-        hand = socket.assigns.hand
+        {:ok, valid} =
+          case Helper.classify(socket.assigns.hand) do
+            {:high_card, _rank} ->
+              PokerForm.merge_assigns(
+                socket.assigns,
+                %{
+                  state: "reset"
+                }
+              )
 
-        case Helper.classify(hand) do
-          {:high_card, rank} ->
-            # not a winner
-            # keep the score the same
-            # set state: "reset"
-            #
-            nil
+            {:one_pair, rank} ->
+              if rank >= 11 do
+                PokerForm.merge_assigns(
+                  socket.assigns,
+                  %{
+                    score: socket.assigns.score + socket.assigns.bet * 2,
+                    state: "reset"
+                  }
+                )
+              else
+                PokerForm.merge_assigns(
+                  socket.assigns,
+                  %{
+                    state: "reset"
+                  }
+                )
+              end
 
-          {:one_pair, rank} ->
-            # winner if jack or higher if 11 or higher
-            # keep the
-            nil
+            {_hand, _rank_suit} ->
+              PokerForm.merge_assigns(
+                socket.assigns,
+                %{
+                  score: socket.assigns.score + socket.assigns.bet * 2,
+                  state: "reset"
+                }
+              )
+          end
 
-          {hand, rank_suit} ->
-            # do above for all the rest.
-            nil
-        end
-
-        {:no_reply, socket}
+        {:noreply, assign(socket, valid)}
     end
   end
 
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
+  end
+
+  defp playing_state?(state), do: state not in ["final", "reset"]
+
+  def parse_card_param(param) do
+    [rank, suit] = String.split(param, ":")
+    {rank, suit}
+  end
+
+  defp card_image_url({rank, suit}) do
+    "/images/cards/#{suit}_#{rank}.png"
+  end
+
+  defp new_hand(params, socket) do
+    raw_cards =
+      Map.get(params, "replace", [])
+
+    number_of_cards =
+      length(raw_cards)
+
+    selected_cards = selected_cards(raw_cards)
+
+    new_hand = Helper.remove_cards(selected_cards, socket.assigns.hand)
+    Helper.choose(socket.assigns.cards, new_hand, number_of_cards)
   end
 
   defp selected_cards([]), do: []
@@ -154,8 +201,7 @@ defmodule GameSiteWeb.PokerLive do
 
   defp card_to_string({rank, suit}), do: "#{rank} of #{String.capitalize(suit)}"
 
-  @spec card_to_param({any(), any()}) :: nonempty_binary()
-  defp card_to_param({rank, suit}), do: "#{rank}:#{suit}"
+  def card_to_param({rank, suit}), do: "#{suit}_#{rank}"
 
   defp save_score(socket, :new, score_params) do
     case Scores.create_score(score_params) do

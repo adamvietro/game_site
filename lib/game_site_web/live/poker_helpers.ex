@@ -26,6 +26,7 @@ defmodule GameSiteWeb.PokerHelpers do
     {hand, cards}
   end
 
+  def choose(cards, hand, 0), do: [hand, cards]
   def choose(cards, hand, number) do
     [new_cards, cards] =
       Enum.reduce(1..number, [[], cards], fn _, [chosen, remaining] ->
