@@ -79,8 +79,13 @@ defmodule GameSite.MixProject do
       "assets.deploy": [
         "tailwind game_site --minify",
         "esbuild game_site --minify",
+        &copy_static/1,
         "phx.digest"
       ]
     ]
+  end
+
+  defp copy_static(_) do
+    File.cp_r!("assets/static", "priv/static")
   end
 end

@@ -27,6 +27,7 @@ defmodule GameSiteWeb.PokerHelpers do
   end
 
   def choose(cards, hand, 0), do: [hand, cards]
+
   def choose(cards, hand, number) do
     [new_cards, cards] =
       Enum.reduce(1..number, [[], cards], fn _, [chosen, remaining] ->
@@ -75,10 +76,12 @@ defmodule GameSiteWeb.PokerHelpers do
         {:three_of_a_kind, Map.filter(rank_counts, fn {_key, value} -> value == 3 end)}
 
       Enum.count(rank_counts, fn {_r, c} -> c == 2 end) == 2 ->
-        {:two_pair, Map.filter(rank_counts, fn {_key, value} -> value == 2 end)}
+        rank = Map.filter(rank_counts, fn {_key, value} -> value == 2 end)
+        {:two_pair, Map.keys(rank)}
 
       2 in Map.values(rank_counts) ->
-        {:one_pair, Map.filter(rank_counts, fn {_key, value} -> value == 2 end)}
+        rank = Map.filter(rank_counts, fn {_key, value} -> value == 2 end)
+        {:one_pair, Map.keys(rank)}
 
       true ->
         {:high_card, Enum.max(ranks)}

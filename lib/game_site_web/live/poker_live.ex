@@ -15,45 +15,118 @@ defmodule GameSiteWeb.PokerLive do
         {msg}
       </div>
     <% end %>
-    <div class="display-flex">
+    <div class="flex flex-col gap-6">
       <%= if @hand != [] do %>
         <.form for={@form} phx-submit="advance">
-          <div class="flex gap-4">
+          <div class="flex gap-4 flex-wrap justify-center">
             <%= for card <- @hand do %>
               <div class="flex flex-col items-center">
-                <label>
-                  <input type="checkbox" name="replace[]" value={card_to_param(card)} />
-                  <div class="border p-2 mt-1">
+                <label class="cursor-pointer flex flex-col items-center">
+                  <input
+                    type="checkbox"
+                    name="replace[]"
+                    value={card_to_param(card)}
+                    class="hidden peer"
+                  />
+                  <img
+                    src={card_image_url(card)}
+                    alt={card_to_string(card)}
+                    class="w-20 h-28 border rounded shadow peer-checked:ring-4 peer-checked:ring-blue-500 transition"
+                  />
+                  <div class="mt-1 text-sm text-center peer-checked:text-blue-600 transition-colors">
                     {card_to_string(card)}
                   </div>
                 </label>
               </div>
             <% end %>
           </div>
-          <%= if @state != "final" and @state != "reset" do %>
-            <.input field={@form[:wager]} label="Final Wager" name="wager" value={@wager} />
-          <% end %>
-          <%= if @state != "final" and @state != "reset" do %>
-            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
-              Replace Cards
-            </button>
-          <% end %>
-          <%= if @state == "final" and @state != "reset" do %>
-            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
-              Showdown
-            </button>
+
+          <%= cond do %>
+            <% @state == "dealt" -> %>
+              <div class="flex items-center gap-2 mt-4 justify-center">
+                <label for="wager" class="font-semibold">Wager</label>
+
+                <button
+                  type="button"
+                  phx-click="decrease_wager"
+                  class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+                >
+                  -10
+                </button>
+
+                <input
+                  id="wager"
+                  name="wager"
+                  type="number"
+                  value={@wager}
+                  min="10"
+                  max={@score}
+                  readonly
+                  class="w-20 text-center border rounded bg-white cursor-default"
+                />
+
+                <button
+                  type="button"
+                  phx-click="increase_wager"
+                  class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+                >
+                  +10
+                </button>
+              </div>
+
+              <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">
+                Replace Cards
+              </button>
+            <% @state == "final" -> %>
+              <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded">
+                Showdown
+              </button>
+            <% true -> %>
+              <!-- No button for other states -->
           <% end %>
         </.form>
       <% end %>
-      <%= if @state == "initial" or @state =="reset" do %>
+
+      <%= if @state in ["initial", "reset"] do %>
         <.simple_form id="new-form" for={@form} phx-submit="new">
-          <.input field={@form[:wager]} label="Initial Wager" name="wager" value={@wager} />
+          <div class="flex items-center gap-2 justify-center">
+            <label for="wager" class="font-semibold">Wager</label>
+
+            <button
+              type="button"
+              phx-click="decrease_wager"
+              class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+            >
+              -10
+            </button>
+
+            <input
+              id="wager"
+              name="wager"
+              type="number"
+              value={@wager}
+              min="10"
+              max={@score}
+              readonly
+              class="w-20 text-center border rounded bg-white cursor-default"
+            />
+
+            <button
+              type="button"
+              phx-click="increase_wager"
+              class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+            >
+              +10
+            </button>
+          </div>
+
           <:actions>
             <.button class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">New</.button>
           </:actions>
         </.simple_form>
       <% end %>
     </div>
+
     <div>
       This is my Poker Game. You will be able to draw 5 cards and then choose which ones to
       keep. Before you draw cards, before you pick new cards you will be able to increase your wager.
@@ -62,14 +135,26 @@ defmodule GameSiteWeb.PokerLive do
       <br />Fix CSS
     </div>
 
-    <%!-- <.simple_form id="exit-form" for={@form} phx-submit="exit" name="exit-form">
+    <.simple_form id="exit-form" for={@form} phx-submit="exit" name="exit-form">
       <.input type="hidden" field={@form[:user_id]} value={@current_user.id} name="exit-user.id" />
       <.input type="hidden" field={@form[:game_id]} value={5} name="exit-game.id" />
       <.input type="hidden" field={@form[:score]} value={@highest_score} name="exit-score" />
       <:actions>
         <.button>Exit and Save Score</.button>
       </:actions>
-    </.simple_form> --%>
+    </.simple_form>
+
+    <style>
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+      }
+
+      input[type=number] {
+      -moz-appearance: textfield;
+      }
+    </style>
     """
   end
 
@@ -95,7 +180,8 @@ defmodule GameSiteWeb.PokerLive do
         cards: cards,
         hand: hand,
         highest_score: max(socket.assigns.score, socket.assigns.highest_score),
-        state: "dealt"
+        state: "dealt",
+        score: socket.assigns.score - String.to_integer(wager)
       })
 
     {:noreply, assign(socket, valid)}
@@ -130,7 +216,7 @@ defmodule GameSiteWeb.PokerLive do
                 }
               )
 
-            {:one_pair, rank} ->
+            {:one_pair, [rank]} ->
               if rank >= 11 do
                 PokerForm.merge_assigns(
                   socket.assigns,
@@ -166,7 +252,15 @@ defmodule GameSiteWeb.PokerLive do
     save_score(socket, :new, params)
   end
 
-  defp playing_state?(state), do: state not in ["final", "reset"]
+  def handle_event("increase_wager", _params, socket) do
+    new_wager = min(socket.assigns.wager + 10, socket.assigns.score)
+    {:noreply, assign(socket, wager: new_wager)}
+  end
+
+  def handle_event("decrease_wager", _params, socket) do
+    new_wager = max(socket.assigns.wager - 10, 10)
+    {:noreply, assign(socket, wager: new_wager)}
+  end
 
   def parse_card_param(param) do
     [rank, suit] = String.split(param, ":")
@@ -201,7 +295,7 @@ defmodule GameSiteWeb.PokerLive do
 
   defp card_to_string({rank, suit}), do: "#{rank} of #{String.capitalize(suit)}"
 
-  def card_to_param({rank, suit}), do: "#{suit}_#{rank}"
+  def card_to_param({rank, suit}), do: "#{rank}:#{suit}"
 
   defp save_score(socket, :new, score_params) do
     case Scores.create_score(score_params) do
