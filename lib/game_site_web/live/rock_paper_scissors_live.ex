@@ -5,83 +5,111 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
 
   def render(assigns) do
     ~H"""
-    <p>Score: {@score}</p>
-    <%= if @outcome != "" do %>
-      <p>Outcome: {@outcome}</p>
-    <% end %>
-    <div class="flex justify-center mt-8">
-      <div class="flex gap-6">
-        <.simple_form id="rock-form" for={@form} phx-submit="rock">
-          <.input type="hidden" field={@form[:player_choice]} />
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Rock</.button>
-          </:actions>
-        </.simple_form>
-
-        <.simple_form id="paper-form" for={@form} phx-submit="paper">
-          <.input type="hidden" field={@form[:player_choice]} />
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Paper</.button>
-          </:actions>
-        </.simple_form>
-
-        <.simple_form id="scissors-form" for={@form} phx-submit="scissors">
-          <.input type="hidden" field={@form[:player_choice]} />
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Scissors</.button>
-          </:actions>
-        </.simple_form>
+    <div class="max-w-2xl mx-auto p-6 space-y-6 bg-white shadow-md rounded-lg">
+      <div class="text-center space-y-2">
+        <p class="text-lg font-semibold">Highest Score: {@highest_score}</p>
+        <p class="text-lg">Score: {@score}</p>
+        <%= if @outcome != "" do %>
+          <p class="text-md text-blue-600 font-medium">Outcome: {@outcome}</p>
+        <% end %>
       </div>
+
+      <div class="flex justify-center">
+        <div class="flex gap-6">
+          <%= for choice <- ["rock", "paper", "scissors"] do %>
+            <.simple_form for={@form} phx-submit="answer" class="text-center">
+              <.input type="hidden" field={@form[:player_choice]} value={choice} id={choice} />
+              <input type="hidden" name="wager" id={"wager_hidden_#{choice}"} />
+
+              <.button type="submit" class="w-24 bg-gray-200 hover:bg-gray-300 shadow rounded">
+                {String.capitalize(choice)}
+              </.button>
+            </.simple_form>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="max-w-xs mx-auto">
+        <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
+          Wager
+        </label>
+        <input
+          type="number"
+          id="wager_input"
+          name="wager_visible"
+          min="1"
+          value={@wager}
+          max={@score}
+          step="1"
+          class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded shadow text-sm text-gray-700">
+        <p>
+          <strong>Game Info:</strong>
+          <br />
+          Rock Paper Scissors — simple but fun! Each win earns you the amount you wager; each loss deducts it.
+          Choose your move and test your luck. Once you're ready to finish, you can exit and save your highest score.
+          Be aware: refreshing or exiting will end the session permanently.
+        </p>
+      </div>
+
+      <.simple_form id="exit-form" for={@form} phx-submit="exit" class="text-center">
+        <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
+        <.input type="hidden" field={@form[:game_id]} value={3} />
+        <.input type="hidden" field={@form[:score]} value={@highest_score} />
+        <:actions>
+          <.button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
+            Exit and Save Score
+          </.button>
+        </:actions>
+      </.simple_form>
     </div>
-    <body>
-      <div>
-        Rock Paper Scissors. Yeah it's simple but fun. Each win will give you 10 points each loss will lose you
-        ten points draws will not effect your points. You will simply click a button and roll the dice, or scissors?
-        At any point you can exit this page it will submit your current score (know when to hold'en and fold'em). You
-        can't come back to a current streak once you exit or refresh the page.
-        <br />Please enjoy below is a list of things I want to add.
-        <br />#todo:
-        <br />add a wager button (for more points) <br />add a param for highest score for the session
-        <br />keep only the highest 5 scores for each player <br />change it to any size of questions
-      </div>
-    </body>
-    <.simple_form id="exit-form" for={@form} phx-submit="exit">
-      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={3} />
-      <.input type="hidden" field={@form[:score]} value={@score} />
-      <:actions>
-        <.button>Exit and Save Score</.button>
-      </:actions>
-    </.simple_form>
     """
   end
 
   def mount(_params, _session, socket) do
-    {:ok,
-     assign(
-       socket,
-       computer: computer_choose(),
-       score: 0,
-       session_high_score: 0,
-       form: to_form(%{}),
-       outcome: ""
-     )}
+    socket =
+      socket
+      |> assign(computer: computer_choose())
+      |> assign(score: 10)
+      |> assign(highest_score: 0)
+      |> assign(wager: 1)
+      |> assign(form: to_form(%{"wager" => 1}))
+      |> assign(outcome: "")
+
+    {:ok, socket}
   end
 
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
   end
 
-  def handle_event("rock", _params, socket) do
-    set_assign("rock", socket)
+  def handle_event("answer", params, socket) do
+    set_assign(socket, params)
   end
 
-  def handle_event("paper", _params, socket) do
-    set_assign("rock", socket)
+  defp set_event_info(socket, %{"wager" => wager, "player_choice" => player}) do
+    parsed_wager = parsed_wager(wager, player, socket.assigns.computer)
+
+    %{
+      player: player,
+      computer: socket.assigns.computer,
+      current_score: socket.assigns.score + parsed_wager,
+      score: socket.assigns.score,
+      wager: if(wager == "", do: 1, else: String.to_integer(wager)),
+      highest_score: max(socket.assigns.score + parsed_wager, socket.assigns.highest_score),
+      form: to_form(%{})
+    }
   end
 
-  def handle_event("scissors", _params, socket) do
-    set_assign("rock", socket)
+  defp parsed_wager("", player, computer) do
+    if beats?(player, computer), do: 1, else: -1
+  end
+
+  defp parsed_wager(wager, player, computer) do
+    if beats?(player, computer), do: String.to_integer(wager), else: -1 * String.to_integer(wager)
   end
 
   defp computer_choose() do
@@ -91,40 +119,65 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
   defp beats?(player, computer),
     do: {player, computer} in [{"rock", "scissor"}, {"scissor", "paper"}, {"paper", "rock"}]
 
-  defp set_assign(player, socket) do
-    cond do
-      socket.assigns.computer == player ->
-        {:noreply,
-         assign(
-           socket,
-           computer: computer_choose(),
-           score: socket.assigns.score,
-           session_high_score: 0,
-           form: to_form(%{}),
-           outcome: "You Tie!"
-         )}
+  defp set_assign(socket, params) do
+    event_info =
+      set_event_info(socket, params)
 
-      beats?("rock", socket.assigns.computer) ->
-        {:noreply,
-         assign(
-           socket,
-           computer: computer_choose(),
-           score: socket.assigns.score + 10,
-           session_high_score: 0,
-           form: to_form(%{}),
-           outcome: "You Win!"
-         )}
+    # |> IO.inspect(label: "Event info")
+
+    cond do
+      event_info.current_score <= 0 ->
+        # IO.inspect("Reset")
+
+        socket =
+          socket
+          |> put_flash(:error, "Score at 0, resetting.")
+          |> assign(computer: computer_choose())
+          |> assign(score: 10)
+          |> assign(wager: 1)
+          |> assign(form: to_form(%{"wager" => 1}))
+          |> assign(outcome: "")
+
+        {:noreply, socket}
+
+      event_info.computer == event_info.player ->
+        # IO.inspect("Tied")
+
+        socket =
+          socket
+          |> assign(computer: computer_choose())
+          |> assign(wager: event_info.wager)
+          |> assign(form: to_form(%{"wager" => event_info.wager}))
+          |> assign(outcome: "You Tie!")
+
+        {:noreply, socket}
+
+      beats?(event_info.player, event_info.computer) ->
+        # IO.inspect("Won")
+
+        socket =
+          socket
+          |> assign(computer: computer_choose())
+          |> assign(score: event_info.current_score)
+          |> assign(wager: event_info.wager)
+          |> assign(highest_score: max(event_info.current_score, event_info.highest_score))
+          |> assign(form: to_form(%{"wager" => event_info.wager}))
+          |> assign(outcome: "You Win!")
+
+        {:noreply, socket}
 
       true ->
-        {:noreply,
-         assign(
-           socket,
-           computer: computer_choose(),
-           score: socket.assigns.score - 10,
-           session_high_score: 0,
-           form: to_form(%{}),
-           outcome: "You Lose!"
-         )}
+        # IO.inspect("Lost")
+
+        socket =
+          socket
+          |> assign(computer: computer_choose())
+          |> assign(wager: min(event_info.wager, event_info.current_score))
+          |> assign(score: event_info.current_score)
+          |> assign(form: to_form(%{"wager" => event_info.wager}))
+          |> assign(outcome: "You Lose!")
+
+        {:noreply, socket}
     end
   end
 
