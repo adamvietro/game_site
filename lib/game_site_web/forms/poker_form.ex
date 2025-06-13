@@ -9,7 +9,8 @@ defmodule GameSiteWeb.PokerForm do
     bet: :integer,
     highest_score: :integer,
     form: :map,
-    state: :string
+    state: :string,
+    all_in: :boolean
   }
   @default_values %{
     score: 100,
@@ -19,7 +20,8 @@ defmodule GameSiteWeb.PokerForm do
     hand: [],
     state: "initial",
     cards: [],
-    bet: 0
+    bet: 0,
+    all_in: false
   }
 
   @allowed_fields [:score, :highest_score, :wager, :hand, :cards, :state, :bet, :form]
