@@ -155,63 +155,62 @@ defmodule GameSiteWeb.PokerLive do
             <% end %>
           </div>
         </.form>
+        <!-- New Hand Form -->
+        <%= if @state in ["initial", "reset"] and not (@state == "reset" and @score == 0) do %>
+          <section class="bg-gray-50 rounded p-4 shadow max-w-md mx-auto">
+            <.simple_form id="new-form" for={@form} phx-submit="new" class="space-y-4">
+              <div class="flex items-center gap-2 justify-center flex-wrap">
+                <%= if @all_in do %>
+                  <input type="hidden" name="wager" value="0" />
+                <% else %>
+                  <label for="wager" class="font-semibold mr-2">Wager</label>
+
+                  <button
+                    type="button"
+                    phx-click="decrease_wager"
+                    class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+                  >
+                    -10
+                  </button>
+
+                  <input
+                    id="wager"
+                    name="wager"
+                    type="number"
+                    value={@wager}
+                    min="10"
+                    max={@score}
+                    readonly
+                    class="w-20 text-center border rounded bg-white cursor-default"
+                  />
+
+                  <button
+                    type="button"
+                    phx-click="increase_wager"
+                    class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+                  >
+                    +10
+                  </button>
+
+                  <button
+                    type="button"
+                    phx-click="all-in"
+                    class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+                  >
+                    All-In
+                  </button>
+                <% end %>
+              </div>
+
+              <:actions>
+                <.button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded">
+                  New Hand
+                </.button>
+              </:actions>
+            </.simple_form>
+          </section>
+        <% end %>
       </section>
-
-    <!-- New Hand Form -->
-      <%= if @state in ["initial", "reset"] and not (@state == "reset" and @score == 0) do %>
-        <section class="bg-gray-50 rounded p-4 shadow max-w-md mx-auto">
-          <.simple_form id="new-form" for={@form} phx-submit="new" class="space-y-4">
-            <div class="flex items-center gap-2 justify-center flex-wrap">
-              <%= if @all_in do %>
-                <input type="hidden" name="wager" value="0" />
-              <% else %>
-                <label for="wager" class="font-semibold mr-2">Wager</label>
-
-                <button
-                  type="button"
-                  phx-click="decrease_wager"
-                  class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                >
-                  -10
-                </button>
-
-                <input
-                  id="wager"
-                  name="wager"
-                  type="number"
-                  value={@wager}
-                  min="10"
-                  max={@score}
-                  readonly
-                  class="w-20 text-center border rounded bg-white cursor-default"
-                />
-
-                <button
-                  type="button"
-                  phx-click="increase_wager"
-                  class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                >
-                  +10
-                </button>
-
-                <button
-                  type="button"
-                  phx-click="all-in"
-                  class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                >
-                  All-In
-                </button>
-              <% end %>
-            </div>
-
-            <:actions>
-              <.button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded">
-                New Hand
-              </.button>
-            </:actions>
-          </.simple_form>
-        </section>
-      <% end %>
 
     <!-- Rules Section -->
       <section class="bg-white rounded p-4 shadow max-w-md mx-auto">
@@ -238,9 +237,9 @@ defmodule GameSiteWeb.PokerLive do
     <!-- Exit and Save Form -->
       <section class="max-w-md mx-auto">
         <.simple_form id="exit-form" for={@form} phx-submit="exit" name="exit-form" class="space-y-4">
-          <.input type="hidden" field={@form[:user_id]} value={@current_user.id} name="exit-user.id" />
-          <.input type="hidden" field={@form[:game_id]} value={5} name="exit-game.id" />
-          <.input type="hidden" field={@form[:score]} value={@highest_score} name="exit-score" />
+          <.input type="hidden" field={@form[:user_id]} value={@current_user.id} name="user_id" />
+          <.input type="hidden" field={@form[:game_id]} value={5} name="game_id" />
+          <.input type="hidden" field={@form[:score]} value={@highest_score} name="score" />
           <:actions>
             <.button class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 rounded">
               Exit and Save Score
@@ -416,6 +415,10 @@ defmodule GameSiteWeb.PokerLive do
     all_in = new_wager == socket.assigns.score
 
     {:noreply, assign(socket, wager: new_wager, all_in: all_in)}
+  end
+
+  def handle_event("exit", params, socket) do
+    save_score(socket, :new, params)
   end
 
   def rotate_value(current, direction \\ :forward) do

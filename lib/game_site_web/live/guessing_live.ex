@@ -6,10 +6,11 @@ defmodule GameSiteWeb.GuessingLive do
 
   def render(assigns) do
     ~H"""
-    <p>Session High Score: {@highest_score}</p>
-    <p>Score: {@score}</p>
-    <p>Attempt: {@attempt}</p>
-    <%!-- <p>Answer: {@answer}</p> --%>
+    <div class="text-center space-y-2">
+      <p class="text-lg font-semibold">Session High Score: {@highest_score}</p>
+      <p class="text-lg">Score: {@score}</p>
+      <p class="text-md text-gray-600">Attempt: {@attempt}</p>
+    </div>
 
     <div class="grid grid-cols-5 gap-x-3 gap-y-1 max-w-md mx-auto mt-4">
       <%= for guess <- 1..10 do %>
@@ -25,8 +26,8 @@ defmodule GameSiteWeb.GuessingLive do
       <% end %>
     </div>
 
-    <div class="max-w-md mx-auto mt-4">
-      <label for="bonus_input" class="block text-sm font-medium text-gray-700 mb-1">
+    <div class="max-w-xs mx-auto">
+      <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
         Wager
       </label>
       <input
@@ -37,25 +38,27 @@ defmodule GameSiteWeb.GuessingLive do
         value={@wager}
         max={@score}
         step="1"
-        class="w-full rounded-md border-gray-300 shadow-sm"
+        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
       />
     </div>
 
-    <body>
-      <div>
-        <br /> This is a simple Guessing Game. The site will pick a random number between 1 and 10 and
-        you will have 5 guesses to get the correct answer. At any point you can exit and save your high score,
-        you will not be able to come back to your streak. You can change the amount of points you want to wager,
-        but if ever reach a point score of 0 you will be reset to the initial state.
-        <br /><br />#TODO: <br />Fix the CSS
-      </div>
-    </body>
-    <.simple_form id="exit-form" for={@form} phx-submit="exit">
+    <div class="bg-gray-50 p-4 rounded shadow text-sm text-gray-700">
+      <p>
+        <strong>Game Info:</strong>
+        <br />
+        This is a simple Guessing Game. The site picks a random number between 1 and 10. You have 5 chances
+        to guess correctly. You can change your wager amount, but dropping to 0 points will reset your session.
+        Exiting will save your high score, but you won’t be able to resume this streak later.
+      </p>
+    </div>
+    <.simple_form id="exit-form" for={@form} phx-submit="exit" class="text-center">
       <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
       <.input type="hidden" field={@form[:game_id]} value={1} />
       <.input type="hidden" field={@form[:score]} value={@highest_score} />
       <:actions>
-        <.button>Exit and Save Score</.button>
+        <.button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
+          Exit and Save Score
+        </.button>
       </:actions>
     </.simple_form>
     """

@@ -5,59 +5,67 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
 
   def render(assigns) do
     ~H"""
-    <p>Highest Score: {@highest_score}</p>
-    <p>Score: {@score}</p>
-    <%= if @outcome != "" do %>
-      <p>Outcome: {@outcome}</p>
-    <% end %>
-    <div class="flex justify-center mt-8">
-      <div class="flex gap-6">
-        <%= for choice <- ["rock", "paper", "scissors"] do %>
-          <.simple_form for={@form} phx-submit="answer" class="text-center">
-            <.input type="hidden" field={@form[:player_choice]} value={choice} id={choice} />
-            <input type="hidden" name="wager" id={"wager_hidden_#{choice}"} />
-
-            <.button type="submit" class="w-full" phx-hook="CopyBonus">
-              {choice}
-            </.button>
-          </.simple_form>
+    <div class="max-w-2xl mx-auto p-6 space-y-6 bg-white shadow-md rounded-lg">
+      <div class="text-center space-y-2">
+        <p class="text-lg font-semibold">Highest Score: {@highest_score}</p>
+        <p class="text-lg">Score: {@score}</p>
+        <%= if @outcome != "" do %>
+          <p class="text-md text-blue-600 font-medium">Outcome: {@outcome}</p>
         <% end %>
       </div>
-    </div>
 
-    <div class="max-w-md mx-auto mt-4">
-      <label for="bonus_input" class="block text-sm font-medium text-gray-700 mb-1">
-        Wager
-      </label>
-      <input
-        type="number"
-        id="wager_input"
-        name="wager_visible"
-        min="1"
-        value={@wager}
-        max={@score}
-        step="1"
-        class="w-full rounded-md border-gray-300 shadow-sm"
-      />
-    </div>
-    <body>
-      <div>
-        Rock Paper Scissors. Yeah it's simple but fun. Each win will give/take the amount of points wagered.
-        You will simply click a button and roll the dice, or ?scissors? At any point you can Exit and Save Score
-        it will submit your highest score of the session. You can't come back to a session once you exit
-        or refresh the page. <br />
-        <br />
-        <br />#todo: <br />Fix CSS
+      <div class="flex justify-center">
+        <div class="flex gap-6">
+          <%= for choice <- ["rock", "paper", "scissors"] do %>
+            <.simple_form for={@form} phx-submit="answer" class="text-center">
+              <.input type="hidden" field={@form[:player_choice]} value={choice} id={choice} />
+              <input type="hidden" name="wager" id={"wager_hidden_#{choice}"} />
+
+              <.button type="submit" class="w-24 bg-gray-200 hover:bg-gray-300 shadow rounded">
+                {String.capitalize(choice)}
+              </.button>
+            </.simple_form>
+          <% end %>
+        </div>
       </div>
-    </body>
-    <.simple_form id="exit-form" for={@form} phx-submit="exit">
-      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={3} />
-      <.input type="hidden" field={@form[:score]} value={@highest_score} />
-      <:actions>
-        <.button>Exit and Save Score</.button>
-      </:actions>
-    </.simple_form>
+
+      <div class="max-w-xs mx-auto">
+        <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
+          Wager
+        </label>
+        <input
+          type="number"
+          id="wager_input"
+          name="wager_visible"
+          min="1"
+          value={@wager}
+          max={@score}
+          step="1"
+          class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded shadow text-sm text-gray-700">
+        <p>
+          <strong>Game Info:</strong>
+          <br />
+          Rock Paper Scissors — simple but fun! Each win earns you the amount you wager; each loss deducts it.
+          Choose your move and test your luck. Once you're ready to finish, you can exit and save your highest score.
+          Be aware: refreshing or exiting will end the session permanently.
+        </p>
+      </div>
+
+      <.simple_form id="exit-form" for={@form} phx-submit="exit" class="text-center">
+        <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
+        <.input type="hidden" field={@form[:game_id]} value={3} />
+        <.input type="hidden" field={@form[:score]} value={@highest_score} />
+        <:actions>
+          <.button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
+            Exit and Save Score
+          </.button>
+        </:actions>
+      </.simple_form>
+    </div>
     """
   end
 

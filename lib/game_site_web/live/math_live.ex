@@ -13,65 +13,74 @@ defmodule GameSiteWeb.MathLive do
 
   def render(assigns) do
     ~H"""
-    <p>Highest Score: {@highest_score}</p>
-    <p>Score: {@score}</p>
-    <p>Question: {@question}</p>
-    <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <%!-- I might want to add in phx-hook="FocusGuess below if I get the hook working properly" --%>
-      <.input type="number" field={@form[:guess]} label="Guess" value="" />
-      <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
-      <:actions>
-        <.button>Answer</.button>
-      </:actions>
-    </.simple_form>
-
-    <%!-- <%= if msg = Phoenix.Flash.get(@flash, :info) do %>
-      <div id="flash" phx-hook="AutoDismiss" class="flash-info transition-opacity duration-500">
-        {msg}
+    <div class="max-w-xl mx-auto space-y-6 p-4 text-gray-800">
+      <div class="bg-white shadow-md rounded p-4 space-y-2">
+        <p class="text-lg font-semibold">Highest Score: {@highest_score}</p>
+        <p class="text-lg">Current Score: {@score}</p>
+        <p class="text-lg">Question: {@question}</p>
       </div>
-    <% end %> --%>
 
-    <div>
-      <p>
-        Here is a helper function for the current problem you are working on.<br />
-        If you want to see it or turn it off just toggle the helper button below.<br />
-      </p>
-      <label class="toggle-switch" phx-click="toggle">
-        <input type="checkbox" class="toggle-switch-check" checked={@toggle} readonly />
-        <span aria-hidden="true" class="toggle-switch-bar">
-          <span class="toggle-switch-handle"></span>
-        </span>
-      </label>
-      <%= if @toggle do %>
-        <div style="white-space: pre; font-family: monospace;">
+      <.simple_form
+        id="answer-form"
+        for={@form}
+        phx-submit="answer"
+        class="bg-white shadow-md rounded p-4 space-y-4"
+      >
+        <.input type="number" field={@form[:guess]} label="Your Guess" value="" />
+        <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
+        <:actions>
+          <.button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow">
+            Answer
+          </.button>
+        </:actions>
+      </.simple_form>
+
+      <div class="bg-white shadow-md rounded p-4 space-y-4">
+        <p>
+          Toggle the helper function if you want a hint or want to hide it:
+        </p>
+        <label class="flex items-center space-x-2 cursor-pointer" phx-click="toggle">
+          <input type="checkbox" class="sr-only" checked={@toggle} readonly />
+          <div class="w-10 h-5 bg-gray-300 rounded-full relative">
+            <div class={"w-5 h-5 bg-white rounded-full shadow absolute top-0 transition-transform #{if @toggle, do: "translate-x-5", else: "translate-x-0"}"}>
+            </div>
+          </div>
+          <span>Show Helper</span>
+        </label>
+
+        <div class={if @toggle, do: "", else: "invisible"}>
           <p>{@helper.first}</p>
           <p>{@helper.second}</p>
           <p>{@helper.third}</p>
           <p>{@helper.fourth}</p>
         </div>
-      <% else %>
-        <div style="white-space: pre; font-family: monospace;">
-          <br /><br /><br /><br /><br /><br />
-        </div>
-      <% end %>
-    </div>
+      </div>
 
-    <div>
-      This is a simple Math game that will ask you to solve a simple Math question. It will involve 2
-      digits that are between 1 and 100 and an operand. You will continue to acquire points equal to the wager
-      that you set for every correct answer, but you will lose the wagered points for an incorrect answer.
-      If your score drops to 0 the session will be reset. You can at any point exit and save your high score.
-      It will not allow you to come back to a previous session.<br /><br />#TODO: <br />Fix CSS
-    </div>
+      <div class="bg-white shadow-md rounded p-4">
+        <p>
+          This is a simple math game. Each round gives you a basic equation using two numbers between 1 and 100.
+          You wager points before guessing the answer. If you're correct, you gain the wager amount; if wrong,
+          you lose it. When your score hits 0, the game resets automatically but keeps your high score.
+          You may exit and save your high score anytime.
+        </p>
+      </div>
 
-    <.simple_form id="exit-form" for={@form} phx-submit="exit">
-      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={2} />
-      <.input type="hidden" field={@form[:score]} value={@highest_score} />
-      <:actions>
-        <.button>Exit and Save Score</.button>
-      </:actions>
-    </.simple_form>
+      <.simple_form
+        id="exit-form"
+        for={@form}
+        phx-submit="exit"
+        class="bg-white shadow-md rounded p-4"
+      >
+        <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
+        <.input type="hidden" field={@form[:game_id]} value={2} />
+        <.input type="hidden" field={@form[:score]} value={@highest_score} />
+        <:actions>
+          <.button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
+            Exit and Save Score
+          </.button>
+        </:actions>
+      </.simple_form>
+    </div>
     """
   end
 
