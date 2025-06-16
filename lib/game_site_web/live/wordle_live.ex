@@ -1,6 +1,7 @@
 defmodule GameSiteWeb.WordleLive do
   use GameSiteWeb, :live_view
 
+  import GameSiteWeb.LoginHelpers
   alias GameSite.Scores
   alias GameSiteWeb.Words
 
@@ -77,11 +78,52 @@ defmodule GameSiteWeb.WordleLive do
 
   def render(assigns) do
     ~H"""
-    <p>Highest Score/Streak: {@highest_score}/{@highest_streak}</p>
-    <p>Score/Streak: {@score}/{@streak}</p>
-    <%= if @reset == true do %>
-      <p>Word: {@word}</p>
-    <% end %>
+    <section class="bg-gray-50 rounded p-6 shadow mx-auto space-y-6">
+    <h2 class="text-xl font-semibold">Wordle Game Overview</h2>
+      <div class="max-w-prose text-gray-800 space-y-4">
+        <p>
+          Wordle game. For this game you will be asked to find a 5 letter word. Once you have submitted a 5 letter word, you will be given feedback on how close you are to the word.
+        </p>
+        <ul class="list-disc list-inside space-y-1 text-left">
+          <li>
+            <strong class="text-green-600">Green box:</strong> Right letter in the right position
+          </li>
+          <li>
+            <strong class="text-yellow-500">Yellow box:</strong> Letter in the word but wrong position
+          </li>
+          <li><strong class="text-gray-500">Grey box:</strong> Letter not in the word</li>
+          <li>The faster you guess (fewer attempts), the higher your score</li>
+          <li>You can use the on-screen keyboard or your own keyboard to enter a word</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded p-4 shadow grid grid-cols-2 gap-6 text-center font-semibold text-gray-800">
+        <div>
+          <div class="text-sm text-gray-500">Highest Score</div>
+          <div>{@highest_score}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Highest Streak</div>
+          <div>{@highest_streak}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Current Score</div>
+          <div>{@score}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Current Streak</div>
+          <div>{@streak}</div>
+        </div>
+        <%= if @reset do %>
+          <div class="col-span-2 mt-4">
+            <div class="text-sm text-gray-500">Word</div>
+            <div class="uppercase tracking-wider font-medium">{@word}</div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+    <br />
+
     <% round_order = [:first, :second, :third, :fourth, :fifth, :sixth] %>
 
     <% labels =
@@ -168,23 +210,29 @@ defmodule GameSiteWeb.WordleLive do
 
     <body>
       <div>
-        <br />
-        Wordle game. For this game you will be asked to find a 5 letter word, once you have submitted a
-        5 letter word, you will be given feedback on how close you are to the word. A green box means that
-        you have the right letter and position. A yellow box means that you have a letter in the word but
-        it's not in the right place. A grey box means that the letter isn't even in the word. The faster
-        (number of guesses) the higher score you will receive. You can use the on screen keyboard or your own
-        keyboard to enter a word.
+        <%= if not logged_in?(@socket.assigns) do %>
+          <br /> <br />If you want to submit your score please make an
+          <a
+            href="/users/register"
+            style="cursor: pointer; text-decoration: none; color: blue;"
+            onmouseover="this.style.textDecoration='underline'; this.style.color='red';"
+            onmouseout="this.style.textDecoration='none'; this.style.color='blue';"
+          >
+            account
+          </a>
+        <% end %>
       </div>
     </body>
-    <.simple_form id="exit-form" for={@form} phx-submit="exit">
-      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={4} />
-      <.input type="hidden" field={@form[:score]} value={@highest_score} />
-      <:actions>
-        <.button>Exit and Save Score</.button>
-      </:actions>
-    </.simple_form>
+    <%= if logged_in?(@socket.assigns) do %>
+      <.simple_form id="exit-form" for={@form} phx-submit="exit">
+        <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
+        <.input type="hidden" field={@form[:game_id]} value={4} />
+        <.input type="hidden" field={@form[:score]} value={@highest_score} />
+        <:actions>
+          <.button>Exit and Save Score</.button>
+        </:actions>
+      </.simple_form>
+    <% end %>
     """
   end
 

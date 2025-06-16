@@ -1,6 +1,7 @@
 defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
+  import GameSiteWeb.LoginHelpers
   alias GameSite.Scores
   alias GameSiteWeb.HelperFunctions, as: Helper
 
@@ -13,58 +14,99 @@ defmodule GameSiteWeb.MathLive do
 
   def render(assigns) do
     ~H"""
-    <div class="max-w-xl mx-auto space-y-6 p-4 text-gray-800">
-      <div class="bg-white shadow-md rounded p-4 space-y-2">
-        <p class="text-lg font-semibold">Highest Score: {@highest_score}</p>
-        <p class="text-lg">Current Score: {@score}</p>
-        <p class="text-lg">Question: {@question}</p>
-      </div>
+    <%!-- <div class="max-w-xl mx-auto space-y-6 p-4 text-gray-800"> --%>
+    <section class="bg-gray-50 rounded p-4 shadow">
+      <h2 class="text-xl font-semibold mb-2">Math Game Overview</h2>
+      <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+        <li>Each round presents a basic math equation using numbers from 1 to 100.</li>
+        <li>Before answering, you choose how many points to wager.</li>
+        <li>If your answer is correct, you gain the wagered points.</li>
+        <li>If you're wrong, the wager is subtracted from your score.</li>
+        <li>When your score reaches 0, the game resets—but your highest score is saved.</li>
+        <li>The goal is to maintain a streak and beat your personal best!</li>
+      </ul>
 
-      <.simple_form
-        id="answer-form"
-        for={@form}
-        phx-submit="answer"
-        class="bg-white shadow-md rounded p-4 space-y-4"
-      >
-        <.input type="number" field={@form[:guess]} label="Your Guess" value="" />
-        <.input type="number" field={@form[:wager]} label="Wager" min="1" max={@score} value={@wager} />
-        <:actions>
-          <.button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow">
-            Answer
-          </.button>
-        </:actions>
-      </.simple_form>
-
-      <div class="bg-white shadow-md rounded p-4 space-y-4">
-        <p>
-          Toggle the helper function if you want a hint or want to hide it:
-        </p>
-        <label class="flex items-center space-x-2 cursor-pointer" phx-click="toggle">
-          <input type="checkbox" class="sr-only" checked={@toggle} readonly />
-          <div class="w-10 h-5 bg-gray-300 rounded-full relative">
-            <div class={"w-5 h-5 bg-white rounded-full shadow absolute top-0 transition-transform #{if @toggle, do: "translate-x-5", else: "translate-x-0"}"}>
-            </div>
-          </div>
-          <span>Show Helper</span>
-        </label>
-
-        <div class={if @toggle, do: "", else: "invisible"}>
-          <p>{@helper.first}</p>
-          <p>{@helper.second}</p>
-          <p>{@helper.third}</p>
-          <p>{@helper.fourth}</p>
+      <div class="mt-4 flex justify-center gap-8 text-center font-semibold text-gray-800">
+        <div>
+          <div class="text-sm text-gray-500">Highest Score</div>
+          <div>{@highest_score}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Current Score</div>
+          <div>{@score}</div>
         </div>
       </div>
+    </section>
+    <section class="bg-gray-50 rounded p-4 shadow text-center">
+      <div>
+        <div class="text-sm text-gray-500">Question</div>
+        <div>{@question}</div>
+      </div>
+    </section>
 
-      <div class="bg-white shadow-md rounded p-4">
-        <p>
-          This is a simple math game. Each round gives you a basic equation using two numbers between 1 and 100.
-          You wager points before guessing the answer. If you're correct, you gain the wager amount; if wrong,
-          you lose it. When your score hits 0, the game resets automatically but keeps your high score.
-          You may exit and save your high score anytime.
-        </p>
+    <.simple_form
+      id="answer-form"
+      for={@form}
+      phx-submit="answer"
+      class="bg-white shadow-md rounded p-4 space-y-4"
+    >
+      <div class="flex gap-4">
+        <.input type="number" field={@form[:guess]} label="Your Guess" value="" class="flex-1" />
+        <.input
+          type="number"
+          field={@form[:wager]}
+          label="Wager"
+          min="1"
+          max={@score}
+          value={@wager}
+          class="flex-1"
+        />
       </div>
 
+      <:actions>
+        <.button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow">
+          Answer
+        </.button>
+      </:actions>
+    </.simple_form>
+
+    <div class="bg-white shadow-md rounded p-4 space-y-4 border border-gray-300 h-64">
+      <p>
+        Toggle the helper function if you want a hint or want to hide it:
+      </p>
+      <label class="flex items-center space-x-2 cursor-pointer" phx-click="toggle">
+        <input type="checkbox" class="sr-only" checked={@toggle} readonly />
+        <div class="w-10 h-5 bg-gray-300 rounded-full relative">
+          <div class={"w-5 h-5 bg-white rounded-full shadow absolute top-0 transition-transform #{if @toggle, do: "translate-x-5", else: "translate-x-0"}"}>
+          </div>
+        </div>
+        <span>Show Helper</span>
+      </label>
+
+      <div class={if @toggle, do: "", else: "invisible"}>
+        <p>{@helper.first}</p>
+        <p>{@helper.second}</p>
+        <p>{@helper.third}</p>
+        <p>{@helper.fourth}</p>
+      </div>
+    </div>
+
+    <div class="bg-white shadow-md rounded p-4">
+      <p>
+        <%= if not logged_in?(@socket.assigns) do %>
+          <br /> <br />If you want to submit your score please make an
+          <a
+            href="/users/register"
+            style="cursor: pointer; text-decoration: none; color: blue;"
+            onmouseover="this.style.textDecoration='underline'; this.style.color='red';"
+            onmouseout="this.style.textDecoration='none'; this.style.color='blue';"
+          >
+            account
+          </a>
+        <% end %>
+      </p>
+    </div>
+    <%= if logged_in?(@socket.assigns) do %>
       <.simple_form
         id="exit-form"
         for={@form}
@@ -80,7 +122,8 @@ defmodule GameSiteWeb.MathLive do
           </.button>
         </:actions>
       </.simple_form>
-    </div>
+    <% end %>
+    <%!-- </div> --%>
     """
   end
 

@@ -1,5 +1,7 @@
 defmodule GameSiteWeb.PokerLive do
   use GameSiteWeb, :live_view
+
+  import GameSiteWeb.LoginHelpers
   alias GameSiteWeb.PokerForm
   alias GameSite.Scores
   alias GameSiteWeb.PokerHelpers, as: Helper
@@ -13,7 +15,6 @@ defmodule GameSiteWeb.PokerLive do
     <!-- Game Info and Scores -->
       <section class="bg-gray-50 rounded p-4 shadow">
         <h2 class="text-xl font-semibold mb-2">Poker Game Overview</h2>
-        <p>Welcome to my Poker Game! Here's how it works:</p>
         <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
           <li>Draw 5 cards and choose which ones to keep.</li>
           <li>Adjust your wager before drawing cards and again after dealing.</li>
@@ -235,18 +236,38 @@ defmodule GameSiteWeb.PokerLive do
       </section>
 
     <!-- Exit and Save Form -->
-      <section class="max-w-md mx-auto">
-        <.simple_form id="exit-form" for={@form} phx-submit="exit" name="exit-form" class="space-y-4">
-          <.input type="hidden" field={@form[:user_id]} value={@current_user.id} name="user_id" />
-          <.input type="hidden" field={@form[:game_id]} value={5} name="game_id" />
-          <.input type="hidden" field={@form[:score]} value={@highest_score} name="score" />
-          <:actions>
-            <.button class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 rounded">
-              Exit and Save Score
-            </.button>
-          </:actions>
-        </.simple_form>
-      </section>
+      <%= if not logged_in?(@socket.assigns) do %>
+        <br /> <br />If you want to submit your score please make an
+        <a
+          href="/users/register"
+          style="cursor: pointer; text-decoration: none; color: blue;"
+          onmouseover="this.style.textDecoration='underline'; this.style.color='red';"
+          onmouseout="this.style.textDecoration='none'; this.style.color='blue';"
+        >
+          account
+        </a>
+      <% end %>
+
+      <%= if logged_in?(@socket.assigns) do %>
+        <section class="max-w-md mx-auto">
+          <.simple_form
+            id="exit-form"
+            for={@form}
+            phx-submit="exit"
+            name="exit-form"
+            class="space-y-4"
+          >
+            <.input type="hidden" field={@form[:user_id]} value={@current_user.id} name="user_id" />
+            <.input type="hidden" field={@form[:game_id]} value={5} name="game_id" />
+            <.input type="hidden" field={@form[:score]} value={@highest_score} name="score" />
+            <:actions>
+              <.button class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 rounded">
+                Exit and Save Score
+              </.button>
+            </:actions>
+          </.simple_form>
+        </section>
+      <% end %>
 
       <style>
         input[type=number]::-webkit-inner-spin-button,

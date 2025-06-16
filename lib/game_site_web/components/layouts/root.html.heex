@@ -10,23 +10,18 @@
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
+    <style>
+      /* Custom styles here if needed */
+    </style>
   </head>
-  <head>
-    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-    </script>
-  </head>
-  <body class="bg-white">
-    <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
+  <body class="bg-gray-50 min-h-screen flex flex-col">
+    
+<!-- User Nav -->
+    <ul class="relative z-10 flex items-center gap-6 px-6 py-3 justify-end bg-white shadow-sm border-b border-gray-200 text-sm text-gray-900">
       <%= if @current_user do %>
-        <li class="text-[0.8125rem] leading-6 text-zinc-900">
-          {@current_user.email}
-        </li>
+        <li class="truncate max-w-xs">{@current_user.email}</li>
         <li>
-          <.link
-            href={~p"/users/settings"}
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
+          <.link href={~p"/users/settings"} class="font-semibold hover:text-gray-700">
             Settings
           </.link>
         </li>
@@ -34,93 +29,54 @@
           <.link
             href={~p"/users/log_out"}
             method="delete"
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+            class="font-semibold hover:text-gray-700"
           >
             Log out
           </.link>
         </li>
       <% else %>
         <li>
-          <.link
-            href={~p"/users/register"}
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
+          <.link href={~p"/users/register"} class="font-semibold hover:text-gray-700">
             Register
           </.link>
         </li>
         <li>
-          <.link
-            href={~p"/users/log_in"}
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
+          <.link href={~p"/users/log_in"} class="font-semibold hover:text-gray-700">
             Log in
           </.link>
         </li>
       <% end %>
     </ul>
-    <div class="topnavcontainer sticky top-0 xs:text-xs md:text-md lg:text-lg">
-      <.link navigate={~p"/"} class="link bg-gray-400 hover:bg-gray-200">Home</.link>
-      <.link navigate={~p"/scores"} class="link bg-gray-400 hover:bg-gray-200">Scores</.link>
-      <.link navigate={~p"/1"} class="link bg-gray-400 hover:bg-gray-200">Guessing Game</.link>
-      <.link navigate={~p"/2"} class="link bg-gray-400 hover:bg-gray-200">Math Game</.link>
-      <.link navigate={~p"/3"} class="link bg-gray-400 hover:bg-gray-200">
-        Rock Paper Scissors
-      </.link>
-      <.link navigate={~p"/4"} class="link bg-gray-400 hover:bg-gray-200">
-        Wordle
-      </.link>
-      <.link navigate={~p"/5"} class="link bg-gray-400 hover:bg-gray-200">
-        Poker
-      </.link>
-    </div>
-    <br />
-    {@inner_content}
+    
+<!-- Navigation bar -->
+    <nav class="bg-gray-700 sticky top-0 z-20">
+      <div class="max-w-6xl mx-auto px-4">
+        <div class="flex flex-wrap justify-center gap-4 py-3 border">
+          <.link navigate={~p"/"} class="nav-link">Home</.link>
+          <.link navigate={~p"/scores"} class="nav-link">Scores</.link>
+          <.link navigate={~p"/1"} class="nav-link">Guessing Game</.link>
+          <.link navigate={~p"/2"} class="nav-link">Math Game</.link>
+          <.link navigate={~p"/3"} class="nav-link">Rock Paper Scissors</.link>
+          <.link navigate={~p"/4"} class="nav-link">Wordle</.link>
+          <.link navigate={~p"/5"} class="nav-link">Poker</.link>
+        </div>
+      </div>
+    </nav>
+    
+<!-- Main content -->
+    <main class="flex-grow container mx-auto p-6">
+      {@inner_content}
+    </main>
+
+    <style>
+            .nav-link {
+        @apply px-4 py-2 rounded-md text-gray-200 hover:bg-gray-600 hover:text-white font-semibold transition border border-white;
+      }
+      .nav-link[aria-current="page"] {
+        @apply bg-gray-900 text-white;
+      }
+
+          
+    </style>
   </body>
 </html>
-
-<script defer type="text/javascript" src={~p"/assets/app.js"}>
-  <br />
-</script>
-
-<style>
-  .topnavcontainer {
-    align-items: center;
-    justify-content: center;
-    display:flex;
-    border: 2px solid rgb(95 97 110);
-    background:gray;
-    margin: auto;
-    max-width: fit-content;    
-  }
-
-  .topnavcontainer (min-width: lg ) {
-    text: md;
-    font: bold;
-  }
-
-  .topnavcontainer (max-width < md ) and (min-width > sm) {
-    text: sm;
-    font: normal;
-  }
-
-  .topnavcontainer (max-width: sm ) {
-    text: xs;
-    font: thin;
-  }
-
-  .link{
-    padding:5px;
-    margin:3px;
-  }
-
-  font {
-    padding-left: 10%;
-  }
-
-  .top_image {
-    display: block;
-    margin: auto;
-    width: 80%;
-    hight: auto;
-  }
-</style>

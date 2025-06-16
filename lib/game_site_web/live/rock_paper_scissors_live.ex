@@ -1,60 +1,93 @@
 defmodule GameSiteWeb.RockPaperScissorsLive do
   use GameSiteWeb, :live_view
 
+  import GameSiteWeb.LoginHelpers
   alias GameSite.Scores
 
   def render(assigns) do
     ~H"""
-    <div class="max-w-2xl mx-auto p-6 space-y-6 bg-white shadow-md rounded-lg">
-      <div class="text-center space-y-2">
-        <p class="text-lg font-semibold">Highest Score: {@highest_score}</p>
-        <p class="text-lg">Score: {@score}</p>
+    <%!-- <div class="max-w-2xl mx-auto p-6 space-y-6 bg-white shadow-md rounded-lg"> --%>
+    <section class="bg-gray-50 rounded p-4 shadow space-y-4">
+      <div class="text-left mx-auto text-left">
+        <h2 class="text-xl font-semibold mb-2">How to Play</h2>
+        <p>
+          Rock Paper Scissors — simple but fun! Each win earns you the amount you wager
+          each loss deducts it. Choose your move and test your luck.
+        </p>
+        <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+          <li>Rock beats Scissors</li>
+          <li>Scissors beats Paper</li>
+          <li>Paper beats Rock</li>
+          <li>If both choose the same move, it's a tie</li>
+          <li>Game resets if your score hits 0, but your high score is saved</li>
+        </ul>
+      </div>
+
+      <div class="bg-gray-50 rounded p-4 shadow max-w-xl mx-auto flex justify-around items-center font-semibold text-gray-800">
+        <div class="text-center">
+          <div class="text-sm text-gray-500">Highest Score</div>
+          <div class="text-lg">{@highest_score}</div>
+        </div>
+        <div class="text-center">
+          <div class="text-sm text-gray-500">Score</div>
+          <div class="text-lg">{@score}</div>
+        </div>
         <%= if @outcome != "" do %>
-          <p class="text-md text-blue-600 font-medium">Outcome: {@outcome}</p>
+          <div class="text-center">
+            <div class="text-sm text-gray-500">Outcome</div>
+            <div class="text-md text-blue-600 font-medium">{@outcome}</div>
+          </div>
         <% end %>
       </div>
+    </section>
 
-      <div class="flex justify-center">
-        <div class="flex gap-6">
-          <%= for choice <- ["rock", "paper", "scissors"] do %>
-            <.simple_form for={@form} phx-submit="answer" class="text-center">
-              <.input type="hidden" field={@form[:player_choice]} value={choice} id={choice} />
-              <input type="hidden" name="wager" id={"wager_hidden_#{choice}"} />
+    <div class="flex justify-center">
+      <div class="flex gap-6">
+        <%= for choice <- ["rock", "paper", "scissors"] do %>
+          <.simple_form for={@form} phx-submit="answer" class="text-center">
+            <.input type="hidden" field={@form[:player_choice]} value={choice} id={choice} />
+            <input type="hidden" name="wager" id={"wager_hidden_#{choice}"} />
 
-              <.button type="submit" class="w-24 bg-gray-200 hover:bg-gray-300 shadow rounded">
-                {String.capitalize(choice)}
-              </.button>
-            </.simple_form>
-          <% end %>
-        </div>
+            <.button type="submit" class="w-24 bg-gray-200 hover:bg-gray-300 shadow rounded">
+              {String.capitalize(choice)}
+            </.button>
+          </.simple_form>
+        <% end %>
       </div>
+    </div>
 
-      <div class="max-w-xs mx-auto">
-        <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
-          Wager
-        </label>
-        <input
-          type="number"
-          id="wager_input"
-          name="wager_visible"
-          min="1"
-          value={@wager}
-          max={@score}
-          step="1"
-          class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-        />
-      </div>
+    <div class="max-w-xs mx-auto">
+      <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
+        Wager
+      </label>
+      <input
+        type="number"
+        id="wager_input"
+        name="wager_visible"
+        min="1"
+        value={@wager}
+        max={@score}
+        step="1"
+        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+      />
+    </div>
 
-      <div class="bg-gray-50 p-4 rounded shadow text-sm text-gray-700">
-        <p>
-          <strong>Game Info:</strong>
-          <br />
-          Rock Paper Scissors — simple but fun! Each win earns you the amount you wager; each loss deducts it.
-          Choose your move and test your luck. Once you're ready to finish, you can exit and save your highest score.
-          Be aware: refreshing or exiting will end the session permanently.
-        </p>
-      </div>
-
+    <div class="bg-gray-50 p-4 rounded shadow text-sm text-gray-700">
+      <p>
+        <%= if not logged_in?(@socket.assigns) do %>
+          <br /> <br />If you want to submit your score please make an
+          <a
+            href="/users/register"
+            style="cursor: pointer; text-decoration: none; color: blue;"
+            onmouseover="this.style.textDecoration='underline'; this.style.color='red';"
+            onmouseout="this.style.textDecoration='none'; this.style.color='blue';"
+          >
+            account
+          </a>
+        <% end %>
+      </p>
+    </div>
+    <%= if logged_in?(@socket.assigns) do %>
       <.simple_form id="exit-form" for={@form} phx-submit="exit" class="text-center">
         <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
         <.input type="hidden" field={@form[:game_id]} value={3} />
@@ -65,7 +98,8 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
           </.button>
         </:actions>
       </.simple_form>
-    </div>
+    <% end %>
+    <%!-- </div> --%>
     """
   end
 

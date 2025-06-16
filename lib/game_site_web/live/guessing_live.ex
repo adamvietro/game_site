@@ -1,16 +1,38 @@
 defmodule GameSiteWeb.GuessingLive do
   use GameSiteWeb, :live_view
 
+  import GameSiteWeb.LoginHelpers
   alias GameSite.Scores
   alias GameSiteWeb.HelperFunctions, as: Helper
 
   def render(assigns) do
     ~H"""
-    <div class="text-center space-y-2">
-      <p class="text-lg font-semibold">Session High Score: {@highest_score}</p>
-      <p class="text-lg">Score: {@score}</p>
-      <p class="text-md text-gray-600">Attempt: {@attempt}</p>
-    </div>
+    <section class="bg-gray-50 rounded p-4 shadow space-y-4">
+      <h2 class="text-xl font-semibold">Guessing Game Overview</h2>
+      <ul class="list-disc list-inside text-left max-w-prose text-gray-700 space-y-1">
+        <li>The site picks a random number between 1 and 10.</li>
+        <li>You have 5 chances to guess the correct number.</li>
+        <li>Adjust your wager amount before each guess.</li>
+        <li>Correct guesses increase your score by the wager.</li>
+        <li>Incorrect guesses decrease your score by the wager.</li>
+        <li>If your score hits 0, your session resets but keeps your high score.</li>
+      </ul>
+
+      <div class="grid grid-cols-3 gap-4 text-center font-semibold text-gray-800">
+        <div>
+          <div class="text-sm text-gray-500">Highest Score</div>
+          <div>{@highest_score}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Current Score</div>
+          <div>{@score}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Attempt</div>
+          <div>{@attempt}</div>
+        </div>
+      </div>
+    </section>
 
     <div class="grid grid-cols-5 gap-x-3 gap-y-1 max-w-md mx-auto mt-4">
       <%= for guess <- 1..10 do %>
@@ -41,26 +63,35 @@ defmodule GameSiteWeb.GuessingLive do
         class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
       />
     </div>
+    <br /> <br />
 
     <div class="bg-gray-50 p-4 rounded shadow text-sm text-gray-700">
       <p>
-        <strong>Game Info:</strong>
-        <br />
-        This is a simple Guessing Game. The site picks a random number between 1 and 10. You have 5 chances
-        to guess correctly. You can change your wager amount, but dropping to 0 points will reset your session.
-        Exiting will save your high score, but you won’t be able to resume this streak later.
+        <%= if not logged_in?(@socket.assigns) do %>
+          If you want to submit your score please make an
+          <a
+            href="/users/register"
+            style="cursor: pointer; text-decoration: none; color: blue;"
+            onmouseover="this.style.textDecoration='underline'; this.style.color='red';"
+            onmouseout="this.style.textDecoration='none'; this.style.color='blue';"
+          >
+            account
+          </a>
+        <% end %>
       </p>
     </div>
-    <.simple_form id="exit-form" for={@form} phx-submit="exit" class="text-center">
-      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={1} />
-      <.input type="hidden" field={@form[:score]} value={@highest_score} />
-      <:actions>
-        <.button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
-          Exit and Save Score
-        </.button>
-      </:actions>
-    </.simple_form>
+    <%= if logged_in?(@socket.assigns) do %>
+      <.simple_form id="exit-form" for={@form} phx-submit="exit" class="text-center">
+        <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
+        <.input type="hidden" field={@form[:game_id]} value={2} />
+        <.input type="hidden" field={@form[:score]} value={@highest_score} />
+        <:actions>
+          <.button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
+            Exit and Save Score
+          </.button>
+        </:actions>
+      </.simple_form>
+    <% end %>
     """
   end
 

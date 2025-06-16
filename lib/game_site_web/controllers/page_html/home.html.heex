@@ -1,82 +1,108 @@
-<.flash_group flash={@flash} />
-<html>
+<.flash_group flash={@flash} /> <!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <image>
-      <img
-        class="top_image"
-        src="https://t4.ftcdn.net/jpg/04/42/21/53/360_F_442215355_AjiR6ogucq3vPzjFAAEfwbPXYGqYVAap.jpg"
-      />
-    </image>
-    <h1>
-      Welcome to my game site. This was a way to make something that I would enjoy and learn as much as possible
-      about the Phoenix LiveView way of building a site. If you want to see some of the post I did that explain
-      the things that I did please check out my other
-      <a href="https://blog-wild-leaf-1554.fly.dev/" color="red-200">
-        <em class="text-blue-400 hover:text-red-200">site</em>
-      </a>
-      <br /><br />
-    </h1>
-    <h1>
-      If you want to create your own project please check out this website.
-      <a href="https://github.com/DockYard-Academy/curriculum" color="red-200">
-        <em class="text-blue-400 hover:text-red-200">Dock Yard</em>
-      </a>
-      <br /><br />
-    </h1>
-    <h1>
-      <br />#TODO: <br />Better CSS
-    </h1>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GameSite</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f9fafb;
+        color: #222;
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 700px;
+        margin: 2rem auto;
+        padding: 1rem 1.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      img.top_image {
+        display: block;
+        width: 100%;
+        max-width: 600px;
+        height: auto;
+        border-radius: 12px;
+        margin: 0 auto 2rem auto; /* top 0, left/right auto, bottom 2rem */
+        object-fit: cover;
+      }
+
+      p {
+        margin: 1rem 0;
+        font-size: 1.1rem;
+      }
+
+      a:hover,
+      a:focus {
+        color: #ef4444; /* Tailwind red-500 */
+        text-decoration: underline;
+      }
+
+      footer {
+        max-width: 700px;
+        margin: 3rem auto 2rem auto;
+        text-align: center;
+      }
+
+      img.low_image {
+        display: block;
+        width: 100%;
+        max-width: 600px;
+        height: auto;
+        border-radius: 12px;
+        margin: 0 auto 2rem auto; /* top 0, left/right auto, bottom 2rem */
+        object-fit: cover;
+      }
+
+      .todo {
+        color: #d97706; /* amber-600 */
+        font-weight: 700;
+        margin-top: 2rem;
+      }
+
+      .intro-text {
+          text-align: left;
+          border: 2px solid #ccc;
+          padding: 1rem 1.5rem;
+          border-radius: 8px;
+          box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
+          max-width: 700px;
+          margin: 1rem auto;
+          color: #222;
+          background-color: #fff;
+        }
+    </style>
   </head>
 
-  <footer>
-    <br /><br /><br /><br />
+  <body>
+    <main>
+      <img
+        class="top_image align=center"
+        src="https://t4.ftcdn.net/jpg/04/42/21/53/360_F_442215355_AjiR6ogucq3vPzjFAAEfwbPXYGqYVAap.jpg"
+        alt="Game site banner"
+      />
 
-    <img
-      class="low_image"
-      src="https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fuuo9fxl96owi7avgzvhf.png"
-      style="width:700px;height:400px;"
-    />
-  </footer>
+      <p class="intro-text">
+        Welcome to my personal game development site, built using Phoenix LiveView. This project showcases my hands-on experience with real-time web applications, functional programming in Elixir, and modern web development best practices. Explore the games and projects here to see how I combine clean, maintainable code with engaging user experiences. For a deeper dive into my process, visit my technical <a
+          href="https://blog-wild-leaf-1554.fly.dev/"
+          class="text-blue-600 hover:text-blue-800 underline"
+        >blog</a>.
+      </p>
+    </main>
+
+    <%!-- <footer>
+      <img
+        class="low_image"
+        src="https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fuuo9fxl96owi7avgzvhf.png"
+        alt="Dev.to article banner"
+      />
+    </footer> --%>
+  </body>
 </html>
-
-<style>
-  p {
-    color:black;
-    background:yellow;
-    padding-left: 2em;
-    padding-right: 2em;
-    width: 50%;
-    margin: auto;
-    border-radius:25px;
-    
-  }
-  p:hover{
-    color:red;
-  }
-
-  div{
-    max-width: fit-content;
-    margin-left:auto;
-    margin-right:auto;
-  }
-
-  h1{
-    color:black;
-    background:white;
-    max-width: 50%;
-    margin-left:auto;
-    margin-right:auto;
-  }
-
-  .low_image{
-    object-fit: contain;
-    max-width: 50%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    margin-left:auto;
-    margin-right:auto;
-  }
-</style>

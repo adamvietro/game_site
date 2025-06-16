@@ -22,6 +22,19 @@ defmodule GameSiteWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/scores", ScoreLive.Index, :index
+    # live "/scores/new", ScoreLive.Index, :new
+    # live "/scores/:id/edit", ScoreLive.Index, :edit
+
+    # live "/scores/:id", ScoreLive.Show, :show
+    # live "/scores/:id/show/edit", ScoreLive.Show, :edit
+
+    live "/1", GuessingLive, :game
+    live "/2", MathLive, :game
+    live "/3", RockPaperScissorsLive, :game
+    live "/4", WordleLive, :game
+    live "/5", PokerLive, :game
   end
 
   scope "/", GameSiteWeb do
@@ -34,19 +47,6 @@ defmodule GameSiteWeb.Router do
 
       live "/games/:id", GameLive.Show, :show
       live "/games/:id/show/edit", GameLive.Show, :edit
-
-      live "/scores", ScoreLive.Index, :index
-      # live "/scores/new", ScoreLive.Index, :new
-      # live "/scores/:id/edit", ScoreLive.Index, :edit
-
-      # live "/scores/:id", ScoreLive.Show, :show
-      # live "/scores/:id/show/edit", ScoreLive.Show, :edit
-
-      live "/1", GuessingLive, :game
-      live "/2", MathLive, :game
-      live "/3", RockPaperScissorsLive, :game
-      live "/4", WordleLive, :game
-      live "/5", PokerLive, :game
     end
   end
 
