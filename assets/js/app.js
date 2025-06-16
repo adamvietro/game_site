@@ -18,18 +18,76 @@
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
-import {Socket} from "phoenix"
-import {LiveSocket} from "phoenix_live_view"
+import { Socket } from "phoenix"
+import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
+import KeyInput from "./hooks/KeyInput"
+
+let Hooks = {}
+
+Hooks.CopyBonus = {
+  mounted() {
+    this.el.addEventListener("click", (e) => {
+      const visible = document.getElementById("wager_input")
+      const guess = this.el.textContent.trim()
+      const hidden = document.getElementById(`wager_hidden_${guess}`)
+      if (visible && hidden) {
+        hidden.value = visible.value || "1"
+      }
+    })
+  }
+}
+
+Hooks.AutofillSync = {
+  mounted() {
+    setTimeout(() => {
+      this.pushEvent("autofill_sync", {
+        name: this.el.name,
+        value: this.el.value
+      });
+    }, 100);
+  }
+};
+
+
+Hooks.AutoDismiss = {
+  mounted() {
+    // Get the timeout value from the data attribute
+    const timeout = this.el.dataset.timeout || 5000; // Default to 5000ms if not provided
+
+    // Set a timeout to hide the flash message
+    setTimeout(() => {
+      this.el.style.opacity = "0";  // Fade out
+      setTimeout(() => {
+        this.el.remove();  // Completely remove the flash message from DOM after fade-out
+      }, 500);  // Time for fade-out effect
+    }, timeout);
+  }
+}
+
+
+Hooks.FocusGuess = {
+  mounted() {
+    this.el.focus()
+    this.el.select?.()
+  },
+  updated() {
+    this.el.focus()
+    this.el.select?.()
+  }
+}
+
+Hooks.KeyInput = KeyInput
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
+  hooks: Hooks,
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: { _csrf_token: csrfToken }
 })
 
 // Show progress bar on live navigation and form submits
-topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
+topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" })
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 

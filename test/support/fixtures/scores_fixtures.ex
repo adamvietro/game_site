@@ -11,7 +11,7 @@ defmodule GameSite.ScoresFixtures do
     {:ok, score} =
       attrs
       |> Enum.into(%{
-        score: 42
+        "score" => 42
       })
       |> GameSite.Scores.create_score()
 
