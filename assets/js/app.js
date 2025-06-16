@@ -38,6 +38,18 @@ Hooks.CopyBonus = {
   }
 }
 
+Hooks.AutofillSync = {
+  mounted() {
+    setTimeout(() => {
+      this.pushEvent("autofill_sync", {
+        name: this.el.name,
+        value: this.el.value
+      });
+    }, 100);
+  }
+};
+
+
 Hooks.AutoDismiss = {
   mounted() {
     // Get the timeout value from the data attribute
