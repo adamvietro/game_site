@@ -3,27 +3,46 @@ defmodule GameSite.ScoresTest do
 
   alias GameSite.Scores
 
+  import GameSite.ScoresFixtures
+  import GameSite.AccountsFixtures
+  import GameSite.GamesFixtures
+
   describe "scores" do
     alias GameSite.Scores.Score
 
-    import GameSite.ScoresFixtures
+    @invalid_attrs %{"score" => nil, "game_id" => nil, "user_id" => nil}
 
-    @invalid_attrs %{score: nil}
+    setup do
+      user = user_fixture()
+      game = game_fixture()
 
-    test "list_scores/0 returns all scores" do
-      score = score_fixture()
+      score =
+        score_fixture(%{"user_id" =>  user.id, "game_id" => game.id, "score" => 42})
+
+      %{score: score}
+    end
+
+    test "list_scores/0 returns all scores", %{score: score} do
+      score =
+        score
+        |> Repo.preload([:user, :game])
+
       assert Scores.list_scores() == [score]
     end
 
-    test "get_score!/1 returns the score with given id" do
-      score = score_fixture()
+    test "get_score!/1 returns the score with given id", %{score: score} do
       assert Scores.get_score!(score.id) == score
     end
 
-    test "create_score/1 with valid data creates a score" do
-      valid_attrs = %{score: 42}
+    test "create_score/1 with duplicate score fails", %{score: score} do
+      valid_attrs =
+        score
+        |> Repo.preload([:user, :game])
+        |> Map.from_struct()
+        |> Map.take([:user_id, :game_id, :score])
+        |> Map.new(fn {k, v} -> {to_string(k), v} end)
 
-      assert {:ok, %Score{} = score} = Scores.create_score(valid_attrs)
+      assert {:duplicate, :already_exists} = Scores.create_score(valid_attrs)
       assert score.score == 42
     end
 
@@ -31,28 +50,24 @@ defmodule GameSite.ScoresTest do
       assert {:error, %Ecto.Changeset{}} = Scores.create_score(@invalid_attrs)
     end
 
-    test "update_score/2 with valid data updates the score" do
-      score = score_fixture()
+    test "update_score/2 with valid data updates the score", %{score: score} do
       update_attrs = %{score: 43}
 
       assert {:ok, %Score{} = score} = Scores.update_score(score, update_attrs)
       assert score.score == 43
     end
 
-    test "update_score/2 with invalid data returns error changeset" do
-      score = score_fixture()
+    test "update_score/2 with invalid data returns error changeset", %{score: score} do
       assert {:error, %Ecto.Changeset{}} = Scores.update_score(score, @invalid_attrs)
       assert score == Scores.get_score!(score.id)
     end
 
-    test "delete_score/1 deletes the score" do
-      score = score_fixture()
+    test "delete_score/1 deletes the score", %{score: score} do
       assert {:ok, %Score{}} = Scores.delete_score(score)
       assert_raise Ecto.NoResultsError, fn -> Scores.get_score!(score.id) end
     end
 
-    test "change_score/1 returns a score changeset" do
-      score = score_fixture()
+    test "change_score/1 returns a score changeset", %{score: score} do
       assert %Ecto.Changeset{} = Scores.change_score(score)
     end
   end

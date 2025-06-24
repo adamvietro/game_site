@@ -1,100 +1,186 @@
 defmodule GameSiteWeb.GuessingLive do
   use GameSiteWeb, :live_view
 
+  import GameSiteWeb.LoginHelpers
   alias GameSite.Scores
+  alias GameSiteWeb.HelperFunctions, as: Helper
 
   def render(assigns) do
     ~H"""
-    <p>Score: {@score}</p>
-    <p>Attempt: {@attempt}</p>
-    <%!-- <p>Answer: {@answer}</p> --%>
-    <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <.input
-        type="text"
-        field={@form[:guess]}
-        label="Guess"
-        value={@form[:guess].value}
-        key={@attempt}
-      />
-      <:actions>
-        <.button>Answer</.button>
-      </:actions>
-    </.simple_form>
+    <section class="bg-gray-50 rounded p-4 shadow space-y-4">
+      <h2 class="text-xl font-semibold">Guessing Game Overview</h2>
+      <ul class="list-disc list-inside text-left max-w-prose text-gray-700 space-y-1">
+        <li>The site picks a random number between 1 and 10.</li>
+        <li>You have 5 chances to guess the correct number.</li>
+        <li>Adjust your wager amount before each guess.</li>
+        <li>Correct guesses increase your score by the wager.</li>
+        <li>Incorrect guesses decrease your score by the wager.</li>
+        <li>If your score hits 0, your session resets but keeps your high score.</li>
+      </ul>
 
-    <body>
-      <div>
-        This is a simple Guessing Game. The site will pick a random number between 1 and 10 and
-        you will have 5 guesses to get the correct answer. At any point you can exit and save your high score,
-        you will not be able to come back to your streak. You also will lose out on your high score if you get
-        run out of guesses. <br />#TODO: <br />Fix the CSS
-        <br />Add in a param to keep track of a current session high score
-        <br />Add in a betting button to wager your score for more points
+      <div class="grid grid-cols-3 gap-4 text-center font-semibold text-gray-800">
+        <div>
+          <div class="text-sm text-gray-500">Highest Score</div>
+          <div>{@highest_score}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Current Score</div>
+          <div>{@score}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500">Attempt</div>
+          <div>{@attempt}</div>
+        </div>
       </div>
-    </body>
-    <.simple_form id="exit-form" for={@form} phx-submit="exit">
-      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={1} />
-      <.input type="hidden" field={@form[:score]} value={@score} />
-      <:actions>
-        <.button>Exit and Save Score</.button>
-      </:actions>
-    </.simple_form>
+    </section>
+
+    <div class="grid grid-cols-5 gap-x-3 gap-y-1 max-w-md mx-auto mt-4">
+      <%= for guess <- 1..10 do %>
+        <.simple_form for={@form} phx-submit="answer" class="text-center">
+          <.input type="hidden" field={@form[:guess]} value={guess} id={"guess_hidden_#{guess}"} />
+
+          <input type="hidden" name="wager" id={"wager_hidden_#{guess}"} />
+
+          <.button type="submit" class="w-full" phx-hook="CopyBonus">
+            {guess}
+          </.button>
+        </.simple_form>
+      <% end %>
+    </div>
+
+    <div class="max-w-xs mx-auto">
+      <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
+        Wager
+      </label>
+      <input
+        type="number"
+        id="wager_input"
+        name="wager_visible"
+        min="1"
+        value={@wager}
+        max={@score}
+        step="1"
+        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+      />
+    </div>
+    <br /> <br />
+
+    <div class="bg-gray-50 p-4 rounded shadow text-sm text-gray-700">
+      <p>
+        <%= if not logged_in?(@socket.assigns) do %>
+          If you want to submit your score please make an
+          <a
+            href="/users/register"
+            style="cursor: pointer; text-decoration: none; color: blue;"
+            onmouseover="this.style.textDecoration='underline'; this.style.color='red';"
+            onmouseout="this.style.textDecoration='none'; this.style.color='blue';"
+          >
+            account
+          </a>
+        <% end %>
+      </p>
+    </div>
+    <%= if logged_in?(@socket.assigns) do %>
+      <.simple_form id="exit-form" for={@form} phx-submit="exit" class="text-center">
+        <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
+        <.input type="hidden" field={@form[:game_id]} value={2} />
+        <.input type="hidden" field={@form[:score]} value={@highest_score} />
+        <:actions>
+          <.button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
+            Exit and Save Score
+          </.button>
+        </:actions>
+      </.simple_form>
+    <% end %>
     """
   end
 
   def mount(_params, _session, socket) do
-    answer = Enum.random(1..10)
+    socket =
+      socket
+      |> assign(answer: new_answer())
+      |> assign(score: 10)
+      |> assign(attempt: 1)
+      |> assign(highest_score: 0)
+      |> assign(wager: 1)
+      |> assign(form: to_form(%{}))
 
-    {:ok, assign(
-      socket,
-      answer: answer,
-      score: 0,
-      attempt: 1,
-      form: to_form(%{"guess" => ""}))}
+    {:ok, socket}
   end
 
   def handle_event("answer", params, socket) do
+    event_info =
+      set_event_info(socket, params)
+
     cond do
-      to_string(socket.assigns.answer) == params["guess"] ->
-        {:noreply,
-         assign(
-           socket
-           |> put_flash(:info, "Correct!"),
-           answer: Enum.random(1..10),
-           score: socket.assigns.score + 1,
-           attempt: 0,
-           form: to_form(%{"guess" => ""})
-         )}
+      event_info.correct ->
+        highest_score = Helper.highest_score(event_info)
 
-      socket.assigns.attempt < 5 ->
-        form_data = %{"guess" => ""}
-        new_form = to_form(form_data, errors: [guess: {"incorrect", []}])
+        socket =
+          socket
+          |> assign(answer: new_answer())
+          |> assign(score: event_info.current_score)
+          |> assign(attempt: 1)
+          |> assign(highest_score: highest_score)
+          |> assign(wager: event_info.wager)
+          |> assign(form: to_form(%{}))
+          |> put_flash(:info, "Correct!")
 
-        {:noreply,
-         assign(socket,
-           attempt: socket.assigns.attempt + 1,
-           form: new_form
-         )}
+        {:noreply, socket}
 
-      socket.assigns.attempt >= 5 ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Out of Guesses.")
-         |> assign(
-           attempt: 0,
-           score: 0,
-           answer: Enum.random(1..10),
-           form: to_form(%{"guess" => ""})
-         )}
+      event_info.attempt < 5 ->
+        socket =
+          socket
+          |> assign(attempt: event_info.attempt + 1)
+          |> assign(wager: event_info.wager)
+          |> assign(form: to_form(%{}))
+          |> put_flash(:error, "Incorrect.")
+
+        {:noreply, socket}
+
+      event_info.attempt >= 5 and event_info.current_score <= 0 ->
+        socket =
+          socket
+          |> assign(attempt: 1)
+          |> assign(score: 10)
+          |> assign(answer: new_answer())
+          |> assign(wager: 1)
+          |> assign(form: to_form(%{}))
+          |> put_flash(:error, "Out of Points, resetting.")
+
+        {:noreply, socket}
+
+      event_info.attempt >= 5 ->
+        socket =
+          socket
+          |> assign(attempt: 1)
+          |> assign(score: event_info.current_score)
+          |> assign(answer: new_answer())
+          |> assign(wager: min(event_info.wager, event_info.current_score))
+          |> assign(form: to_form(%{}))
+          |> put_flash(:error, "Out of Guesses.")
+
+        {:noreply, socket}
     end
   end
 
-  @doc """
-  These functions below are used to set the scores for a player. You will have to have unique scores
-  for each game and player.
-  """
   def handle_event("exit", params, socket) do
     save_score(socket, :new, params)
+  end
+
+  defp new_answer(), do: Enum.random(1..10)
+
+  defp set_event_info(socket, %{"wager" => wager, "guess" => guess}) do
+    parsed_wager =
+      Helper.add_subtract_wager(wager, guess, socket.assigns.answer)
+
+    %{
+      current_score: socket.assigns.score + parsed_wager,
+      highest_score: socket.assigns.highest_score,
+      wager: String.to_integer(wager),
+      attempt: socket.assigns.attempt,
+      correct: to_string(socket.assigns.answer) == guess
+    }
   end
 
   defp save_score(socket, :new, score_params) do
