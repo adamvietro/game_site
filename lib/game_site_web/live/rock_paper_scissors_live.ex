@@ -41,36 +41,40 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       </div>
     </section>
 
-    <div class="flex justify-center">
-      <div class="flex gap-6">
-        <%= for choice <- ["rock", "paper", "scissors"] do %>
-          <.simple_form for={@form} phx-submit="answer" class="text-center">
-            <.input type="hidden" field={@form[:player_choice]} value={choice} id={choice} />
-            <input type="hidden" name="wager" id={"wager_hidden_#{choice}"} />
+    <.simple_form for={@form} phx-submit="answer" class="text-center space-y-6 max-w-xs mx-auto">
+      <!-- Wager input -->
+      <div>
+        <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
+          Wager
+        </label>
+        <input
+          type="number"
+          id="wager_input"
+          name="wager"
+          min="1"
+          value={@wager}
+          max={@score}
+          step="1"
+          class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
 
-            <.button type="submit" class="w-24 bg-gray-200 hover:bg-gray-300 shadow rounded">
-              {String.capitalize(choice)}
-            </.button>
-          </.simple_form>
+    <!-- Hidden player_choice input -->
+      <input type="hidden" name="player_choice" id="player_choice" />
+
+    <!-- Choice buttons -->
+      <div class="flex justify-center gap-6">
+        <%= for choice <- ["rock", "paper", "scissors"] do %>
+          <button
+            type="submit"
+            class="w-24 bg-gray-200 hover:bg-gray-300 shadow rounded"
+            phx-click={JS.exec("document.getElementById('player_choice').value = '#{choice}'")}
+          >
+            {String.capitalize(choice)}
+          </button>
         <% end %>
       </div>
-    </div>
-
-    <div class="max-w-xs mx-auto">
-      <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
-        Wager
-      </label>
-      <input
-        type="number"
-        id="wager_input"
-        name="wager_visible"
-        min="1"
-        value={@wager}
-        max={@score}
-        step="1"
-        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-      />
-    </div>
+    </.simple_form>
 
     <div class="bg-gray-50 p-4 rounded shadow text-sm text-gray-700">
       <p>
