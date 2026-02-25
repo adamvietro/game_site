@@ -35,6 +35,8 @@ defmodule GameSiteWeb.Router do
     live "/3", RockPaperScissorsLive, :game
     live "/4", WordleLive, :game
     live "/5", PokerLive, :game
+    live "/pento/:puzzle", PentoLive
+    live "/pento_choice", PentoLive.Picker
   end
 
   scope "/", GameSiteWeb do

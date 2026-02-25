@@ -23,6 +23,30 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import KeyInput from "./hooks/KeyInput"
 
+window.addEventListener("phx:fireworks", () => {
+  console.log("🎆 Fireworks! 🎆")
+  confetti({
+    particleCount: 150,
+    spread: 80,
+    origin: { y: 0.6 },
+  })
+  // Fire a second burst for extra flair
+  setTimeout(() => {
+    confetti({
+      particleCount: 100,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+    })
+    confetti({
+      particleCount: 100,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+    })
+  }, 300)
+})
+
 let Hooks = {}
 
 Hooks.CopyBonus = {
