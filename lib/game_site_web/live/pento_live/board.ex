@@ -166,7 +166,7 @@ defmodule GameSiteWeb.PentoLive.Board do
   end
 
   def assign_shapes(%{assigns: %{board: board}} = socket) do
-    shapes = Game.to_shapes(board)
+    shapes = Game.to_shapes(board) |> IO.inspect(label: "shapes")
     assign(socket, shapes: shapes)
   end
 end

@@ -1,12 +1,33 @@
 {
     "cSpell.words": [
+        "describedby",
+        "enctype",
         "erlef",
         "flyctl",
+        "Heroicon",
+        "heroicons",
         "isready",
+        "labelledby",
+        "maxlength",
+        "minlength",
+        "novalidate",
+        "nowrap",
+        "nums",
+        "onmouseout",
+        "onmouseover",
         "Pento",
         "Pentomino",
         "pentominoes",
+        "Pentos",
+        "rgba",
+        "Segoe",
         "settup",
-        "superfly"
+        "sname",
+        "superfly",
+        "tabindex",
+        "Tahoma",
+        "topbar",
+        "Verdana",
+        "xlink"
     ]
 }

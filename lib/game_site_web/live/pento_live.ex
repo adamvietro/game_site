@@ -13,20 +13,18 @@ defmodule GameSiteWeb.PentoLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <GameSiteWeb.Layouts.app flash={@flash} current_scope={@current_scope}>
-      <section class="mx-auto max-w-4xl px-4 py-8">
-        <h1 class="font-heavy text-3xl mb-6">Welcome to Pento!</h1>
-        <GameInstructions.show />
-        <div class="flex justify-between items-center">
-          <.help /> <.give_up />
-        </div>
-        <%= if @complete do %>
-          <.complete_modal puzzle={@puzzle} />
-        <% end %>
-        <div id="game-container" phx-hook="Fireworks" />
-        <.live_component module={Board} puzzle={@puzzle} id="board-component" key={@complete} />
-      </section>
-    </GameSiteWeb.Layouts.app>
+    <section class="mx-auto max-w-4xl px-4 py-8">
+      <h1 class="font-heavy text-3xl mb-6">Welcome to Pento!</h1>
+      <GameInstructions.show />
+      <div class="flex justify-between items-center">
+        <.help /> <.give_up />
+      </div>
+      <%= if @complete do %>
+        <.complete_modal puzzle={@puzzle} />
+      <% end %>
+      <div id="game-container" phx-hook="Fireworks" />
+      <.live_component module={Board} puzzle={@puzzle} id="board-component" key={@complete} />
+    </section>
     """
   end
 
@@ -118,9 +116,9 @@ defmodule GameSiteWeb.PentoLive do
 
   def give_up(assigns) do
     ~H"""
-    <.button navigate={~p"/play"} data-confirm="Are you sure you want to give up?">
+    <.link navigate={~p"/pento_choice"} data-confirm="Are you sure you want to give up?">
       Give Up?
-    </.button>
+    </.link>
     """
   end
 end
