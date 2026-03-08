@@ -163,14 +163,11 @@ defmodule GameSiteWeb.PentoLive.Component do
   attr(:on_click, :string, required: false)
 
   def triangle(assigns) do
-    local_cx = 6.25
-    local_cy = 8.958
-
     ~H"""
     <use
       x={@x}
       y={@y}
-      transform={"rotate(#{@rotate} #{(@x + local_cx)} #{(@y + local_cy)})"}
+      transform={"rotate(#{@rotate} #{(@x + 6.25)} #{(@y + 8.958)})"}
       href="#triangle"
       fill={@fill}
       phx-click={@on_click}
