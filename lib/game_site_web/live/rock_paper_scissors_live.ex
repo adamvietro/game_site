@@ -58,10 +58,10 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
           class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
-
+      
     <!-- Hidden player_choice input -->
       <input type="hidden" name="player_choice" id="player_choice" />
-
+      
     <!-- Choice buttons -->
       <div class="flex justify-center gap-6">
         <%= for choice <- ["rock", "paper", "scissors"] do %>

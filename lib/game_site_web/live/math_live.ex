@@ -1,8 +1,9 @@
 defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
-  import GameSiteWeb.LoginHelpers
-  alias GameSite.Scores
+  alias GameSiteWeb.Live.Component
+  alias GameSite.Scores.ScoreHandler
+
   alias GameSiteWeb.HelperFunctions, as: Helper
 
   @helper_start %{
@@ -24,6 +25,7 @@ defmodule GameSiteWeb.MathLive do
         <li>If you're wrong, the wager is subtracted from your score.</li>
         <li>When your score reaches 0, the game resets—but your highest score is saved.</li>
         <li>The goal is to maintain a streak and beat your personal best!</li>
+        <%!-- <li>{@current_user}</li> --%>
       </ul>
 
       <div class="mt-4 flex justify-center gap-8 text-center font-semibold text-gray-800">
@@ -91,39 +93,12 @@ defmodule GameSiteWeb.MathLive do
       </div>
     </div>
 
-    <div class="bg-white shadow-md rounded p-4">
-      <p>
-        <%= if not logged_in?(@socket.assigns) do %>
-          <br /> <br />If you want to submit your score please make an
-          <a
-            href="/users/register"
-            style="cursor: pointer; text-decoration: none; color: blue;"
-            onmouseover="this.style.textDecoration='underline'; this.style.color='red';"
-            onmouseout="this.style.textDecoration='none'; this.style.color='blue';"
-          >
-            account
-          </a>
-        <% end %>
-      </p>
-    </div>
-    <%= if logged_in?(@socket.assigns) do %>
-      <.simple_form
-        id="exit-form"
-        for={@form}
-        phx-submit="exit"
-        class="bg-white shadow-md rounded p-4"
-      >
-        <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-        <.input type="hidden" field={@form[:game_id]} value={2} />
-        <.input type="hidden" field={@form[:score]} value={@highest_score} />
-        <:actions>
-          <.button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
-            Exit and Save Score
-          </.button>
-        </:actions>
-      </.simple_form>
-    <% end %>
-    <%!-- </div> --%>
+    <Component.score_submit
+      form={@form}
+      game_id={2}
+      score={@highest_score}
+      current_user={@current_user}
+    />
     """
   end
 
@@ -146,6 +121,8 @@ defmodule GameSiteWeb.MathLive do
 
       {:ok, socket}
     else
+      IO.inspect(socket.assigns.current_user, label: "CURRENT USER")
+
       {:ok,
        socket
        |> assign(:question, "Loading...")
@@ -204,7 +181,7 @@ defmodule GameSiteWeb.MathLive do
   end
 
   def handle_event("exit", params, socket) do
-    save_score(socket, :new, params)
+    ScoreHandler.save_score(socket, params)
   end
 
   defp new_variables() do
@@ -274,22 +251,22 @@ defmodule GameSiteWeb.MathLive do
 
   defp tens_ones(value), do: %{tens: div(value, 10) * 10, ones: rem(value, 10)}
 
-  defp save_score(socket, :new, score_params) do
-    case Scores.create_score(score_params) do
-      {:ok, score} ->
-        notify_parent({:new, score})
+  # defp save_score(socket, :new, score_params) do
+  #   case Scores.create_score(score_params) do
+  #     {:ok, score} ->
+  #       notify_parent({:new, score})
 
-        {:noreply,
-         socket |> put_flash(:info, "Score created successfully") |> push_navigate(to: "/scores")}
+  #       {:noreply,
+  #        socket |> put_flash(:info, "Score created successfully") |> push_navigate(to: "/scores")}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+  #     {:error, %Ecto.Changeset{} = changeset} ->
+  #       {:noreply, assign(socket, form: to_form(changeset))}
 
-      {:duplicate, :already_exists} ->
-        {:noreply,
-         socket |> put_flash(:info, "No new High Score") |> push_navigate(to: "/scores")}
-    end
-  end
+  #     {:duplicate, :already_exists} ->
+  #       {:noreply,
+  #        socket |> put_flash(:info, "No new High Score") |> push_navigate(to: "/scores")}
+  #   end
+  # end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

@@ -11,7 +11,7 @@ defmodule GameSiteWeb.PokerLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-4xl mx-auto p-4 space-y-8">
-
+      
     <!-- Game Info and Scores -->
       <section class="bg-gray-50 rounded p-4 shadow">
         <h2 class="text-xl font-semibold mb-2">Poker Game Overview</h2>
@@ -38,7 +38,7 @@ defmodule GameSiteWeb.PokerLive do
           </div>
         </div>
       </section>
-
+      
     <!-- Flash Messages -->
       <%= if msg = Phoenix.Flash.get(@flash, :info) do %>
         <div
@@ -49,7 +49,7 @@ defmodule GameSiteWeb.PokerLive do
           {msg}
         </div>
       <% end %>
-
+      
     <!-- Card Selection and Actions -->
       <section class="bg-white rounded p-4 shadow space-y-6">
         <.form for={@form} phx-submit="advance" class="space-y-6">
@@ -81,7 +81,7 @@ defmodule GameSiteWeb.PokerLive do
               </div>
             <% end %>
           </div>
-
+          
     <!-- Your buttons and wager inputs unchanged below -->
           <div>
             <%= cond do %>
@@ -212,7 +212,7 @@ defmodule GameSiteWeb.PokerLive do
           </section>
         <% end %>
       </section>
-
+      
     <!-- Rules Section -->
       <section class="bg-white rounded p-4 shadow max-w-md mx-auto">
         <h3 class="text-lg font-semibold mb-2">Rules</h3>
@@ -234,7 +234,7 @@ defmodule GameSiteWeb.PokerLive do
           #TODO: Fix CSS styling for a better experience.
         </p>
       </section>
-
+      
     <!-- Exit and Save Form -->
       <%= if not logged_in?(@socket.assigns) do %>
         <br /> <br />If you want to submit your score please make an

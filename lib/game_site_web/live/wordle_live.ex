@@ -79,7 +79,7 @@ defmodule GameSiteWeb.WordleLive do
   def render(assigns) do
     ~H"""
     <section class="bg-gray-50 rounded p-6 shadow mx-auto space-y-6">
-    <h2 class="text-xl font-semibold">Wordle Game Overview</h2>
+      <h2 class="text-xl font-semibold">Wordle Game Overview</h2>
       <div class="max-w-prose text-gray-800 space-y-4">
         <p>
           Wordle game. For this game you will be asked to find a 5 letter word. Once you have submitted a 5 letter word, you will be given feedback on how close you are to the word.

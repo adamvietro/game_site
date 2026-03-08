@@ -217,7 +217,6 @@ defmodule GameSiteWeb.PokerHelpersTest do
 
       [_hand, cards_to_remove] = select_n_cards(socket.assigns.hand, 3)
 
-
       {:noreply, socket} =
         GameSiteWeb.PokerLive.handle_event(
           "redraw",
