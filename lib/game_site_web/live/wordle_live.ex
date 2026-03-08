@@ -1,7 +1,7 @@
 defmodule GameSiteWeb.WordleLive do
   use GameSiteWeb, :live_view
 
-  import GameSiteWeb.LoginHelpers
+  alias GameSiteWeb.Live.Component
   alias GameSite.Scores
   alias GameSiteWeb.Words
 
@@ -208,31 +208,12 @@ defmodule GameSiteWeb.WordleLive do
       </div>
     </div>
 
-    <body>
-      <div>
-        <%= if not logged_in?(@socket.assigns) do %>
-          <br /> <br />If you want to submit your score please make an
-          <a
-            href="/users/register"
-            style="cursor: pointer; text-decoration: none; color: blue;"
-            onmouseover="this.style.textDecoration='underline'; this.style.color='red';"
-            onmouseout="this.style.textDecoration='none'; this.style.color='blue';"
-          >
-            account
-          </a>
-        <% end %>
-      </div>
-    </body>
-    <%= if logged_in?(@socket.assigns) do %>
-      <.simple_form id="exit-form" for={@form} phx-submit="exit">
-        <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-        <.input type="hidden" field={@form[:game_id]} value={4} />
-        <.input type="hidden" field={@form[:score]} value={@highest_score} />
-        <:actions>
-          <.button>Exit and Save Score</.button>
-        </:actions>
-      </.simple_form>
-    <% end %>
+    <Component.score_submit
+      form={@form}
+      game_id={4}
+      score={@highest_score}
+      current_user={@current_user}
+    />
     """
   end
 

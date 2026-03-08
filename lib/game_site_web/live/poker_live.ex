@@ -1,7 +1,7 @@
 defmodule GameSiteWeb.PokerLive do
   use GameSiteWeb, :live_view
 
-  import GameSiteWeb.LoginHelpers
+  alias GameSiteWeb.Live.Component
   alias GameSiteWeb.PokerForm
   alias GameSite.Scores
   alias GameSiteWeb.PokerHelpers, as: Helper
@@ -234,9 +234,16 @@ defmodule GameSiteWeb.PokerLive do
           #TODO: Fix CSS styling for a better experience.
         </p>
       </section>
+
+      <Component.score_submit
+        form={@form}
+        game_id={5}
+        score={@highest_score}
+        current_user={@current_user}
+      />
       
     <!-- Exit and Save Form -->
-      <%= if not logged_in?(@socket.assigns) do %>
+      <%!-- <%= if not logged_in?(@socket.assigns) do %>
         <br /> <br />If you want to submit your score please make an
         <a
           href="/users/register"
@@ -267,7 +274,7 @@ defmodule GameSiteWeb.PokerLive do
             </:actions>
           </.simple_form>
         </section>
-      <% end %>
+      <% end %> --%>
 
       <style>
         input[type=number]::-webkit-inner-spin-button,
