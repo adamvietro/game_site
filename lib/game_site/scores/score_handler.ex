@@ -6,7 +6,9 @@ defmodule GameSite.Scores.ScoreHandler do
 
   def save_score(socket, score_params) do
     case Scores.create_score(score_params) do
-      {:ok, _score} ->
+      {:ok, score} ->
+        notify_parent({:new, score})
+
         {:noreply,
          socket
          |> put_flash(:info, "Score created successfully")
@@ -22,4 +24,6 @@ defmodule GameSite.Scores.ScoreHandler do
          |> push_navigate(to: "/scores")}
     end
   end
+
+  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

@@ -1,10 +1,11 @@
 defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
-  alias GameSiteWeb.Live.Component
-  alias GameSite.Scores.ScoreHandler
-
+  alias GameSiteWeb.Live.MathLive.Component, as: MathComponent
+  alias GameSiteWeb.Live.Component, as: Component
   alias GameSiteWeb.HelperFunctions, as: Helper
+  alias GameSiteWeb.Live.MathLive.Question
+  alias GameSite.Scores.ScoreHandler
 
   @helper_start %{
     first: "Loading...",
@@ -15,36 +16,9 @@ defmodule GameSiteWeb.MathLive do
 
   def render(assigns) do
     ~H"""
-    <%!-- <div class="max-w-xl mx-auto space-y-6 p-4 text-gray-800"> --%>
-    <section class="bg-gray-50 rounded p-4 shadow">
-      <h2 class="text-xl font-semibold mb-2">Math Game Overview</h2>
-      <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
-        <li>Each round presents a basic math equation using numbers from 1 to 100.</li>
-        <li>Before answering, you choose how many points to wager.</li>
-        <li>If your answer is correct, you gain the wagered points.</li>
-        <li>If you're wrong, the wager is subtracted from your score.</li>
-        <li>When your score reaches 0, the game resets—but your highest score is saved.</li>
-        <li>The goal is to maintain a streak and beat your personal best!</li>
-        <%!-- <li>{@current_user}</li> --%>
-      </ul>
-
-      <div class="mt-4 flex justify-center gap-8 text-center font-semibold text-gray-800">
-        <div>
-          <div class="text-sm text-gray-500">Highest Score</div>
-          <div>{@highest_score}</div>
-        </div>
-        <div>
-          <div class="text-sm text-gray-500">Current Score</div>
-          <div>{@score}</div>
-        </div>
-      </div>
-    </section>
-    <section class="bg-gray-50 rounded p-4 shadow text-center">
-      <div>
-        <div class="text-sm text-gray-500">Question</div>
-        <div>{@question}</div>
-      </div>
-    </section>
+    <MathComponent.instructions />
+    <Component.score_board highest_score={@highest_score} current_score={@score} />
+    <MathComponent.question question={@question} />
 
     <.simple_form
       id="answer-form"
@@ -72,26 +46,7 @@ defmodule GameSiteWeb.MathLive do
       </:actions>
     </.simple_form>
 
-    <div class="bg-white shadow-md rounded p-4 space-y-4 border border-gray-300 h-64">
-      <p>
-        Toggle the helper function if you want a hint or want to hide it:
-      </p>
-      <label class="flex items-center space-x-2 cursor-pointer" phx-click="toggle">
-        <input type="checkbox" class="sr-only" checked={@toggle} readonly />
-        <div class="w-10 h-5 bg-gray-300 rounded-full relative">
-          <div class={"w-5 h-5 bg-white rounded-full shadow absolute top-0 transition-transform #{if @toggle, do: "translate-x-5", else: "translate-x-0"}"}>
-          </div>
-        </div>
-        <span>Show Helper</span>
-      </label>
-
-      <div class={if @toggle, do: "", else: "invisible"}>
-        <p>{@helper.first}</p>
-        <p>{@helper.second}</p>
-        <p>{@helper.third}</p>
-        <p>{@helper.fourth}</p>
-      </div>
-    </div>
+    <MathComponent.helper_board helper={@helper} toggle={@toggle} />
 
     <Component.score_submit
       form={@form}
@@ -104,7 +59,7 @@ defmodule GameSiteWeb.MathLive do
 
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      question = new_question()
+      question = Question.get_new_question()
 
       socket =
         socket
@@ -115,14 +70,12 @@ defmodule GameSiteWeb.MathLive do
         |> assign(:highest_score, 0)
         |> assign(:wager, 1)
         |> assign(:form, to_form(%{"guess" => "", "wager" => 1}))
-        |> assign(:helper, get_helper(question.variables))
+        |> assign(:helper, Question.get_helper(question.variables))
         |> assign(:toggle, true)
         |> push_event("focus-guess", %{})
 
       {:ok, socket}
     else
-      IO.inspect(socket.assigns.current_user, label: "CURRENT USER")
-
       {:ok,
        socket
        |> assign(:question, "Loading...")
@@ -151,7 +104,7 @@ defmodule GameSiteWeb.MathLive do
         do: socket.assigns.score + wager,
         else: socket.assigns.score - wager
 
-    question = new_question()
+    question = Question.get_new_question()
 
     flash_type = if correct, do: :info, else: :error
     flash_message = if correct, do: "Correct!", else: "Incorrect"
@@ -165,7 +118,7 @@ defmodule GameSiteWeb.MathLive do
       |> assign(:question, question.question)
       |> assign(:answer, question.answer)
       |> assign(:variables, question.variables)
-      |> assign(:helper, get_helper(question.variables))
+      |> assign(:helper, Question.get_helper(question.variables))
       |> assign(:wager, min(wager, new_score))
       |> assign(:form, to_form(%{"guess" => "", "wager" => wager}))
       |> push_event("focus-guess", %{})
@@ -183,90 +136,4 @@ defmodule GameSiteWeb.MathLive do
   def handle_event("exit", params, socket) do
     ScoreHandler.save_score(socket, params)
   end
-
-  defp new_variables() do
-    %{
-      first: Enum.random(1..100),
-      second: Enum.random(1..100),
-      notation: Enum.random(["+", "-", "*"])
-    }
-  end
-
-  defp get_answer(question) do
-    {answer, _} = Code.eval_string(question)
-    answer
-  end
-
-  defp get_question(%{first: first, second: second, notation: notation}) do
-    "#{first} #{notation} #{second}"
-  end
-
-  defp new_question() do
-    variables = new_variables()
-    question = get_question(variables)
-    answer = get_answer(question) |> to_string()
-    %{variables: variables, question: question, answer: answer}
-  end
-
-  defp get_helper(variables) do
-    first = tens_ones(variables.first)
-    second = tens_ones(variables.second)
-    notation = variables.notation
-
-    case notation do
-      "*" ->
-        %{
-          first: "#{first.tens} * #{second.tens} =",
-          second: "#{first.tens} * #{second.ones} =",
-          third: "#{second.tens} * #{first.ones} =",
-          fourth: "#{second.ones} * #{first.ones} ="
-        }
-
-      "+" ->
-        %{
-          first: "#{first.tens} + #{second.tens} =",
-          second: "#{first.ones} + #{second.ones} =",
-          third: " ",
-          fourth: " "
-        }
-
-      "-" ->
-        if variables.first > variables.second do
-          %{
-            first: "#{first.tens} - #{second.tens} =",
-            second: "#{first.ones} - #{second.ones} =",
-            third: "If second ones > first ones, borrow from tens.",
-            fourth: " "
-          }
-        else
-          %{
-            first: "#{second.tens} - #{first.tens} =",
-            second: "#{second.ones} - #{first.ones} =",
-            third: "If second ones > first ones, borrow from tens.",
-            fourth: "Don't forget the sign."
-          }
-        end
-    end
-  end
-
-  defp tens_ones(value), do: %{tens: div(value, 10) * 10, ones: rem(value, 10)}
-
-  # defp save_score(socket, :new, score_params) do
-  #   case Scores.create_score(score_params) do
-  #     {:ok, score} ->
-  #       notify_parent({:new, score})
-
-  #       {:noreply,
-  #        socket |> put_flash(:info, "Score created successfully") |> push_navigate(to: "/scores")}
-
-  #     {:error, %Ecto.Changeset{} = changeset} ->
-  #       {:noreply, assign(socket, form: to_form(changeset))}
-
-  #     {:duplicate, :already_exists} ->
-  #       {:noreply,
-  #        socket |> put_flash(:info, "No new High Score") |> push_navigate(to: "/scores")}
-  #   end
-  # end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

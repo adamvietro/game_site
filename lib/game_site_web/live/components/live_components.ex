@@ -42,4 +42,22 @@ defmodule GameSiteWeb.Live.Component do
     </div>
     """
   end
+
+  attr(:highest_score, :integer, required: true)
+  attr(:current_score, :integer, required: true)
+
+  def score_board(assigns) do
+    ~H"""
+    <div class="mt-4 flex justify-center gap-8 text-center font-semibold text-gray-800">
+      <div>
+        <div class="text-sm text-gray-500">Highest Score</div>
+        <div>{@highest_score}</div>
+      </div>
+      <div>
+        <div class="text-sm text-gray-500">Current Score</div>
+        <div>{@current_score}</div>
+      </div>
+    </div>
+    """
+  end
 end
