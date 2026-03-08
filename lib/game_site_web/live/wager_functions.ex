@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.HelperFunctions do
+defmodule GameSiteWeb.WagerFunctions do
   @moduledoc """
     These are a set of helper functions for the entire site that will be used for more than
     one set of games.

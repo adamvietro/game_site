@@ -3,7 +3,7 @@ defmodule GameSiteWeb.MathLive do
 
   alias GameSiteWeb.Live.MathLive.Component, as: MathComponent
   alias GameSiteWeb.Live.Component, as: Component
-  alias GameSiteWeb.HelperFunctions, as: Helper
+  alias GameSiteWeb.WagerFunctions, as: Helper
   alias GameSiteWeb.Live.MathLive.Question
   alias GameSite.Scores.ScoreHandler
 
