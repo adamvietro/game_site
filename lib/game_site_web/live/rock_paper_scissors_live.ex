@@ -11,7 +11,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     ~H"""
     <section class="bg-gray-50 rounded p-4 shadow space-y-4">
       <RPSComponent.instructions />
-      <Component.score_board highest_score={@highest_score} current_score={@score} outcome={@outcome} />
+      <Component.score_board highest_score={@highest_score} current_score={@score} outcome={@message} />
     </section>
 
     <section>
@@ -41,7 +41,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       |> assign(highest_score: 0)
       |> assign(wager: 1)
       |> assign(form: to_form(%{"wager" => 1}))
-      |> assign(outcome: "")
+      |> assign(message: "")
 
     {:ok, socket}
   end
@@ -53,7 +53,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
 
   @impl true
   def handle_event("answer", params, socket) do
-    GameLogic.set_game_board_info(socket, params)
+    GameLogic.determine_round(socket, params)
   end
 
   @impl true

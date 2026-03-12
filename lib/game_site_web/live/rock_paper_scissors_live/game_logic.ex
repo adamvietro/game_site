@@ -1,7 +1,18 @@
 defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
   use GameSiteWeb, :live_view
 
-  defstruct [:player, :computer, :current_score, :wager, :highest_score, :form, :score, :outcome]
+  defstruct [
+    :player,
+    :computer,
+    :current_score,
+    :wager,
+    :highest_score,
+    :form,
+    :score,
+    :outcome,
+    :message,
+    :flash_message
+  ]
 
   def set_computer_choice() do
     computer_choice()
@@ -94,6 +105,10 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
     end
   end
 
+  def determine_wager(%__MODULE__{wager: wager, score: score}) do
+    min(wager, score)
+  end
+
   defp outcome_multiplier(outcome) do
     case outcome do
       :win -> 1
@@ -102,10 +117,29 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
     end
   end
 
-  defp determine_round(%__MODULE__{} = game_state) do
+  defp determine_result(%__MODULE__{outcome: outcome, score: score} = game_state) do
+    cond do
+      outcome == :lose and score <= 0 ->
+        :reset
+
+      outcome == :win ->
+        :win
+
+      outcome == :lose ->
+        :lose
+
+      outcome == :tie ->
+        :tie
+    end
+  end
+
+  defp determine_round(%__MODULE__{} = game_state, socket) do
     game_state
     |> determine_outcome()
     |> determine_score()
+    |> determine_highest_score()
+    |> reset_game()
+    |> assign_game_state(socket)
   end
 
   defp determine_outcome(%__MODULE__{player: player, computer: computer} = game_state) do
@@ -127,5 +161,45 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
          %__MODULE__{score: score, highest_score: highest_score} = game_state
        ) do
     %__MODULE__{game_state | highest_score: max(score, highest_score)}
+  end
+
+  defp reset_game(%__MODULE__{} = game_state) do
+    computer = computer_choice()
+
+    case determine_result(game_state) do
+      :reset ->
+        %__MODULE__{
+          game_state
+          | score: 10,
+            outcome: nil,
+            message: "",
+            flash_message: "Score at 0, resetting.",
+            computer: computer
+        }
+
+      :win ->
+        %__MODULE__{game_state | outcome: nil, message: "You Win!!", computer: computer}
+
+      :lose ->
+        %__MODULE__{game_state | outcome: nil, message: "You Lose!!", computer: computer}
+
+      :tie ->
+        %__MODULE__{game_state | outcome: nil, message: "You Tie!!", computer: computer}
+    end
+  end
+
+  defp assign_game_state(%__MODULE__{} = game_state, socket) do
+    socket =
+      socket
+      |> put_flash(:error, game_state.flash_message)
+      |> assign(computer: game_state.computer)
+      |> assign(score: game_state.score)
+      |> assign(wager: game_state.wager)
+      |> assign(highest_score: game_state.highest_score)
+      |> assign(form: to_form(%{"wager" => game_state.wager}))
+      |> assign(outcome: nil)
+      |> assign(message: game_state.message)
+
+    {:noreply, socket}
   end
 end
