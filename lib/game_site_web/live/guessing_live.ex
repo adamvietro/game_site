@@ -6,6 +6,7 @@ defmodule GameSiteWeb.GuessingLive do
   alias GameSiteWeb.Live.GuessingLive.Question
   alias GameSite.Scores.ScoreHandler
 
+  @impl true
   def render(assigns) do
     ~H"""
     <GuessingComponent.instructions />
@@ -24,6 +25,7 @@ defmodule GameSiteWeb.GuessingLive do
     """
   end
 
+  @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
@@ -37,14 +39,17 @@ defmodule GameSiteWeb.GuessingLive do
     {:ok, socket}
   end
 
+  @impl true
   def handle_event("answer", params, socket) do
     Question.handle_answer(params, socket)
   end
 
+  @impl true
   def handle_event("exit", params, socket) do
     ScoreHandler.save_score(socket, params)
   end
 
+  @impl true
   def handle_event("set_max_wager", _params, socket) do
     {:noreply, assign(socket, :wager, socket.assigns.score)}
   end

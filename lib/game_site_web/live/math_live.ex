@@ -14,6 +14,7 @@ defmodule GameSiteWeb.MathLive do
     fourth: "Loading..."
   }
 
+  @impl true
   def render(assigns) do
     ~H"""
     <MathComponent.instructions />
@@ -57,6 +58,7 @@ defmodule GameSiteWeb.MathLive do
     """
   end
 
+  @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
       question = Question.get_new_question()
@@ -91,10 +93,12 @@ defmodule GameSiteWeb.MathLive do
     end
   end
 
+  @impl true
   def handle_event("toggle", _params, socket) do
     {:noreply, assign(socket, toggle: !socket.assigns.toggle)}
   end
 
+  @impl true
   def handle_event("answer", %{"guess" => guess, "wager" => wager}, socket) do
     correct = Helper.correct?(guess, socket.assigns.answer)
     wager = Helper.wager_parse(wager)

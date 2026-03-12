@@ -23,42 +23,9 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.Component do
   attr(:form, :map, required: true)
   attr(:wager, :integer, required: true)
   attr(:score, :integer, required: true)
-  attr(:parent_id, :string, required: true)
 
   def input_buttons(assigns) do
     ~H"""
-    <%!-- <.simple_form for={@form} phx-submit="answer" class="text-center space-y-6 max-w-xs mx-auto">
-      <div>
-        <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
-          Wager
-        </label>
-        <input
-          type="number"
-          id="wager_input"
-          name="wager"
-          min="1"
-          value={@wager}
-          max={@score}
-          phx-target={@parent_id}
-          step="1"
-          class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
-        />
-      </div>
-
-      <input type="hidden" name="player_choice" id="player_choice" />
-
-      <div class="flex justify-center gap-6">
-        <%= for choice <- ["rock", "paper", "scissors"] do %>
-          <button
-            type="submit"
-            class="w-24 bg-gray-200 hover:bg-gray-300 shadow rounded"
-            phx-click={JS.exec("document.getElementById('player_choice').value = '#{choice}'")}
-          >
-            {String.capitalize(choice)}
-          </button>
-        <% end %>
-      </div>
-    </.simple_form> --%>
     <div class="grid grid-cols-3 gap-x-3 gap-y-1 max-w-md mx-auto mt-4">
       <%= for guess <- ["rock", "paper", "scissors"] do %>
         <.simple_form for={@form} phx-submit="answer" class="text-center">
