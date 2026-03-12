@@ -24,6 +24,7 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.Component do
   attr(:wager, :integer, required: true)
   attr(:score, :integer, required: true)
 
+  @spec input_buttons(map()) :: Phoenix.LiveView.Rendered.t()
   def input_buttons(assigns) do
     ~H"""
     <div class="grid grid-cols-3 gap-x-3 gap-y-1 max-w-md mx-auto mt-4">

@@ -1,7 +1,9 @@
 defmodule GameSiteWeb.WordleLive do
   use GameSiteWeb, :live_view
 
+  alias GameSiteWeb.Live.WordleLive.Component, as: WordleComponent
   alias GameSiteWeb.Live.Component
+  alias GameSite.Scores.ScoreHandler
   alias GameSite.Scores
   alias GameSiteWeb.Words
 
@@ -76,58 +78,23 @@ defmodule GameSiteWeb.WordleLive do
     m: "bg-gray-100"
   }
 
+  @impl true
   def render(assigns) do
     ~H"""
     <section class="bg-gray-50 rounded p-6 shadow mx-auto space-y-6">
-      <h2 class="text-xl font-semibold">Wordle Game Overview</h2>
-      <div class="max-w-prose text-gray-800 space-y-4">
-        <p>
-          Wordle game. For this game you will be asked to find a 5 letter word. Once you have submitted a 5 letter word, you will be given feedback on how close you are to the word.
-        </p>
-        <ul class="list-disc list-inside space-y-1 text-left">
-          <li>
-            <strong class="text-green-600">Green box:</strong> Right letter in the right position
-          </li>
-          <li>
-            <strong class="text-yellow-500">Yellow box:</strong> Letter in the word but wrong position
-          </li>
-          <li><strong class="text-gray-500">Grey box:</strong> Letter not in the word</li>
-          <li>The faster you guess (fewer attempts), the higher your score</li>
-          <li>You can use the on-screen keyboard or your own keyboard to enter a word</li>
-        </ul>
-      </div>
-
-      <div class="bg-white rounded p-4 shadow grid grid-cols-2 gap-6 text-center font-semibold text-gray-800">
-        <div>
-          <div class="text-sm text-gray-500">Highest Score</div>
-          <div>{@highest_score}</div>
-        </div>
-        <div>
-          <div class="text-sm text-gray-500">Highest Streak</div>
-          <div>{@highest_streak}</div>
-        </div>
-        <div>
-          <div class="text-sm text-gray-500">Current Score</div>
-          <div>{@score}</div>
-        </div>
-        <div>
-          <div class="text-sm text-gray-500">Current Streak</div>
-          <div>{@streak}</div>
-        </div>
-        <%= if @reset do %>
-          <div class="col-span-2 mt-4">
-            <div class="text-sm text-gray-500">Word</div>
-            <div class="uppercase tracking-wider font-medium">{@word}</div>
-          </div>
-        <% end %>
-      </div>
+      <WordleComponent.instructions />
+      <WordleComponent.score_board
+        highest_score={@highest_score}
+        highest_streak={@highest_streak}
+        current_score={@score}
+        current_streak={@streak}
+        reset={@reset}
+      />
     </section>
     <br />
 
-    <% round_order = [:first, :second, :third, :fourth, :fifth, :sixth] %>
-
     <% labels =
-      for round <- round_order,
+      for round <- [:first, :second, :third, :fourth, :fifth, :sixth],
           letter <- 1..5 do
         Map.get(@entry[round], :"l#{letter}")
       end %>
@@ -217,27 +184,41 @@ defmodule GameSiteWeb.WordleLive do
     """
   end
 
+  @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(score: 0)
-      |> assign(streak: 0)
-      |> assign(highest_score: 0)
-      |> assign(highest_streak: 0)
-      |> assign(round: 0)
-      |> assign(reset: false)
-      |> assign(guess_string: "")
-      |> assign(form: to_form(%{"guess" => ""}))
-      |> assign(word: word = Words.get_word())
-      |> assign(entry: @starting_entries)
-      |> assign(state: @starting_state)
-      |> assign(keyboard: @starting_keyboard)
-
-    IO.inspect(word, label: "Starting Word")
+      |> default_assigns()
+      |> maybe_connected()
 
     {:ok, socket}
   end
 
+  defp default_assigns(socket) do
+    socket
+    |> assign(score: 0)
+    |> assign(streak: 0)
+    |> assign(highest_score: 0)
+    |> assign(highest_streak: 0)
+    |> assign(round: 0)
+    |> assign(reset: false)
+    |> assign(guess_string: "")
+    |> assign(form: to_form(%{"guess" => ""}))
+    |> assign(entry: @starting_entries)
+    |> assign(state: @starting_state)
+    |> assign(keyboard: @starting_keyboard)
+  end
+
+  defp maybe_connected(socket) do
+    if connected?(socket) do
+      socket
+      |> assign(word: Words.get_word())
+    else
+      socket
+    end
+  end
+
+  @impl true
   def handle_event("delete_letter", _, socket) do
     if socket.assigns.guess_string == "" do
       {:noreply, socket}
@@ -247,6 +228,7 @@ defmodule GameSiteWeb.WordleLive do
     end
   end
 
+  @impl true
   def handle_event("add_letter", %{"letter" => letter}, socket) do
     current = socket.assigns.guess_string || ""
 
@@ -258,6 +240,7 @@ defmodule GameSiteWeb.WordleLive do
     end
   end
 
+  @impl true
   def handle_event("guess", %{"guess" => guess} = _params, socket) do
     IO.inspect(%{answer: socket.assigns.word, guess: guess}, label: "Guess Event")
 
@@ -345,11 +328,13 @@ defmodule GameSiteWeb.WordleLive do
     end
   end
 
+  @impl true
   def handle_event("guess", _, socket) do
     # maybe log and ignore bad submissions, or show error
     {:noreply, put_flash(socket, :error, "Invalid guess submission")}
   end
 
+  @impl true
   def handle_event("reset", _params, socket) do
     socket =
       socket
@@ -366,8 +351,9 @@ defmodule GameSiteWeb.WordleLive do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("exit", params, socket) do
-    save_score(socket, :new, params)
+    ScoreHandler.save_score(socket, params)
   end
 
   defp letter_count(word) do
@@ -456,27 +442,4 @@ defmodule GameSiteWeb.WordleLive do
       Map.replace(acc, String.to_atom(letter), color)
     end)
   end
-
-  defp save_score(socket, :new, score_params) do
-    case Scores.create_score(score_params) do
-      {:ok, score} ->
-        notify_parent({:new, score})
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Score created successfully")
-         |> push_navigate(to: "/scores")}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
-
-      {:duplicate, :already_exists} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "No new High Score")
-         |> push_navigate(to: "/scores")}
-    end
-  end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end
