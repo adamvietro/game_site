@@ -15,7 +15,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     </section>
 
     <section>
-      <RPSComponent.input_buttons form={@form} wager={@wager} score={@score} parent_id={@socket.id} />
+      <RPSComponent.input_buttons form={@form} wager={@wager} score={@score} />
       <RPSComponent.wager wager={@wager} score={@score} />
     </section>
     <Component.score_submit
