@@ -65,7 +65,7 @@ defmodule GameSiteWeb.Live.WordleLive.Component do
   def user_input(assigns) do
     ~H"""
     <%= if @reset == true do %>
-      <div class="reset-input">
+      <div class="reset-input border-gray-300 rounded bg-gray-100 p-4 text-center">
         <.simple_form id="input-form" for={@form} phx-submit="reset">
           <:actions>
             <.button class="px-6 py-2 text-lg">Reset</.button>

@@ -2,6 +2,7 @@ defmodule GameSiteWeb.WordleLive do
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.Live.WordleLive.Component, as: WordleComponent
+  alias GameSiteWeb.Live.WordleLive.GameBoard
   alias GameSiteWeb.Live.Component
   alias GameSite.Scores.ScoreHandler
   alias GameSiteWeb.Words
@@ -90,25 +91,10 @@ defmodule GameSiteWeb.WordleLive do
         reset={@reset}
       />
     </section>
-
-    <% labels =
-      for round <- [:first, :second, :third, :fourth, :fifth, :sixth],
-          letter <- 1..5 do
-        Map.get(@entry[round], :"l#{letter}")
-      end %>
-
-    <div class="grid grid-cols-5 gap-2 sm:gap-4">
-      <%= for {label, index} <- Enum.with_index(labels) do %>
-        <div class={"p-4 text-center rounded " <> Map.get(@state, index)}>
-          {label}
-        </div>
-      <% end %>
-    </div>
+    <GameBoard.game_board board_state={@board_state} entry={@entry} />
 
     <WordleComponent.user_input form={@form} reset={@reset} guess_string={@guess_string} />
-    <br />
     <WordleComponent.keyboard keyboard={@keyboard} />
-    <br />
 
     <Component.score_submit
       form={@form}
@@ -140,17 +126,8 @@ defmodule GameSiteWeb.WordleLive do
     |> assign(guess_string: "")
     |> assign(form: to_form(%{"guess" => ""}))
     |> assign(entry: @starting_entries)
-    |> assign(state: @starting_state)
+    |> assign(board_state: @starting_state)
     |> assign(keyboard: @starting_keyboard)
-  end
-
-  defp maybe_connected(socket) do
-    if connected?(socket) do
-      socket
-      |> assign(word: Words.get_word())
-    else
-      socket
-    end
   end
 
   @impl true
@@ -188,7 +165,7 @@ defmodule GameSiteWeb.WordleLive do
       # |> IO.inspect(label: "Letters Colors")
 
       state =
-        set_colors(letters_colors, socket.assigns.round, socket.assigns.state)
+        set_colors(letters_colors, socket.assigns.round, socket.assigns.board_state)
 
       # |> IO.inspect(label: "State")
 
@@ -220,7 +197,7 @@ defmodule GameSiteWeb.WordleLive do
             |> assign(guess_string: "")
             |> assign(form: to_form(%{"guess" => ""}))
             |> assign(entry: entires)
-            |> assign(state: state)
+            |> assign(board_state: state)
             |> assign(keyboard: keyboard)
 
           {:noreply, socket}
@@ -233,7 +210,7 @@ defmodule GameSiteWeb.WordleLive do
             |> assign(guess_string: "")
             |> assign(form: to_form(%{"guess" => ""}))
             |> assign(entry: entires)
-            |> assign(state: state)
+            |> assign(board_state: state)
             |> assign(keyboard: keyboard)
 
           {:noreply, socket}
@@ -248,7 +225,7 @@ defmodule GameSiteWeb.WordleLive do
             |> assign(guess_string: "")
             |> assign(form: to_form(%{"guess" => ""}))
             |> assign(entry: entires)
-            |> assign(state: state)
+            |> assign(board_state: state)
             |> assign(keyboard: keyboard)
 
           {:noreply, socket}
@@ -273,7 +250,7 @@ defmodule GameSiteWeb.WordleLive do
   def handle_event("reset", _params, socket) do
     socket =
       socket
-      |> assign(state: @starting_state)
+      |> assign(board_state: @starting_state)
       |> assign(round: 0)
       |> assign(reset: false)
       |> assign(guess_string: "")
@@ -376,5 +353,14 @@ defmodule GameSiteWeb.WordleLive do
     Enum.reduce(letters_colors, keyboard, fn [letter, color], acc ->
       Map.replace(acc, String.to_atom(letter), color)
     end)
+  end
+
+  defp maybe_connected(socket) do
+    if connected?(socket) do
+      socket
+      |> assign(word: Words.get_word())
+    else
+      socket
+    end
   end
 end
