@@ -4,7 +4,6 @@ defmodule GameSiteWeb.WordleLive do
   alias GameSiteWeb.Live.WordleLive.Component, as: WordleComponent
   alias GameSiteWeb.Live.Component
   alias GameSite.Scores.ScoreHandler
-  alias GameSite.Scores
   alias GameSiteWeb.Words
 
   @starting_state %{
@@ -91,7 +90,6 @@ defmodule GameSiteWeb.WordleLive do
         reset={@reset}
       />
     </section>
-    <br />
 
     <% labels =
       for round <- [:first, :second, :third, :fourth, :fifth, :sixth],
@@ -106,74 +104,11 @@ defmodule GameSiteWeb.WordleLive do
         </div>
       <% end %>
     </div>
-    <%= if @reset == true do %>
-      <div class="reset-input">
-        <.simple_form id="input-form" for={@form} phx-submit="reset">
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Reset</.button>
-          </:actions>
-        </.simple_form>
-      </div>
-    <% end %>
-    <%= if @reset == false do %>
-      <div class="user-input">
-        <.simple_form id="input-form" for={@form} phx-submit="guess">
-          <.input type="text" field={@form[:guess]} value={@guess_string} label="Guess" />
 
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Submit</.button>
-          </:actions>
-        </.simple_form>
-      </div>
-    <% end %>
-
-    <div><br /></div>
-
-    <div class="space-y-1 sm:space-y-2 text-sm" phx-hook="KeyInput" id="keyboard">
-      <div class="grid grid-cols-10 gap-1 sm:gap-2">
-        <%= for key <- [:q, :w, :e, :r, :t, :y, :u, :i, :o, :p] do %>
-          <div
-            phx-click="add_letter"
-            phx-value-letter={Atom.to_string(key)}
-            class={"cursor-pointer w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}
-          >
-            {Atom.to_string(key) |> String.upcase()}
-          </div>
-        <% end %>
-      </div>
-
-      <div class="grid grid-cols-9 gap-1 sm:gap-2">
-        <%= for key <- [:a, :s, :d, :f, :g, :h, :j, :k, :l] do %>
-          <div
-            phx-click="add_letter"
-            phx-value-letter={Atom.to_string(key)}
-            class={"cursor-pointer w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}
-          >
-            {Atom.to_string(key) |> String.upcase()}
-          </div>
-        <% end %>
-      </div>
-
-      <div class="grid grid-cols-7 gap-1 sm:gap-2">
-        <%= for key <- [:z, :x, :c, :v, :b, :n, :m] do %>
-          <div
-            phx-click="add_letter"
-            phx-value-letter={Atom.to_string(key)}
-            class={"cursor-pointer w-8 sm:w-10 p-1 sm:p-2 text-center rounded " <> @keyboard[key]}
-          >
-            {Atom.to_string(key) |> String.upcase()}
-          </div>
-        <% end %>
-      </div>
-      <div class="mt-2 grid grid-cols-3 gap-1 sm:gap-2">
-        <div
-          phx-click="delete_letter"
-          class="col-span-1 p-2 text-center rounded bg-red-200 cursor-pointer"
-        >
-          Delete
-        </div>
-      </div>
-    </div>
+    <WordleComponent.user_input form={@form} reset={@reset} guess_string={@guess_string} />
+    <br />
+    <WordleComponent.keyboard keyboard={@keyboard} />
+    <br />
 
     <Component.score_submit
       form={@form}
