@@ -29,21 +29,10 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    computer_choice =
-      if connected?(socket),
-        do: GameLogic.set_computer_choice(),
-        else: nil
+    computer =
+      if connected?(socket), do: GameLogic.set_computer_choice()
 
-    socket =
-      socket
-      |> assign(computer: computer_choice)
-      |> assign(score: 10)
-      |> assign(highest_score: 0)
-      |> assign(wager: 1)
-      |> assign(form: to_form(%{"wager" => 1}))
-      |> assign(message: "")
-
-    {:ok, socket}
+    {:ok, assign(socket, default_state(computer))}
   end
 
   @impl true
@@ -53,11 +42,49 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
 
   @impl true
   def handle_event("answer", params, socket) do
-    GameLogic.determine_round(socket, params)
+    game_state =
+      %GameLogic{
+        player: params["player_choice"],
+        computer: socket.assigns.computer,
+        score: socket.assigns.score,
+        highest_score: socket.assigns.highest_score,
+        wager: GameLogic.parse_wager(params["wager"]),
+        form: to_form(%{"wager" => params["wager"]})
+      }
+
+    game_state
+    |> GameLogic.determine_round()
+    |> assign_game_state(socket)
   end
 
   @impl true
   def handle_event("set_max_wager", _params, socket) do
     {:noreply, assign(socket, :wager, socket.assigns.score)}
+  end
+
+  defp assign_game_state(%GameLogic{} = game_state, socket) do
+    socket =
+      socket
+      |> put_flash(:error, game_state.flash_message)
+      |> assign(computer: game_state.computer)
+      |> assign(score: game_state.score)
+      |> assign(wager: game_state.wager)
+      |> assign(highest_score: game_state.highest_score)
+      |> assign(form: to_form(%{"wager" => game_state.wager}))
+      |> assign(outcome: nil)
+      |> assign(message: game_state.message)
+
+    {:noreply, socket}
+  end
+
+  defp default_state(computer) do
+    %{
+      computer: computer,
+      score: 10,
+      highest_score: 0,
+      wager: 1,
+      form: to_form(%{"wager" => 1}),
+      message: ""
+    }
   end
 end

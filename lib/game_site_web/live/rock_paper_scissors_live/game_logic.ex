@@ -1,145 +1,31 @@
 defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
   use GameSiteWeb, :live_view
 
-  defstruct [
-    :player,
-    :computer,
-    :current_score,
-    :wager,
-    :highest_score,
-    :form,
-    :score,
-    :outcome,
-    :message,
-    :flash_message
-  ]
+  defstruct player: nil,
+            computer: nil,
+            current_score: 0,
+            wager: 1,
+            highest_score: 0,
+            form: %{"wager" => 1},
+            score: 10,
+            outcome: "",
+            message: "",
+            flash_message: ""
 
   def set_computer_choice() do
     computer_choice()
   end
 
-  def set_game_board_info(socket, params) do
-    game_board_info(socket, params)
+  def parse_wager(wager) do
+    String.to_integer(wager)
   end
 
-  defp event_info(socket, %{"wager" => wager, "player_choice" => player}) do
-    parsed_wager = parsed_wager(wager, player, socket.assigns.computer)
-
-    %{
-      player: player,
-      computer: socket.assigns.computer,
-      current_score: socket.assigns.score + parsed_wager,
-      score: socket.assigns.score,
-      wager: if(wager == "", do: 1, else: String.to_integer(wager)),
-      highest_score: max(socket.assigns.score + parsed_wager, socket.assigns.highest_score),
-      form: to_form(%{wager: wager})
-    }
-  end
-
-  defp computer_choice() do
-    Enum.random(["rock", "paper", "scissor"])
-  end
-
-  defp player_beats_computer?(player, computer),
-    do: {player, computer} in [{"rock", "scissor"}, {"scissor", "paper"}, {"paper", "rock"}]
-
-  defp parsed_wager("", player, computer) do
-    if player_beats_computer?(player, computer), do: 1, else: -1
-  end
-
-  defp parsed_wager(wager, player, computer) do
-    if player_beats_computer?(player, computer),
-      do: String.to_integer(wager),
-      else: -1 * String.to_integer(wager)
-  end
-
-  defp game_board_info(socket, params) do
-    event_info =
-      event_info(socket, params)
-
-    cond do
-      event_info.current_score <= 0 ->
-        socket =
-          socket
-          |> put_flash(:error, "Score at 0, resetting.")
-          |> assign(computer: computer_choice())
-          |> assign(score: 10)
-          |> assign(wager: 1)
-          |> assign(form: to_form(%{"wager" => 1}))
-          |> assign(outcome: "")
-
-        {:noreply, socket}
-
-      event_info.computer == event_info.player ->
-        socket =
-          socket
-          |> assign(computer: computer_choice())
-          |> assign(wager: event_info.wager)
-          |> assign(form: to_form(%{"wager" => event_info.wager}))
-          |> assign(outcome: "You Tie!")
-
-        {:noreply, socket}
-
-      player_beats_computer?(event_info.player, event_info.computer) ->
-        socket =
-          socket
-          |> assign(computer: computer_choice())
-          |> assign(score: event_info.current_score)
-          |> assign(wager: event_info.wager)
-          |> assign(highest_score: max(event_info.current_score, event_info.highest_score))
-          |> assign(form: to_form(%{"wager" => event_info.wager}))
-          |> assign(outcome: "You Win!")
-
-        {:noreply, socket}
-
-      true ->
-        socket =
-          socket
-          |> assign(computer: computer_choice())
-          |> assign(wager: min(event_info.wager, event_info.current_score))
-          |> assign(score: event_info.current_score)
-          |> assign(form: to_form(%{"wager" => event_info.wager}))
-          |> assign(outcome: "You Lose!")
-
-        {:noreply, socket}
-    end
-  end
-
-  def determine_wager(%__MODULE__{wager: wager, score: score}) do
-    min(wager, score)
-  end
-
-  defp outcome_multiplier(outcome) do
-    case outcome do
-      :win -> 1
-      :lose -> -1
-      :tie -> 0
-    end
-  end
-
-  defp determine_result(%__MODULE__{outcome: outcome, score: score} = game_state) do
-    cond do
-      outcome == :lose and score <= 0 ->
-        :reset
-
-      outcome == :win ->
-        :win
-
-      outcome == :lose ->
-        :lose
-
-      outcome == :tie ->
-        :tie
-    end
-  end
-
-  defp determine_round(%__MODULE__{} = game_state, socket) do
+  def determine_round(%__MODULE__{} = game_state) do
     game_state
     |> determine_outcome()
     |> determine_score()
     |> determine_highest_score()
     |> reset_game()
-    |> assign_game_state(socket)
   end
 
   defp determine_outcome(%__MODULE__{player: player, computer: computer} = game_state) do
@@ -165,8 +51,9 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
 
   defp reset_game(%__MODULE__{} = game_state) do
     computer = computer_choice()
+    wager = determine_wager(game_state)
 
-    case determine_result(game_state) do
+    case result(game_state) do
       :reset ->
         %__MODULE__{
           game_state
@@ -174,32 +61,71 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
             outcome: nil,
             message: "",
             flash_message: "Score at 0, resetting.",
-            computer: computer
+            computer: computer,
+            wager: 1
         }
 
       :win ->
-        %__MODULE__{game_state | outcome: nil, message: "You Win!!", computer: computer}
+        %__MODULE__{
+          game_state
+          | outcome: nil,
+            message: "You Win!!",
+            computer: computer,
+            wager: wager
+        }
 
       :lose ->
-        %__MODULE__{game_state | outcome: nil, message: "You Lose!!", computer: computer}
+        %__MODULE__{
+          game_state
+          | outcome: nil,
+            message: "You Lose!!",
+            computer: computer,
+            wager: wager
+        }
 
       :tie ->
-        %__MODULE__{game_state | outcome: nil, message: "You Tie!!", computer: computer}
+        %__MODULE__{
+          game_state
+          | outcome: nil,
+            message: "You Tie!!",
+            computer: computer,
+            wager: wager
+        }
     end
   end
 
-  defp assign_game_state(%__MODULE__{} = game_state, socket) do
-    socket =
-      socket
-      |> put_flash(:error, game_state.flash_message)
-      |> assign(computer: game_state.computer)
-      |> assign(score: game_state.score)
-      |> assign(wager: game_state.wager)
-      |> assign(highest_score: game_state.highest_score)
-      |> assign(form: to_form(%{"wager" => game_state.wager}))
-      |> assign(outcome: nil)
-      |> assign(message: game_state.message)
+  defp computer_choice() do
+    Enum.random(["rock", "paper", "scissor"])
+  end
 
-    {:noreply, socket}
+  defp player_beats_computer?(player, computer),
+    do: {player, computer} in [{"rock", "scissor"}, {"scissor", "paper"}, {"paper", "rock"}]
+
+  defp determine_wager(%__MODULE__{wager: wager, score: score}) do
+    min(wager, score)
+  end
+
+  defp outcome_multiplier(outcome) do
+    case outcome do
+      :win -> 1
+      :lose -> -1
+      :tie -> 0
+    end
+  end
+
+  defp result(%__MODULE__{outcome: outcome, score: score}) do
+    cond do
+      outcome == :lose and score <= 0 ->
+        :reset
+
+      outcome == :win ->
+        :win
+
+      outcome == :lose ->
+        :lose
+
+      outcome == :tie ->
+        :tie
+    end
   end
 end
