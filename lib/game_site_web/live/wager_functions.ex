@@ -7,7 +7,6 @@ defmodule GameSiteWeb.WagerFunctions do
   def highest_score(event_info), do: max(event_info.current_score, event_info.highest_score)
 
   def add_subtract_wager("", guess, answer) do
-    # IO.inspect("Quote")
     if guess == to_string(answer) do
       1
     else
@@ -16,7 +15,6 @@ defmodule GameSiteWeb.WagerFunctions do
   end
 
   def add_subtract_wager(wager, guess, answer) do
-    # IO.inspect("normal")
     if guess == to_string(answer) do
       String.to_integer(wager)
     else

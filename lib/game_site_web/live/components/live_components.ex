@@ -46,6 +46,7 @@ defmodule GameSiteWeb.Live.Component do
   attr(:highest_score, :integer, required: true)
   attr(:current_score, :integer, required: true)
   attr(:attempt, :integer, default: nil, required: false)
+  attr(:outcome, :string, default: nil, required: false)
 
   def score_board(assigns) do
     ~H"""
@@ -62,6 +63,12 @@ defmodule GameSiteWeb.Live.Component do
         <div>
           <div class="text-sm text-gray-500">Attempt</div>
           <div>{@attempt}</div>
+        </div>
+      <% end %>
+      <%= if @outcome != nil do %>
+        <div>
+          <div class="text-sm text-gray-500">Outcome</div>
+          <div class="text-md text-blue-600 font-medium">{@outcome}</div>
         </div>
       <% end %>
     </div>
