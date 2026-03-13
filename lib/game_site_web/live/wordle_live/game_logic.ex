@@ -31,6 +31,12 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
     Map.from_struct(game_state)
   end
 
+  def get_starting_entries, do: Defaults.starting_entries()
+  def get_starting_board, do: Defaults.starting_board()
+  def get_starting_keyboard, do: Defaults.starting_keyboard()
+
+  def get_new_word, do: Words.get_word()
+
   def determine_round(%__MODULE__{} = game_state) do
     game_state
     |> determine_is_word()
@@ -39,7 +45,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
     |> determine_final_state()
   end
 
-  def determine_is_word(%__MODULE__{guess_string: guess} = game_state) do
+  defp determine_is_word(%__MODULE__{guess_string: guess} = game_state) do
     if Words.is_word?(String.downcase(guess)) do
       %{game_state | errors: nil}
     else
@@ -47,19 +53,19 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
     end
   end
 
-  def determine_feedback(%__MODULE__{errors: "Not a valid word"} = game_state), do: game_state
+  defp determine_feedback(%__MODULE__{errors: "Not a valid word"} = game_state), do: game_state
 
-  def determine_feedback(
-        %__MODULE__{
-          guess_string: guess,
-          entries: entries,
-          round: round,
-          word: word,
-          board_state: board_state,
-          keyboard_state: keyboard_state
-        } =
-          game_state
-      ) do
+  defp determine_feedback(
+         %__MODULE__{
+           guess_string: guess,
+           entries: entries,
+           round: round,
+           word: word,
+           board_state: board_state,
+           keyboard_state: keyboard_state
+         } =
+           game_state
+       ) do
     letters_colors = letter_feedback(guess, word)
 
     entries = set_entries(entries, guess, round)

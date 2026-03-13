@@ -6,78 +6,6 @@ defmodule GameSiteWeb.WordleLive do
   alias GameSiteWeb.Live.WordleLive.GameLogic
   alias GameSiteWeb.Live.Component
   alias GameSite.Scores.ScoreHandler
-  alias GameSiteWeb.Words
-
-  @starting_state %{
-    0 => "bg-gray-100",
-    1 => "bg-gray-100",
-    2 => "bg-gray-100",
-    3 => "bg-gray-100",
-    4 => "bg-gray-100",
-    5 => "bg-gray-100",
-    6 => "bg-gray-100",
-    7 => "bg-gray-100",
-    8 => "bg-gray-100",
-    9 => "bg-gray-100",
-    10 => "bg-gray-100",
-    11 => "bg-gray-100",
-    12 => "bg-gray-100",
-    13 => "bg-gray-100",
-    14 => "bg-gray-100",
-    15 => "bg-gray-100",
-    16 => "bg-gray-100",
-    17 => "bg-gray-100",
-    18 => "bg-gray-100",
-    19 => "bg-gray-100",
-    20 => "bg-gray-100",
-    21 => "bg-gray-100",
-    22 => "bg-gray-100",
-    23 => "bg-gray-100",
-    24 => "bg-gray-100",
-    25 => "bg-gray-100",
-    26 => "bg-gray-100",
-    27 => "bg-gray-100",
-    28 => "bg-gray-100",
-    29 => "bg-gray-100"
-  }
-
-  @starting_entries %{
-    first: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
-    second: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
-    third: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
-    fourth: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
-    fifth: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."},
-    sixth: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."}
-  }
-
-  @starting_keyboard %{
-    q: "bg-gray-100",
-    w: "bg-gray-100",
-    e: "bg-gray-100",
-    r: "bg-gray-100",
-    t: "bg-gray-100",
-    y: "bg-gray-100",
-    u: "bg-gray-100",
-    i: "bg-gray-100",
-    o: "bg-gray-100",
-    p: "bg-gray-100",
-    a: "bg-gray-100",
-    s: "bg-gray-100",
-    d: "bg-gray-100",
-    f: "bg-gray-100",
-    g: "bg-gray-100",
-    h: "bg-gray-100",
-    j: "bg-gray-100",
-    k: "bg-gray-100",
-    l: "bg-gray-100",
-    z: "bg-gray-100",
-    x: "bg-gray-100",
-    c: "bg-gray-100",
-    v: "bg-gray-100",
-    b: "bg-gray-100",
-    n: "bg-gray-100",
-    m: "bg-gray-100"
-  }
 
   @impl true
   def render(assigns) do
@@ -88,7 +16,7 @@ defmodule GameSiteWeb.WordleLive do
         highest_score={@highest_score}
         highest_streak={@highest_streak}
         current_score={@score}
-        current_streak={@streak}
+        current_streak={@current_streak}
         reset={@reset}
         word={@word}
       />
@@ -96,7 +24,7 @@ defmodule GameSiteWeb.WordleLive do
     <GameBoard.game_board board_state={@board_state} entries={@entries} />
 
     <WordleComponent.user_input form={@form} reset={@reset} guess_string={@guess_string} />
-    <GameBoard.keyboard keyboard={@keyboard} />
+    <GameBoard.keyboard keyboard={@keyboard_state} />
 
     <Component.score_submit
       form={@form}
@@ -115,33 +43,6 @@ defmodule GameSiteWeb.WordleLive do
       |> maybe_connected()
 
     {:ok, socket}
-  end
-
-  defp maybe_connected(socket) do
-    if connected?(socket) do
-      socket
-      |> assign(word: Words.get_word())
-    else
-      socket
-    end
-  end
-
-  defp default_assigns(socket) do
-    socket
-    |> assign(score: 0)
-    |> assign(streak: 0)
-    |> assign(highest_score: 0)
-    |> assign(highest_streak: 0)
-    |> assign(round: 0)
-    |> assign(reset: false)
-    |> assign(guess_string: "")
-    |> assign(word: "")
-    |> assign(form: to_form(%{"guess" => ""}))
-    |> assign(entries: @starting_entries)
-    |> assign(board_state: @starting_state)
-    |> assign(keyboard: @starting_keyboard)
-
-    ### keyboard_state: Defaults.starting_keyboard
   end
 
   @impl true
@@ -184,16 +85,15 @@ defmodule GameSiteWeb.WordleLive do
   def handle_event("reset", _params, socket) do
     socket =
       socket
-      |> assign(board_state: @starting_state)
       |> assign(round: 0)
       |> assign(reset: false)
       |> assign(guess_string: "")
       |> assign(form: to_form(%{"guess" => ""}))
-      |> assign(word: word = Words.get_word())
-      |> assign(entries: @starting_entries)
-      |> assign(keyboard: @starting_keyboard)
+      |> assign(word: GameLogic.get_new_word())
+      |> assign(entries: GameLogic.get_starting_entries())
+      |> assign(keyboard_state: GameLogic.get_starting_keyboard())
+      |> assign(board_state: GameLogic.get_starting_board())
 
-    IO.inspect(word, label: "Resetting Word")
     {:noreply, socket}
   end
 
@@ -202,7 +102,22 @@ defmodule GameSiteWeb.WordleLive do
     ScoreHandler.save_score(socket, params)
   end
 
-  def assign_game_state(%GameLogic{errors: errors} = game_state, socket) do
+  defp maybe_connected(socket) do
+    if connected?(socket) do
+      socket
+      |> assign(word: GameLogic.get_new_word())
+    else
+      socket
+    end
+  end
+
+  defp default_assigns(socket) do
+    socket
+    |> assign(form: to_form(%{"guess" => ""}))
+    |> assign(GameLogic.to_map(GameLogic.new()))
+  end
+
+  defp assign_game_state(%GameLogic{errors: errors} = game_state, socket) do
     socket =
       if errors do
         assign(socket,
