@@ -14,7 +14,7 @@
 >
   <:col :let={{_id, score}} label="Score">{score.score}</:col>
   <:col :let={{_id, score}} label="Game">{score.game.name}</:col>
-  <:col :let={{_id, score}} label="User">{score.user.id}</:col>
+  <:col :let={{_id, score}} label="User">{score.user.user_name}</:col>
   <%!-- <:action :let={{_id, score}}>
     <div class="sr-only">
       <.link navigate={~p"/scores/#{score}"}>Show</.link>
