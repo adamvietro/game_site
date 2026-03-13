@@ -28,6 +28,7 @@ defmodule GameSiteWeb.Live.WordleLive.Component do
   attr(:current_score, :integer, required: true)
   attr(:current_streak, :integer, required: true)
   attr(:reset, :boolean, required: true)
+  attr(:word, :string, required: true)
 
   def score_board(assigns) do
     ~H"""

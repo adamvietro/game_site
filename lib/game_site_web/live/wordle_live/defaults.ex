@@ -3,10 +3,9 @@ defmodule GameSiteWeb.Live.WordleLive.Defaults do
 
   @letters ~w(q w e r t y u i o p a s d f g h j k l z x c v b n m)
   @rows 6
-  @cols 5
   @cells 30
 
-  def starting_state do
+  def starting_board do
     0..(@cells - 1) |> Enum.into(%{}, &{&1, "bg-gray-100"})
   end
 
@@ -26,7 +25,4 @@ defmodule GameSiteWeb.Live.WordleLive.Defaults do
   defp row_name(6), do: :sixth
 
   defp entry_template, do: %{l1: ".", l2: ".", l3: ".", l4: ".", l5: "."}
-
-  def default_state(computer) do
-  end
 end

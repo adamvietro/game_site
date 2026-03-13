@@ -3,6 +3,7 @@ defmodule GameSiteWeb.WordleLive do
 
   alias GameSiteWeb.Live.WordleLive.Component, as: WordleComponent
   alias GameSiteWeb.Live.WordleLive.GameBoard
+  alias GameSiteWeb.Live.WordleLive.GameLogic
   alias GameSiteWeb.Live.Component
   alias GameSite.Scores.ScoreHandler
   alias GameSiteWeb.Words
@@ -89,6 +90,7 @@ defmodule GameSiteWeb.WordleLive do
         current_score={@score}
         current_streak={@streak}
         reset={@reset}
+        word={@word}
       />
     </section>
     <GameBoard.game_board board_state={@board_state} entry={@entry} />
@@ -115,6 +117,15 @@ defmodule GameSiteWeb.WordleLive do
     {:ok, socket}
   end
 
+  defp maybe_connected(socket) do
+    if connected?(socket) do
+      socket
+      |> assign(word: Words.get_word())
+    else
+      socket
+    end
+  end
+
   defp default_assigns(socket) do
     socket
     |> assign(score: 0)
@@ -124,10 +135,13 @@ defmodule GameSiteWeb.WordleLive do
     |> assign(round: 0)
     |> assign(reset: false)
     |> assign(guess_string: "")
+    |> assign(word: "")
     |> assign(form: to_form(%{"guess" => ""}))
     |> assign(entry: @starting_entries)
     |> assign(board_state: @starting_state)
     |> assign(keyboard: @starting_keyboard)
+
+    ### keyboard_state: Defaults.starting_keyboard
   end
 
   @impl true
@@ -277,6 +291,7 @@ defmodule GameSiteWeb.WordleLive do
   end
 
   def feedback(word, guess) do
+    # GameLogic.determine_round(game_state)
     index_word =
       word
       |> String.split("", trim: true)
@@ -353,14 +368,5 @@ defmodule GameSiteWeb.WordleLive do
     Enum.reduce(letters_colors, keyboard, fn [letter, color], acc ->
       Map.replace(acc, String.to_atom(letter), color)
     end)
-  end
-
-  defp maybe_connected(socket) do
-    if connected?(socket) do
-      socket
-      |> assign(word: Words.get_word())
-    else
-      socket
-    end
   end
 end
