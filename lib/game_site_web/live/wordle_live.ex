@@ -93,10 +93,10 @@ defmodule GameSiteWeb.WordleLive do
         word={@word}
       />
     </section>
-    <GameBoard.game_board board_state={@board_state} entry={@entry} />
+    <GameBoard.game_board board_state={@board_state} entries={@entries} />
 
     <WordleComponent.user_input form={@form} reset={@reset} guess_string={@guess_string} />
-    <WordleComponent.keyboard keyboard={@keyboard} />
+    <GameBoard.keyboard keyboard={@keyboard} />
 
     <Component.score_submit
       form={@form}
@@ -137,7 +137,7 @@ defmodule GameSiteWeb.WordleLive do
     |> assign(guess_string: "")
     |> assign(word: "")
     |> assign(form: to_form(%{"guess" => ""}))
-    |> assign(entry: @starting_entries)
+    |> assign(entries: @starting_entries)
     |> assign(board_state: @starting_state)
     |> assign(keyboard: @starting_keyboard)
 
@@ -170,93 +170,13 @@ defmodule GameSiteWeb.WordleLive do
   def handle_event("guess", %{"guess" => guess} = _params, socket) do
     IO.inspect(%{answer: socket.assigns.word, guess: guess}, label: "Guess Event")
 
-    # guess = if guess == "", do: guess_string, else: guess?
-
-    if Words.is_word?(String.downcase(guess)) do
-      letters_colors =
-        feedback(socket.assigns.word, guess)
-
-      # |> IO.inspect(label: "Letters Colors")
-
-      state =
-        set_colors(letters_colors, socket.assigns.round, socket.assigns.board_state)
-
-      # |> IO.inspect(label: "State")
-
-      entires =
-        entries(socket.assigns.entry, guess, socket.assigns.round)
-
-      # |> IO.inspect(label: "Entires")
-
-      keyboard =
-        set_keyboard(letters_colors, socket.assigns.keyboard)
-
-      # |> IO.inspect(label: "keyboard")
-
-      score = (6 - socket.assigns.round) * 10 + socket.assigns.score
-
-      cond do
-        guess == socket.assigns.word and
-            socket.assigns.round <= 5 ->
-          socket =
-            socket
-            |> assign(score: score)
-            |> assign(highest_score: max(score, socket.assigns.highest_score))
-            |> assign(streak: socket.assigns.streak + 1)
-            |> assign(
-              highest_streak: max(socket.assigns.highest_streak, socket.assigns.streak + 1)
-            )
-            |> assign(round: 0)
-            |> assign(reset: true)
-            |> assign(guess_string: "")
-            |> assign(form: to_form(%{"guess" => ""}))
-            |> assign(entry: entires)
-            |> assign(board_state: state)
-            |> assign(keyboard: keyboard)
-
-          {:noreply, socket}
-
-        socket.assigns.round < 5 ->
-          socket =
-            socket
-            |> assign(round: socket.assigns.round + 1)
-            |> assign(reset: false)
-            |> assign(guess_string: "")
-            |> assign(form: to_form(%{"guess" => ""}))
-            |> assign(entry: entires)
-            |> assign(board_state: state)
-            |> assign(keyboard: keyboard)
-
-          {:noreply, socket}
-
-        socket.assigns.round == 5 ->
-          socket =
-            socket
-            |> assign(score: 0)
-            |> assign(round: 0)
-            |> assign(streak: 0)
-            |> assign(reset: true)
-            |> assign(guess_string: "")
-            |> assign(form: to_form(%{"guess" => ""}))
-            |> assign(entry: entires)
-            |> assign(board_state: state)
-            |> assign(keyboard: keyboard)
-
-          {:noreply, socket}
-      end
-    else
-      socket =
-        socket
-        |> assign(guess_string: "")
-        |> assign(form: to_form(%{"guess" => ""}, errors: [guess: {"Not a Valid Word", []}]))
-
-      {:noreply, socket}
-    end
+    GameLogic.new(socket.assigns, guess)
+    |> GameLogic.determine_round()
+    |> assign_game_state(socket)
   end
 
   @impl true
   def handle_event("guess", _, socket) do
-    # maybe log and ignore bad submissions, or show error
     {:noreply, put_flash(socket, :error, "Invalid guess submission")}
   end
 
@@ -270,7 +190,7 @@ defmodule GameSiteWeb.WordleLive do
       |> assign(guess_string: "")
       |> assign(form: to_form(%{"guess" => ""}))
       |> assign(word: word = Words.get_word())
-      |> assign(entry: @starting_entries)
+      |> assign(entries: @starting_entries)
       |> assign(keyboard: @starting_keyboard)
 
     IO.inspect(word, label: "Resetting Word")
@@ -282,91 +202,20 @@ defmodule GameSiteWeb.WordleLive do
     ScoreHandler.save_score(socket, params)
   end
 
-  defp letter_count(word) do
-    word_list = String.split(word, "", trim: true)
+  def assign_game_state(%GameLogic{errors: errors} = game_state, socket) do
+    socket =
+      if errors do
+        assign(socket,
+          form: to_form(%{"guess" => ""}, errors: [guess: {errors, []}])
+        )
+        |> assign(GameLogic.to_map(game_state))
+      else
+        assign(socket,
+          form: to_form(%{"guess" => ""})
+        )
+        |> assign(GameLogic.to_map(game_state))
+      end
 
-    Enum.reduce(word_list, %{}, fn letter, acc ->
-      Map.update(acc, letter, 1, fn count -> count + 1 end)
-    end)
-  end
-
-  def feedback(word, guess) do
-    # GameLogic.determine_round(game_state)
-    index_word =
-      word
-      |> String.split("", trim: true)
-      |> Enum.with_index()
-
-    index_guess =
-      guess
-      |> String.downcase()
-      |> String.split("", trim: true)
-      |> Enum.with_index()
-
-    letter_count =
-      letter_count(word)
-
-    # |> IO.inspect(label: "Letter Count")
-
-    {green_results, letter_count_after_greens} =
-      Enum.map_reduce(index_guess, letter_count, fn {letter, index}, letter_count ->
-        cond do
-          {letter, index} in index_word ->
-            letter_count = Map.update!(letter_count, letter, fn count -> count - 1 end)
-            # IO.inspect(letter_count, label: "green")
-            {[letter, "bg-green-400"], letter_count}
-
-          true ->
-            {{letter, index}, letter_count}
-        end
-      end)
-
-    {result, _letter_count} =
-      Enum.map_reduce(green_results, letter_count_after_greens, fn
-        {letter, _index}, letter_count ->
-          if letter in String.split(word, "", trim: true) and letter_count[letter] > 0 do
-            letter_count = Map.update!(letter_count, letter, fn count -> count - 1 end)
-            # IO.inspect(letter_count, label: "yellow")
-            {[letter, "bg-yellow-300"], letter_count}
-          else
-            {[letter, "bg-gray-300"], letter_count}
-          end
-
-        [letter, color], letter_count ->
-          {[letter, color], letter_count}
-      end)
-
-    # IO.inspect(result)
-    result
-  end
-
-  defp entries(entries, word, round) do
-    word_letters = String.split(word, "", trim: true)
-
-    line_keys = [:first, :second, :third, :fourth, :fifth, :sixth]
-    line_key = Enum.at(line_keys, round)
-
-    updated_line =
-      Enum.with_index(word_letters)
-      |> Enum.reduce(entries[line_key], fn {letter, i}, acc ->
-        put_in(acc[:"l#{i + 1}"], letter)
-      end)
-
-    put_in(entries[line_key], updated_line)
-  end
-
-  def set_colors(colors, round, state) do
-    offset = round * 5
-
-    Enum.reduce(0..4, state, fn i, acc ->
-      {[_letter, color], _} = List.pop_at(colors, i, :gray)
-      put_in(acc[offset + i], color)
-    end)
-  end
-
-  def set_keyboard(letters_colors, keyboard) do
-    Enum.reduce(letters_colors, keyboard, fn [letter, color], acc ->
-      Map.replace(acc, String.to_atom(letter), color)
-    end)
+    {:noreply, socket}
   end
 end

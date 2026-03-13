@@ -12,7 +12,7 @@ defmodule GameSiteWeb.Live.Component do
     <div class="bg-white shadow-md rounded p-4">
       <%= if @current_user == nil do %>
         <p>
-          <br /> <br />If you want to submit your score please make an
+          If you want to submit your score please make an
           <a
             href="/users/register"
             style="cursor: pointer; text-decoration: none; color: blue;"

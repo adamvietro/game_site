@@ -2,12 +2,12 @@ defmodule GameSiteWeb.Live.WordleLive.GameBoard do
   use GameSiteWeb, :live_view
 
   attr(:board_state, :map, required: true)
-  attr(:entry, :map, required: true)
+  attr(:entries, :map, required: true)
 
   def game_board(assigns) do
     ~H"""
     <div class="grid grid-cols-5 gap-2 sm:gap-4">
-      <%= for {label, index} <- Enum.with_index(get_labels(@entry)) do %>
+      <%= for {label, index} <- Enum.with_index(get_labels(@entries)) do %>
         <div class={"p-4 text-center rounded " <> Map.get(@board_state, index)}>
           {label}
         </div>

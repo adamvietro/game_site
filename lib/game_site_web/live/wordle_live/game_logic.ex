@@ -20,6 +20,13 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
     struct(__MODULE__, Map.merge(Map.from_struct(%__MODULE__{}), attr))
   end
 
+  def new(attr, guess) do
+    struct(
+      __MODULE__,
+      Map.merge(Map.from_struct(%__MODULE__{}), attr) |> Map.put(:guess_string, guess)
+    )
+  end
+
   def to_map(%__MODULE__{} = game_state) do
     Map.from_struct(game_state)
   end
@@ -36,7 +43,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
     if Words.is_word?(String.downcase(guess)) do
       %{game_state | errors: nil}
     else
-      %{game_state | errors: ["Not a valid word"]}
+      %{game_state | errors: "Not a valid word"}
     end
   end
 
@@ -55,7 +62,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
       ) do
     letters_colors = letter_feedback(guess, word)
 
-    entries = set_entries(entries, word, round)
+    entries = set_entries(entries, guess, round)
     board_state = set_board_colors(letters_colors, round, board_state)
 
     keyboard_state = set_keyboard_colors(letters_colors, keyboard_state)
@@ -78,12 +85,14 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
     end
   end
 
+  defp determine_final_state(%__MODULE__{errors: "Not a valid word"} = game_state), do: game_state
+
   defp determine_final_state(%__MODULE__{win?: false, round: round} = game_state) when round < 5,
-    do: %{game_state | round: round + 1}
+    do: %{game_state | round: round + 1, guess_string: ""}
 
   defp determine_final_state(%__MODULE__{win?: false, round: round} = game_state)
        when round == 5,
-       do: %{game_state | reset: true, current_streak: 0, score: 0, round: 0}
+       do: %{game_state | reset: true, current_streak: 0, score: 0, round: 0, guess_string: ""}
 
   defp determine_final_state(
          %__MODULE__{
@@ -103,7 +112,9 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
       | score: score,
         current_streak: current_streak,
         highest_streak: highest_streak,
-        reset: true
+        reset: true,
+        win?: false,
+        guess_string: ""
     }
   end
 
