@@ -94,7 +94,7 @@ defmodule GameSiteWeb.PokerLive do
     {:noreply, assign(socket, valid)}
   end
 
-  def handle_event("new-hand", params, socket) do
+  def handle_event("new-hand", _params, socket) do
     {:ok, valid} =
       PokerForm.merge_assigns(socket.assigns, %{
         hand: [],
