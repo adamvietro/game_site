@@ -2,7 +2,7 @@ defmodule GameSiteWeb.PokerLive do
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.Live.Component, as: LiveComponent
-  alias GameSiteWeb.Live.PokerLive.{Component, GameBoard}
+  alias GameSiteWeb.Live.PokerLive.{Component, GameBoard, GameLogic}
   alias GameSiteWeb.PokerForm
   alias GameSiteWeb.PokerLive.PokerHelpers, as: Helper
   alias GameSite.Scores.ScoreHandler
@@ -88,9 +88,18 @@ defmodule GameSiteWeb.PokerLive do
   def handle_event("advance", params, socket) do
     case socket.assigns.state do
       "initial" ->
-        handle_event("deal-cards", params, socket)
+        merge_map = GameLogic.advance_game(socket.assigns.state)
+
+        wager = parse_wager(params)
+        merge_map = Map.put(merge_map, :wager, wager)
+
+        {:ok, valid} =
+          PokerForm.merge_assigns(socket.assigns, merge_map)
+
+        {:noreply, assign(socket, valid)}
 
       "dealt" ->
+        # selected_cards = selected_cards(Map.get(params, "replace", []))
         [new_hand, cards] = new_hand(params, socket)
 
         {:ok, valid} =
@@ -224,21 +233,11 @@ defmodule GameSiteWeb.PokerLive do
     ScoreHandler.save_score(socket, params)
   end
 
-  def rotate_value(current, direction \\ :forward) do
-    case Enum.find_index(@all_in_list, &(&1 == current)) do
-      nil ->
-        {:error, :not_found}
-
-      index ->
-        offset =
-          case direction do
-            :forward -> 1
-            :backward -> -1
-          end
-
-        next_index = rem(index + offset, length(@all_in_list))
-        next_index = if next_index < 0, do: next_index + length(@all_in_list), else: next_index
-        Enum.at(@all_in_list, next_index)
+  defp parse_wager(params) do
+    if params["all_in"] == "true" do
+      params["score"]
+    else
+      String.to_integer(params["wager"])
     end
   end
 
