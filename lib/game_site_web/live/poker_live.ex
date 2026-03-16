@@ -19,17 +19,6 @@ defmodule GameSiteWeb.PokerLive do
         current_bet={@wager}
       />
 
-      <%!-- <!-- Flash Messages -->
-      <%= if msg = Phoenix.Flash.get(@flash, :info) do %>
-        <div
-          id="flash"
-          phx-hook="AutoDismiss"
-          class="bg-blue-100 border border-blue-300 text-blue-700 px-4 py-2 rounded shadow transition-opacity duration-500"
-        >
-          {msg}
-        </div>
-      <% end %> --%>
-
       <GameBoard.game_board
         form={@form}
         hand={@hand}
@@ -46,16 +35,6 @@ defmodule GameSiteWeb.PokerLive do
         score={@highest_score}
         current_user={@current_user}
       />
-      <style>
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
-        input[type=number] {
-          -moz-appearance: textfield;
-        }
-      </style>
     </div>
     """
   end
