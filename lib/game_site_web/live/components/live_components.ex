@@ -47,6 +47,7 @@ defmodule GameSiteWeb.Live.Component do
   attr(:current_score, :integer, required: true)
   attr(:attempt, :integer, default: nil, required: false)
   attr(:outcome, :string, default: nil, required: false)
+  attr(:current_bet, :integer, default: nil, required: false)
 
   def score_board(assigns) do
     ~H"""
@@ -69,6 +70,12 @@ defmodule GameSiteWeb.Live.Component do
         <div>
           <div class="text-sm text-gray-500">Outcome</div>
           <div class="text-md text-blue-600 font-medium">{@outcome}</div>
+        </div>
+      <% end %>
+      <%= if @current_bet != nil do %>
+        <div>
+          <div class="text-sm text-gray-500">Current Bet</div>
+          <div>{@current_bet}</div>
         </div>
       <% end %>
     </div>
