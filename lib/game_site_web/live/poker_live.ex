@@ -4,7 +4,7 @@ defmodule GameSiteWeb.PokerLive do
   alias GameSiteWeb.Live.Component, as: LiveComponent
   alias GameSiteWeb.Live.PokerLive.{Component, GameBoard}
   alias GameSiteWeb.PokerForm
-  alias GameSiteWeb.PokerHelpers, as: Helper
+  alias GameSiteWeb.PokerLive.PokerHelpers, as: Helper
   alias GameSite.Scores.ScoreHandler
 
   @all_in_list ["initial", "dealt", "final"]
@@ -70,29 +70,37 @@ defmodule GameSiteWeb.PokerLive do
     {:ok, socket}
   end
 
-  def handle_event("new", params, socket) do
+  def handle_event("deal-cards", params, socket) do
     {hand, cards} =
       Helper.cards()
       |> Helper.shuffle()
       |> Helper.choose_5()
 
-    [new_score, new_bet, wager] =
+    wager =
       if socket.assigns.all_in do
-        [0, socket.assigns.bet, 0]
+        socket.assigns.wager
       else
-        wager = String.to_integer(params["wager"])
-        [socket.assigns.score - wager, wager, 10]
+        String.to_integer(params["wager"])
       end
 
     {:ok, valid} =
       PokerForm.merge_assigns(socket.assigns, %{
-        bet: new_bet,
         cards: cards,
         hand: hand,
-        highest_score: max(socket.assigns.score, socket.assigns.highest_score),
         state: "dealt",
-        score: new_score,
         wager: wager
+      })
+
+    {:noreply, assign(socket, valid)}
+  end
+
+  def handle_event("new-hand", params, socket) do
+    {:ok, valid} =
+      PokerForm.merge_assigns(socket.assigns, %{
+        hand: [],
+        cards: [],
+        state: "initial",
+        all_in: false
       })
 
     {:noreply, assign(socket, valid)}
@@ -100,19 +108,17 @@ defmodule GameSiteWeb.PokerLive do
 
   def handle_event("advance", params, socket) do
     case socket.assigns.state do
-      "dealt" ->
-        wager = params["wager"]
+      "initial" ->
+        handle_event("deal-cards", params, socket)
 
+      "dealt" ->
         [new_hand, cards] = new_hand(params, socket)
 
         {:ok, valid} =
           PokerForm.merge_assigns(socket.assigns, %{
             hand: new_hand,
             cards: cards,
-            score: socket.assigns.score - String.to_integer(wager),
-            state: "final",
-            bet: socket.assigns.bet + String.to_integer(wager),
-            wager: 0
+            state: "final"
           })
 
         {:noreply, assign(socket, valid)}
@@ -121,11 +127,15 @@ defmodule GameSiteWeb.PokerLive do
         {:ok, valid} =
           case Helper.classify(socket.assigns.hand) do
             {:high_card, _rank} ->
+              score = socket.assigns.score - socket.assigns.wager
+
               PokerForm.merge_assigns(
                 socket.assigns,
                 %{
                   state: "reset",
-                  all_in: false
+                  all_in: false,
+                  score: score,
+                  wager: min(score, socket.assigns.wager)
                 }
               )
 
@@ -134,26 +144,32 @@ defmodule GameSiteWeb.PokerLive do
                 PokerForm.merge_assigns(
                   socket.assigns,
                   %{
-                    score: socket.assigns.score + socket.assigns.bet * 2,
+                    score: socket.assigns.score + socket.assigns.wager,
                     state: "reset",
                     all_in: false
                   }
                 )
               else
+                score = socket.assigns.score - socket.assigns.wager
+
                 PokerForm.merge_assigns(
                   socket.assigns,
                   %{
                     state: "reset",
-                    all_in: false
+                    all_in: false,
+                    score: score,
+                    wager: min(score, socket.assigns.wager)
                   }
                 )
               end
 
             {_hand, _rank_suit} ->
+              score = socket.assigns.score + socket.assigns.wager
+
               PokerForm.merge_assigns(
                 socket.assigns,
                 %{
-                  score: socket.assigns.score + socket.assigns.bet * 2,
+                  score: score,
                   state: "reset",
                   all_in: false
                 }
@@ -161,32 +177,29 @@ defmodule GameSiteWeb.PokerLive do
           end
 
         {:noreply, assign(socket, valid)}
+
+      "reset" ->
+        {:ok, valid} =
+          PokerForm.merge_assigns(socket.assigns, %{
+            state: "initial",
+            all_in: false
+          })
+
+        {:noreply, assign(socket, valid)}
     end
   end
 
   def handle_event("all-in", _params, socket) do
     valid = %{
-      bet: socket.assigns.bet + socket.assigns.score,
+      bet: socket.assigns.score,
       all_in: true,
-      score: 0
+      wager: socket.assigns.score
     }
 
-    {:noreply, assign(socket, valid)}
-  end
+    socket = assign(socket, valid)
+    IO.inspect(socket.assigns, label: "After All-In")
 
-  def handle_event("reset", _params, socket) do
-    {:ok, reset_assigns} =
-      PokerForm.merge_assigns(socket.assigns, %{
-        score: 100,
-        bet: 0,
-        hand: [],
-        cards: [],
-        wager: 10,
-        state: "initial",
-        all_in: false
-      })
-
-    {:noreply, assign(socket, reset_assigns)}
+    {:noreply, socket}
   end
 
   def handle_event("increase_wager", _params, %{assigns: %{all_in: true}} = socket) do
@@ -211,6 +224,21 @@ defmodule GameSiteWeb.PokerLive do
     all_in = new_wager == socket.assigns.score
 
     {:noreply, assign(socket, wager: new_wager, all_in: all_in)}
+  end
+
+  def handle_event("reset", _params, socket) do
+    {:ok, reset_assigns} =
+      PokerForm.merge_assigns(socket.assigns, %{
+        score: 100,
+        bet: 0,
+        hand: [],
+        cards: [],
+        wager: 10,
+        state: "initial",
+        all_in: false
+      })
+
+    {:noreply, assign(socket, reset_assigns)}
   end
 
   def handle_event("exit", params, socket) do

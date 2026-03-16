@@ -14,7 +14,6 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 Better Score with drop down
 Struct for each game
 Refactor
-  Wordle
   Poker
 Separate the Contexts
   Guessing
@@ -24,10 +23,8 @@ Add in pento game to database.
 Make scores work for pento
 Add in ability to use keystrokes for Wordle
 Poker
-  Change logic for Poker to only allow you to bet before the cards are dealt.
   Show the result of the poker hand.
   Add in multiplayer
-  Fix instructions
 -->
 ## Learn more
 

@@ -6,7 +6,6 @@ defmodule GameSiteWeb.PokerForm do
     hand: {:array, :any},
     score: :integer,
     wager: :integer,
-    bet: :integer,
     highest_score: :integer,
     form: :map,
     state: :string,
@@ -20,11 +19,10 @@ defmodule GameSiteWeb.PokerForm do
     hand: [],
     state: "initial",
     cards: [],
-    bet: 0,
     all_in: false
   }
 
-  @allowed_fields [:score, :highest_score, :wager, :hand, :cards, :state, :bet, :form]
+  @allowed_fields [:score, :highest_score, :wager, :hand, :cards, :state, :form, :all_in]
   def default_values(overrides \\ %{}) do
     Map.merge(@default_values, overrides)
   end

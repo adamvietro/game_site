@@ -13,135 +13,9 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
     <section class="bg-white rounded p-4 shadow space-y-6">
       <.form for={@form} phx-submit="advance" class="space-y-6">
         <.hand hand={@hand} />
-        
-    <!-- Your buttons and wager inputs unchanged below -->
-        <div>
-          <%= cond do %>
-            <% @state == "reset" and @score == 0 -> %>
-              <button
-                type="button"
-                phx-click="reset"
-                class="w-full md:w-auto block md:inline-block bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded transition"
-              >
-                Reset Game
-              </button>
-            <% @state == "final" -> %>
-              <button
-                type="submit"
-                class="w-full md:w-auto block md:inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded transition"
-              >
-                Resolve
-              </button>
-            <% @state == "dealt" -> %>
-              <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-                <div class="flex items-center gap-2">
-                  <%= if @all_in do %>
-                    <input id="wager" name="wager" type="number" value={@wager} readonly />
-                  <% else %>
-                    <label for="wager" class="font-semibold">Wager</label>
 
-                    <%!-- <button
-                      type="button"
-                      phx-click="decrease_wager"
-                      class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                    >
-                      -10
-                    </button> --%>
-
-                    <input
-                      id="wager"
-                      name="wager"
-                      type="number"
-                      value={@wager}
-                      max={@score}
-                      readonly
-                      class="w-20 text-center border rounded bg-white cursor-default"
-                    />
-
-                    <%!-- <button
-                      type="button"
-                      phx-click="increase_wager"
-                      class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                    >
-                      +10
-                    </button>
-
-                    <button
-                      type="button"
-                      phx-click="all-in"
-                      class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                    >
-                      All-In
-                    </button> --%>
-                  <% end %>
-                </div>
-
-                <button
-                  type="submit"
-                  class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded transition"
-                >
-                  Replace Selected Cards
-                </button>
-              </div>
-            <% true -> %>
-          <% end %>
-        </div>
+        <.wager wager={@wager} score={@score} state={@state} all_in={@all_in} form={@form} />
       </.form>
-      <!-- New Hand Form -->
-      <%= if @state in ["initial", "reset"] and not (@state == "reset" and @score == 0) do %>
-        <section class="bg-gray-50 rounded p-4 shadow max-w-md mx-auto">
-          <.simple_form id="new-form" for={@form} phx-submit="new" class="space-y-4">
-            <div class="flex items-center gap-2 justify-center flex-wrap">
-              <%= if @all_in do %>
-                <input type="hidden" name="wager" value="0" />
-              <% else %>
-                <label for="wager" class="font-semibold mr-2">Wager</label>
-
-                <button
-                  type="button"
-                  phx-click="decrease_wager"
-                  class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                >
-                  -10
-                </button>
-
-                <input
-                  id="wager"
-                  name="wager"
-                  type="number"
-                  value={@wager}
-                  min="10"
-                  max={@score}
-                  readonly
-                  class="w-20 text-center border rounded bg-white cursor-default"
-                />
-
-                <button
-                  type="button"
-                  phx-click="increase_wager"
-                  class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                >
-                  +10
-                </button>
-
-                <button
-                  type="button"
-                  phx-click="all-in"
-                  class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-                >
-                  All-In
-                </button>
-              <% end %>
-            </div>
-
-            <:actions>
-              <.button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded">
-                New Hand
-              </.button>
-            </:actions>
-          </.simple_form>
-        </section>
-      <% end %>
     </section>
     """
   end
@@ -188,101 +62,92 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
     case state do
       "initial" ->
         ~H"""
-        <.simple_form id="new-form" for={@form} phx-submit="new" class="space-y-4">
-          <div class="flex items-center gap-2 justify-center flex-wrap">
-            <%= if @all_in do %>
-              <input type="hidden" name="wager" value="0" />
-            <% else %>
-              <label for="wager" class="font-semibold mr-2">Wager</label>
+        <div class="flex items-center gap-2 justify-center flex-wrap">
+          <%= if @all_in do %>
+            <.wager_input score={@score} wager={@wager} />
+          <% else %>
+            <label for="wager" class="font-semibold mr-2">Wager</label>
 
-              <button
-                type="button"
-                phx-click="decrease_wager"
-                class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-              >
-                -10
-              </button>
-
-              <input
-                id="wager"
-                name="wager"
-                type="number"
-                value={@wager}
-                min="10"
-                max={@score}
-                readonly
-                class="w-20 text-center border rounded bg-white cursor-default"
-              />
-
-              <button
-                type="button"
-                phx-click="increase_wager"
-                class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-              >
-                +10
-              </button>
-
-              <button
-                type="button"
-                phx-click="all-in"
-                class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
-              >
-                All-In
-              </button>
-            <% end %>
-          </div>
-
-          <:actions>
-            <.action_button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded">
-              New Hand
+            <.action_button
+              type="button"
+              phx_click="decrease_wager"
+              class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+            >
+              -10
             </.action_button>
-          </:actions>
-        </.simple_form>
+
+            <.wager_input score={@score} wager={@wager} />
+
+            <.action_button
+              type="button"
+              phx_click="increase_wager"
+              class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+            >
+              +10
+            </.action_button>
+
+            <.action_button
+              type="button"
+              phx_click="all-in"
+              class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+            >
+              All-In
+            </.action_button>
+          <% end %>
+        </div>
+
+        <button class="w-full bg-blue-500 hover:bg-blue-800 text-white font-semibold py-2 rounded">
+          Deal Cards
+        </button>
         """
 
       "dealt" ->
         ~H"""
-        <.wager_input score={@score} wager={@wager} />
+        <div class="flex items-center gap-2 justify-center flex-wrap">
+          <.wager_input score={@score} wager={@wager} />
+        </div>
 
-        <.action_button
-          type="submit"
-          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded transition"
-        >
+        <button class="w-full bg-blue-500 hover:bg-blue-800text-white font-semibold py-2 rounded">
           Replace Selected Cards
-        </.action_button>
+        </button>
         """
 
       "final" ->
         ~H"""
-        <.wager_input score={@score} wager={@wager} />
+        <div class="flex items-center gap-2 justify-center flex-wrap">
+          <.wager_input score={@score} wager={@wager} />
+        </div>
 
-        <.action_button
-          type="submit"
-          class="w-full md:w-auto block md:inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded transition"
-        >
+        <button class="w-full bg-blue-500 hover:bg-blue-800text-white font-semibold py-2 rounded">
           Resolve
-        </.action_button>
+        </button>
         """
 
       "reset" ->
         if score == 0 do
           ~H"""
+          <div class="flex items-center gap-2 justify-center flex-wrap invisible">
+            <.wager_input score={@score} wager={@wager} />
+          </div>
           <.action_button
             type="button"
             phx_click="reset"
-            class="w-full md:w-auto block md:inline-block bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded transition"
+            class="w-full bg-red-500 hover:bg-red-800text-white font-semibold py-2 rounded"
           >
             Reset Game
           </.action_button>
           """
         else
           ~H"""
+          <div class="flex items-center gap-2 justify-center flex-wrap invisible">
+            <.wager_input score={@score} wager={@wager} />
+          </div>
           <.action_button
             type="button"
             phx_click="new-hand"
-            class="w-full md:w-auto block md:inline-block bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded transition"
+            class="w-full bg-blue-500 hover:bg-blue-800text-white font-semibold py-2 rounded"
           >
-            Reset Game
+            New Hand
           </.action_button>
           """
         end
@@ -291,8 +156,6 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
 
   attr(:wager, :integer, required: true)
   attr(:score, :integer, required: true)
-  attr(:min, :integer, default: 10)
-  attr(:max, :integer)
 
   defp wager_input(assigns) do
     ~H"""
@@ -301,22 +164,22 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
       name="wager"
       type="number"
       value={@wager}
-      min={@min}
-      max={@max || @score}
+      min={10}
+      max={@score}
       readonly
       class="w-20 text-center border rounded bg-white cursor-default"
     />
     """
   end
 
-  attr(:phx_click, :string)
+  attr(:phx_click, :string, default: nil)
   attr(:type, :string, default: "button")
   attr(:class, :string, default: "bg-gray-300 hover:bg-gray-400 text-white font-semibold")
   slot(:inner_block, required: true)
 
   defp action_button(assigns) do
     ~H"""
-    <button type={@type} phx-click={@phx_click} class={"#{@class} px-3 py-1 rounded transition"}>
+    <button type={@type} class={"#{@class} px-3 py-1 rounded transition"} phx-click={@phx_click}>
       {render_slot(@inner_block)}
     </button>
     """
