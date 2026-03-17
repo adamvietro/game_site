@@ -1,10 +1,8 @@
 defmodule GameSiteWeb.PentoLive do
-  alias GameSiteWeb.Live
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.PentoLive.Board
   alias GameSiteWeb.GameInstructions
-  alias GameSiteWeb.Live.Component, as: LiveComponent
   alias GameSite.Scores.ScoreHandler
 
   @impl true
@@ -27,13 +25,6 @@ defmodule GameSiteWeb.PentoLive do
       <div id="game-container" phx-hook="Fireworks" />
       <.live_component module={Board} puzzle={@puzzle} id="board-component" key={@complete} />
     </section>
-
-    <LiveComponent.score_submit
-      form={to_form(%{})}
-      game_id={6}
-      score={if @complete, do: 1, else: 0}
-      current_user={@current_user}
-    />
     """
   end
 
@@ -52,12 +43,26 @@ defmodule GameSiteWeb.PentoLive do
   end
 
   @impl true
+  def handle_info(_, socket), do: {:noreply, socket}
+
+  @impl true
   def handle_event("try_again", _, socket) do
     {:noreply, assign(socket, complete: false)}
   end
 
-  def handle_event("exit", params, socket) do
-    ScoreHandler.save_score(socket, params)
+  @impl true
+  def handle_event("exit", _params, socket) do
+    attrs = %{
+      "score" => 1,
+      "game_id" => 6,
+      "user_id" => socket.assigns.current_user.id
+    }
+
+    ScoreHandler.save_score(socket, attrs)
+
+    {:noreply,
+     socket
+     |> push_navigate(to: ~p"/pento_choice")}
   end
 
   def complete_modal(assigns) do
@@ -72,6 +77,12 @@ defmodule GameSiteWeb.PentoLive do
             class="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
           >
             Try Again
+          </button>
+          <button
+            phx-click="exit"
+            class="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+          >
+            Exit
           </button>
           <.link
             navigate={~p"/pento_choice"}

@@ -20,8 +20,8 @@ Separate the Contexts
   Guessing
   Math
 Add scores to the side bar of each game.
-Add in pento game to database.
 Make scores work for pento
+  add in highest score
 Add in ability to use keystrokes for Wordle
 Poker
   Show the result of the poker hand.
