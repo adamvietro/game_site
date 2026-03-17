@@ -20,7 +20,7 @@ defmodule GameSiteWeb.PentoLive do
         <.help /> <.give_up />
       </div>
       <%= if @complete do %>
-        <.complete_modal puzzle={@puzzle} />
+        <.complete_modal puzzle={@puzzle} current_user={@current_user} />
       <% end %>
       <div id="game-container" phx-hook="Fireworks" />
       <.live_component module={Board} puzzle={@puzzle} id="board-component" key={@complete} />
@@ -65,6 +65,9 @@ defmodule GameSiteWeb.PentoLive do
      |> push_navigate(to: ~p"/pento_choice")}
   end
 
+  attr(:current_user, :any, default: nil)
+  attr(:puzzle, :string)
+
   def complete_modal(assigns) do
     ~H"""
     <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
@@ -78,12 +81,14 @@ defmodule GameSiteWeb.PentoLive do
           >
             Try Again
           </button>
-          <button
-            phx-click="exit"
-            class="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
-          >
-            Exit
-          </button>
+          <%= if @current_user do %>
+            <button
+              phx-click="exit"
+              class="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+            >
+              Exit
+            </button>
+          <% end %>
           <.link
             navigate={~p"/pento_choice"}
             class="flex-1 py-3 rounded-xl bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition text-center"
