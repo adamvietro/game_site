@@ -6,8 +6,8 @@ defmodule GameSiteWeb.Live.PokerLive.Component do
     ~H"""
     <h2 class="text-xl font-semibold mb-2">Poker Game Overview</h2>
     <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
-      <li>Draw 5 cards and choose which ones to keep.</li>
       <li>Adjust your wager before drawing cards.</li>
+      <li>Draw 5 cards and choose which ones to keep.</li>
       <li>Going "all-in" means you cannot reduce your wager afterwards.</li>
       <li>Your goal is to achieve the highest score possible.</li>
       <li>If your score reaches 0, the game resets but keeps track of your highest score.</li>
@@ -21,7 +21,7 @@ defmodule GameSiteWeb.Live.PokerLive.Component do
       <h3 class="text-lg font-semibold mb-2">Rules</h3>
       <ul class="list-disc list-inside space-y-1 text-gray-700">
         <li>Minimum wager is 10.</li>
-        <li>Maximum wager is your current score (money).</li>
+        <li>Maximum wager is your current score.</li>
         <li>You can reset the game only if your score reaches 0.</li>
       </ul>
 

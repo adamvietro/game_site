@@ -1,24 +1,27 @@
 defmodule GameSiteWeb.RockPaperScissorsLive do
   use GameSiteWeb, :live_view
 
-  alias GameSiteWeb.Live.RockPaperScissorsLive.GameLogic
-  alias GameSiteWeb.Live.RockPaperScissorsLive.Component, as: RPSComponent
-  alias GameSiteWeb.Live.Component, as: Component
+  alias GameSiteWeb.Live.RockPaperScissorsLive.{Component, GameLogic}
+  alias GameSiteWeb.Live.Component, as: LiveComponent
   alias GameSite.Scores.ScoreHandler
 
   @impl true
   def render(assigns) do
     ~H"""
     <section class="bg-gray-50 rounded p-4 shadow space-y-4">
-      <RPSComponent.instructions />
-      <Component.score_board highest_score={@highest_score} current_score={@score} outcome={@message} />
+      <Component.instructions />
+      <LiveComponent.score_board
+        highest_score={@highest_score}
+        current_score={@score}
+        outcome={@message}
+      />
     </section>
 
     <section>
-      <RPSComponent.input_buttons form={@form} wager={@wager} score={@score} />
-      <RPSComponent.wager wager={@wager} score={@score} />
+      <Component.input_buttons form={@form} wager={@wager} score={@score} />
+      <Component.wager wager={@wager} score={@score} />
     </section>
-    <Component.score_submit
+    <LiveComponent.score_submit
       form={@form}
       game_id={3}
       score={@highest_score}

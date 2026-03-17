@@ -13,8 +13,9 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 ## TODO
 Better Score with drop down
 Struct for each game
-Refactor
-  Poker
+  Math
+  guessing
+  rock
 Separate the Contexts
   Guessing
   Math

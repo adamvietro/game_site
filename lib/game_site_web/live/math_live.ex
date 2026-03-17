@@ -1,10 +1,9 @@
 defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
-  alias GameSiteWeb.Live.MathLive.Component, as: MathComponent
-  alias GameSiteWeb.Live.Component, as: Component
+  alias GameSiteWeb.Live.MathLive.{Component, Question}
+  alias GameSiteWeb.Live.Component, as: LiveComponent
   alias GameSiteWeb.WagerFunctions, as: Helper
-  alias GameSiteWeb.Live.MathLive.Question
   alias GameSite.Scores.ScoreHandler
 
   @helper_start %{
@@ -17,9 +16,9 @@ defmodule GameSiteWeb.MathLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <MathComponent.instructions />
-    <Component.score_board highest_score={@highest_score} current_score={@score} />
-    <MathComponent.question question={@question} />
+    <Component.instructions />
+    <LiveComponent.score_board highest_score={@highest_score} current_score={@score} />
+    <Component.question question={@question} />
 
     <.simple_form
       id="answer-form"
@@ -47,9 +46,9 @@ defmodule GameSiteWeb.MathLive do
       </:actions>
     </.simple_form>
 
-    <MathComponent.helper_board helper={@helper} toggle={@toggle} />
+    <Component.helper_board helper={@helper} toggle={@toggle} />
 
-    <Component.score_submit
+    <LiveComponent.score_submit
       form={@form}
       game_id={2}
       score={@highest_score}

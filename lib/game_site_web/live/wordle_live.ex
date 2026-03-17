@@ -1,18 +1,16 @@
 defmodule GameSiteWeb.WordleLive do
   use GameSiteWeb, :live_view
 
-  alias GameSiteWeb.Live.WordleLive.Component, as: WordleComponent
-  alias GameSiteWeb.Live.WordleLive.GameBoard
-  alias GameSiteWeb.Live.WordleLive.GameLogic
-  alias GameSiteWeb.Live.Component
+  alias GameSiteWeb.Live.WordleLive.{Component, GameBoard, GameLogic}
+  alias GameSiteWeb.Live.Component, as: LiveComponent
   alias GameSite.Scores.ScoreHandler
 
   @impl true
   def render(assigns) do
     ~H"""
     <section class="bg-gray-50 rounded p-6 shadow mx-auto space-y-6">
-      <WordleComponent.instructions />
-      <WordleComponent.score_board
+      <Component.instructions />
+      <Component.score_board
         highest_score={@highest_score}
         highest_streak={@highest_streak}
         current_score={@score}
@@ -23,10 +21,10 @@ defmodule GameSiteWeb.WordleLive do
     </section>
     <GameBoard.game_board board_state={@board_state} entries={@entries} />
 
-    <WordleComponent.user_input form={@form} reset={@reset} guess_string={@guess_string} />
+    <Component.user_input form={@form} reset={@reset} guess_string={@guess_string} />
     <GameBoard.keyboard keyboard={@keyboard_state} />
 
-    <Component.score_submit
+    <LiveComponent.score_submit
       form={@form}
       game_id={4}
       score={@highest_score}

@@ -1,9 +1,11 @@
 defmodule GameSiteWeb.PentoLive do
+  alias GameSiteWeb.Live
   use GameSiteWeb, :live_view
 
-  # import GameSiteWeb.PentoLive.Component
   alias GameSiteWeb.PentoLive.Board
   alias GameSiteWeb.GameInstructions
+  alias GameSiteWeb.Live.Component, as: LiveComponent
+  alias GameSite.Scores.ScoreHandler
 
   @impl true
   def mount(%{"puzzle" => puzzle}, _session, socket) do
@@ -25,6 +27,13 @@ defmodule GameSiteWeb.PentoLive do
       <div id="game-container" phx-hook="Fireworks" />
       <.live_component module={Board} puzzle={@puzzle} id="board-component" key={@complete} />
     </section>
+
+    <LiveComponent.score_submit
+      form={to_form(%{})}
+      game_id={6}
+      score={if @complete, do: 1, else: 0}
+      current_user={@current_user}
+    />
     """
   end
 
@@ -45,6 +54,10 @@ defmodule GameSiteWeb.PentoLive do
   @impl true
   def handle_event("try_again", _, socket) do
     {:noreply, assign(socket, complete: false)}
+  end
+
+  def handle_event("exit", params, socket) do
+    ScoreHandler.save_score(socket, params)
   end
 
   def complete_modal(assigns) do

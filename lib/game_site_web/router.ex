@@ -1,5 +1,4 @@
 defmodule GameSiteWeb.Router do
-  # alias GameSiteWeb.GuessingLive
   use GameSiteWeb, :router
 
   import GameSiteWeb.UserAuth
@@ -27,11 +26,11 @@ defmodule GameSiteWeb.Router do
 
       live "/scores", ScoreLive.Index, :index
 
-      live "/1", GuessingLive, :game
-      live "/2", MathLive, :game
-      live "/3", RockPaperScissorsLive, :game
-      live "/4", WordleLive, :game
-      live "/5", PokerLive, :game
+      live "/guessing", GuessingLive, :game
+      live "/math", MathLive, :game
+      live "/rock-paper-scissors", RockPaperScissorsLive, :game
+      live "/wordle", WordleLive, :game
+      live "/poker", PokerLive, :game
       live "/pento/:puzzle", PentoLive
       live "/pento_choice", PentoLive.Picker
     end

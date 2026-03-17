@@ -1,8 +1,8 @@
 defmodule GameSiteWeb.PentoLive.Board do
   use GameSiteWeb, :live_component
   import GameSiteWeb.PentoLive.Component
-  alias GameSite.Game
   import GameSiteWeb.PentoLive.{Colors, Component}
+  alias GameSite.Game
 
   @impl true
   def render(assigns) do
