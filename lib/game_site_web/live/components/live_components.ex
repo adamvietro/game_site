@@ -29,9 +29,9 @@ defmodule GameSiteWeb.Live.Component do
           phx-submit="exit"
           class="bg-white shadow-md rounded p-4"
         >
-          <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-          <.input type="hidden" field={@form[:game_id]} value={@game_id} />
-          <.input type="hidden" field={@form[:score]} value={@score} />
+          <.input type="hidden" field={@form[:user_id]} value={@current_user.id} name="user" />
+          <.input type="hidden" field={@form[:game_id]} value={@game_id} name="game" />
+          <.input type="hidden" field={@form[:score]} value={@score} name="score" />
           <:actions>
             <.button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
               Exit and Save Score
