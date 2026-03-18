@@ -108,26 +108,29 @@ defmodule GameSiteWeb.PokerLive do
   end
 
   @impl true
-  def handle_event("decrease_wager", _params, %{assigns: %{all_in: true}} = socket) do
+  def handle_event("decrease_wager", _params, %{assigns: %{game: %{all_in: true}}} = socket) do
     {:noreply, socket}
   end
 
   @impl true
-  def handle_event("increase_wager", _params, socket) do
-    new_wager = min(socket.assigns.wager + 10, socket.assigns.score)
+  def handle_event("increase_wager", _params, %{assigns: %{game: game}} = socket) do
+    new_wager = min(game.wager + 10, game.score)
 
-    all_in = new_wager == socket.assigns.score
+    all_in = new_wager == game.score
 
-    {:noreply, assign(socket, wager: new_wager, all_in: all_in)}
+    socket =
+      assign(socket, game: GameLogic.modify_game(game, %{all_in: all_in, wager: new_wager}))
+
+    {:noreply, socket}
   end
 
   @impl true
-  def handle_event("decrease_wager", _params, socket) do
-    new_wager = max(socket.assigns.wager - 10, 10)
+  def handle_event("decrease_wager", _params, %{assigns: %{game: game}} = socket) do
+    new_wager = max(game.wager - 10, 10)
 
-    all_in = new_wager == socket.assigns.score
+    socket = assign(socket, game: GameLogic.modify_game(game, %{wager: new_wager}))
 
-    {:noreply, assign(socket, wager: new_wager, all_in: all_in)}
+    {:noreply, socket}
   end
 
   @impl true
