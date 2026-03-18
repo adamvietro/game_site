@@ -9,6 +9,24 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
+<!-->
+## TODO
+Better Score with drop down
+Struct for each game
+  Math
+  guessing
+  rock
+Separate the Contexts
+  Guessing
+  Math
+Add scores to the side bar of each game.
+Make scores work for pento
+  add in highest score
+Add in ability to use keystrokes for Wordle
+Poker
+  Show the result of the poker hand.
+  Add in multiplayer
+-->
 ## Learn more
 
   * Official website: https://www.phoenixframework.org/

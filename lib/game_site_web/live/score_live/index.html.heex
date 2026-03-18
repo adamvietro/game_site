@@ -7,14 +7,15 @@
   </:actions> --%>
 </.header>
 
-<.table
+<%!-- <.table
   id="scores"
   rows={@streams.scores}
   row_click={fn {_id, score} -> JS.navigate(~p"/#{score.game}") end}
->
+> --%>
+<.table id="scores" rows={@streams.scores}>
   <:col :let={{_id, score}} label="Score">{score.score}</:col>
   <:col :let={{_id, score}} label="Game">{score.game.name}</:col>
-  <:col :let={{_id, score}} label="User">{score.user.id}</:col>
+  <:col :let={{_id, score}} label="User">{score.user.user_name}</:col>
   <%!-- <:action :let={{_id, score}}>
     <div class="sr-only">
       <.link navigate={~p"/scores/#{score}"}>Show</.link>

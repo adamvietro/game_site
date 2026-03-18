@@ -3,7 +3,6 @@ defmodule GameSiteWeb.UserRegistrationLive do
 
   alias GameSite.Accounts
   alias GameSite.Accounts.User
-  alias GameSite.Repo
 
   def render(assigns) do
     ~H"""
@@ -32,9 +31,23 @@ defmodule GameSiteWeb.UserRegistrationLive do
           Oops, something went wrong! Please check the errors below.
         </.error>
 
-        <.input field={@form[:email]} type="email" label="Email" required />
-        <.input field={@form[:password]} type="password" label="Password" required />
-        <.input field={@form[:user_name]} type="text" label="User Name" required />
+        <.input field={@form[:email]} type="email" label="Email" required phx-hook="AutofillSync" />
+
+        <.input
+          field={@form[:password]}
+          type="password"
+          label="Password"
+          required
+          phx-hook="AutofillSync"
+        />
+
+        <.input
+          field={@form[:user_name]}
+          type="text"
+          label="User Name"
+          required
+          phx-hook="AutofillSync"
+        />
 
         <:actions>
           <.button phx-disable-with="Creating account..." class="w-full">Create an account</.button>
@@ -58,11 +71,11 @@ defmodule GameSiteWeb.UserRegistrationLive do
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.register_user(user_params) do
       {:ok, user} ->
-        {:ok, _} =
-          Accounts.deliver_user_confirmation_instructions(
-            user,
-            &url(~p"/users/confirm/#{&1}")
-          )
+        # {:ok, _} =
+        #   Accounts.deliver_user_confirmation_instructions(
+        #     user,
+        #     &url(~p"/users/confirm/#{&1}")
+        #   )
 
         changeset = Accounts.change_user_registration(user)
         {:noreply, socket |> assign(trigger_submit: true) |> assign_form(changeset)}
@@ -77,13 +90,33 @@ defmodule GameSiteWeb.UserRegistrationLive do
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 
+  def handle_event("autofill_sync", %{"name" => name, "value" => value}, socket) do
+    if socket.assigns[:changeset] do
+      field_name = name |> String.replace_prefix("user[", "") |> String.replace_suffix("]", "")
+      field_atom = String.to_existing_atom(field_name)
+
+      updated_changeset =
+        socket.assigns.changeset
+        |> Ecto.Changeset.change()
+        |> Ecto.Changeset.put_change(field_atom, value)
+
+      {:noreply, assign_form(socket, updated_changeset)}
+    else
+      {:noreply, socket}
+    end
+  end
+
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     form = to_form(changeset, as: "user")
 
+    socket =
+      socket
+      |> assign(form: form, changeset: changeset)
+
     if changeset.valid? do
-      assign(socket, form: form, check_errors: false)
+      assign(socket, check_errors: false)
     else
-      assign(socket, form: form)
+      socket
     end
   end
 end

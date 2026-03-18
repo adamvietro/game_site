@@ -17,6 +17,6 @@
     subscribed: true
   })
 
-for n <- ["Guessing Game", "Math Game", ] do
+for n <- ["Guessing Game", "Math Game"] do
   GameSite.Game.create_game(%{game: n})
 end
