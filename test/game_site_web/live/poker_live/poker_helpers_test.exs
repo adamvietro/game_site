@@ -1,5 +1,5 @@
 defmodule GameSiteWeb.PokerHelpersTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   alias GameSiteWeb.PokerLive.PokerHelpers
 
