@@ -10,7 +10,15 @@ defmodule GameSiteWeb.GuessingLiveTest do
     state.socket
   end
 
-  def run_five_times(socket, wager) do
+  defp log_in_and_socket(conn, user) do
+    conn = log_in_user(conn, user)
+    {:ok, view, _html} = live(conn, ~p"/guessing")
+    socket = get_socket(view)
+
+    %{conn: conn, view: view, socket: socket}
+  end
+
+  defp run_five_times(socket, wager) do
     Enum.reduce(1..5, socket, fn _n, acc_socket ->
       {:noreply, new_socket} =
         GameSiteWeb.GuessingLive.handle_event(
@@ -24,31 +32,26 @@ defmodule GameSiteWeb.GuessingLiveTest do
   end
 
   describe "Guessing" do
-    setup do
+    setup %{conn: conn} do
       user = user_fixture()
       game = game_fixture(%{game_id: 1})
 
-      %{user: user, game: game}
+      %{conn: conn, view: view, socket: socket} = log_in_and_socket(conn, user)
+
+      %{
+        conn: conn,
+        view: view,
+        socket: socket,
+        user: user,
+        game: game
+      }
     end
 
-    test "access route", %{conn: conn, user: user} do
-      conn =
-        conn
-        |> log_in_user(user)
-
-      {:ok, _view, html} = live(conn, ~p"/guessing")
-
-      assert html =~ "Guessing Game"
+    test "access route", %{view: view} do
+      assert render(view) =~ "Guessing Game"
     end
 
-    test "good guess", %{conn: conn, user: user} do
-      conn =
-        conn
-        |> log_in_user(user)
-
-      {:ok, view, _html} = live(conn, ~p"/guessing")
-
-      socket = get_socket(view)
+    test "good guess", %{socket: socket} do
       answer = socket.assigns.answer
 
       {:noreply, new_socket} =
@@ -64,14 +67,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
       assert Phoenix.Flash.get(new_socket.assigns.flash, :info) == "Correct!"
     end
 
-    test "good guess, no wager", %{conn: conn, user: user} do
-      conn =
-        conn
-        |> log_in_user(user)
-
-      {:ok, view, _html} = live(conn, ~p"/guessing")
-
-      socket = get_socket(view)
+    test "good guess, no wager", %{socket: socket} do
       answer = socket.assigns.answer
 
       {:noreply, new_socket} =
@@ -87,13 +83,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
       assert Phoenix.Flash.get(new_socket.assigns.flash, :info) == "Correct!"
     end
 
-    test "one bad guess", %{conn: conn, user: user} do
-      conn = log_in_user(conn, user)
-
-      {:ok, view, _html} = live(conn, ~p"/guessing")
-
-      socket = get_socket(view)
-
+    test "one bad guess", %{socket: socket} do
       {:noreply, updated_socket} =
         GameSiteWeb.GuessingLive.handle_event(
           "answer",
@@ -107,13 +97,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
       assert Phoenix.Flash.get(updated_socket.assigns.flash, :error) == "Incorrect."
     end
 
-    test "5 bad guesses", %{conn: conn, user: user} do
-      conn = log_in_user(conn, user)
-
-      {:ok, view, _html} = live(conn, ~p"/guessing")
-
-      socket = get_socket(view)
-
+    test "5 bad guesses", %{socket: socket} do
       socket = run_five_times(socket, "2")
 
       assert socket.assigns.attempt == 1
@@ -122,15 +106,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
       assert Phoenix.Flash.get(socket.assigns.flash, :error) == "Out of Guesses."
     end
 
-    test "reset on 5 bad guesses and full wager", %{conn: conn, user: user} do
-      conn =
-        conn
-        |> log_in_user(user)
-
-      {:ok, view, _html} = live(conn, ~p"/guessing")
-
-      socket = get_socket(view)
-
+    test "reset on 5 bad guesses and full wager", %{socket: socket} do
       socket = run_five_times(socket, "10")
 
       assert socket.assigns.attempt == 1
@@ -139,15 +115,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
       assert Phoenix.Flash.get(socket.assigns.flash, :error) == "Out of Points, resetting."
     end
 
-    test "wager is set to the min of wager and score", %{conn: conn, user: user} do
-      conn =
-        conn
-        |> log_in_user(user)
-
-      {:ok, view, _html} = live(conn, ~p"/guessing")
-
-      socket = get_socket(view)
-
+    test "wager is set to the min of wager and score", %{socket: socket} do
       socket = run_five_times(socket, "6")
 
       assert socket.assigns.wager == 4
@@ -155,14 +123,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
       assert Phoenix.Flash.get(socket.assigns.flash, :error) == "Out of Guesses."
     end
 
-    test "exit after a correct answer", %{conn: conn, user: user, game: game} do
-      conn =
-        conn
-        |> log_in_user(user)
-
-      {:ok, view, _html} = live(conn, ~p"/guessing")
-
-      socket = get_socket(view)
+    test "exit after a correct answer", %{socket: socket, user: user, game: game} do
       answer = socket.assigns.answer
 
       {:noreply, updated_socket} =
@@ -186,8 +147,6 @@ defmodule GameSiteWeb.GuessingLiveTest do
           },
           updated_socket
         )
-
-      # assert redirected_to(conn) == ~p"/scores"
 
       assert Phoenix.Flash.get(updated_socket.assigns.flash, :info) ==
                "Score created successfully"

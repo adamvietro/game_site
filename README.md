@@ -26,6 +26,9 @@ Add in ability to use keystrokes for Wordle
 Poker
   Show the result of the poker hand.
   Add in multiplayer
+Tests
+Daily Wordle
+
 -->
 ## Learn more
 

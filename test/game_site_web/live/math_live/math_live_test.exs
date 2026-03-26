@@ -5,39 +5,40 @@ defmodule GameSiteWeb.MathLiveTest do
   import GameSite.GamesFixtures
   import GameSite.AccountsFixtures
 
-  defp log_in_and_socket(conn, user) do
-    conn =
-      conn
-      |> log_in_user(user)
-
-    {:ok, view, _html} = live(conn, ~p"/math")
-
+  defp get_socket(view) do
     state = :sys.get_state(view.pid)
-    socket = state.socket
+    state.socket
+  end
 
-    [conn, socket]
+  defp log_in_and_socket(conn, user) do
+    conn = log_in_user(conn, user)
+    {:ok, view, _html} = live(conn, ~p"/math")
+    socket = get_socket(view)
+
+    %{conn: conn, view: view, socket: socket}
   end
 
   describe "Math" do
-    setup do
+    setup %{conn: conn} do
       user = user_fixture()
       game = game_fixture(%{game_id: 2})
 
-      %{user: user, game: game}
+      %{conn: conn, view: view, socket: socket} = log_in_and_socket(conn, user)
+
+      %{
+        conn: conn,
+        view: view,
+        socket: socket,
+        user: user,
+        game: game
+      }
     end
 
-    test "access route", %{conn: conn, user: user} do
-      conn =
-        conn
-        |> log_in_user(user)
-
-      {:ok, _view, html} = live(conn, ~p"/math")
-
-      assert html =~ "Math Game"
+    test "access route", %{view: view} do
+      assert render(view) =~ "Math Game"
     end
 
-    test "good guess bad wager", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "good guess bad wager", %{socket: socket} do
       answer = socket.assigns.answer
 
       {:noreply, new_socket} =
@@ -52,8 +53,7 @@ defmodule GameSiteWeb.MathLiveTest do
       assert Phoenix.Flash.get(new_socket.assigns.flash, :info) == "Correct!"
     end
 
-    test "bad guess", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "bad guess", %{socket: socket} do
       answer = socket.assigns.answer
 
       {:noreply, new_socket} =
@@ -69,8 +69,7 @@ defmodule GameSiteWeb.MathLiveTest do
       assert Phoenix.Flash.get(new_socket.assigns.flash, :error) == "Incorrect"
     end
 
-    test "bad guess score less than wager", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "bad guess score less than wager", %{socket: socket} do
       answer = socket.assigns.answer
 
       {:noreply, new_socket} =
@@ -86,8 +85,7 @@ defmodule GameSiteWeb.MathLiveTest do
       assert Phoenix.Flash.get(new_socket.assigns.flash, :error) == "Incorrect"
     end
 
-    test "exit after a correct answer", %{conn: conn, user: user, game: game} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "exit after a correct answer", %{socket: socket, user: user, game: game} do
       answer = socket.assigns.answer
 
       {:noreply, updated_socket} =

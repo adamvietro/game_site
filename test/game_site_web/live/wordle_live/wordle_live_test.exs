@@ -4,28 +4,43 @@ defmodule WordleLiveTest do
   import Phoenix.LiveViewTest
   import GameSite.GamesFixtures
   import GameSite.AccountsFixtures
+
   alias GameSiteWeb.WordleLive
 
+  defp get_socket(view) do
+    state = :sys.get_state(view.pid)
+    state.socket
+  end
+
+  defp log_in_and_socket(conn, user) do
+    conn = log_in_user(conn, user)
+    {:ok, view, _html} = live(conn, ~p"/wordle")
+    socket = get_socket(view)
+
+    %{conn: conn, view: view, socket: socket}
+  end
+
   describe "html/live" do
-    setup do
+    setup %{conn: conn} do
       user = user_fixture()
       game = game_fixture(%{game_id: 4})
 
-      %{user: user, game: game}
+      %{conn: conn, view: view, socket: socket} = log_in_and_socket(conn, user)
+
+      %{
+        conn: conn,
+        view: view,
+        socket: socket,
+        user: user,
+        game: game
+      }
     end
 
-    test "access route", %{conn: conn, user: user} do
-      conn =
-        conn
-        |> log_in_user(user)
-
-      {:ok, _view, html} = live(conn, ~p"/wordle")
-
-      assert html =~ "Wordle"
+    test "access route", %{view: view} do
+      assert render(view) =~ "Wordle"
     end
 
-    test "good guess", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "good guess", %{socket: socket} do
       answer = get_answer(socket)
 
       {:noreply, new_socket} =
@@ -49,9 +64,7 @@ defmodule WordleLiveTest do
              ]
     end
 
-    test "2 good guesses", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
-
+    test "2 good guesses", %{socket: socket} do
       answer = get_answer(socket)
 
       {:noreply, socket} =
@@ -91,13 +104,11 @@ defmodule WordleLiveTest do
              ]
     end
 
-    test "bad guess word not in list", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
-
+    test "bad guess word not in list", %{socket: socket} do
       {:noreply, new_socket} =
         WordleLive.handle_event(
           "guess",
-          %{"guess" => to_string("     "), "no-input" => to_string("     ")},
+          %{"guess" => "     ", "no-input" => "     "},
           socket
         )
 
@@ -106,15 +117,14 @@ defmodule WordleLiveTest do
       assert new_socket.assigns.current_streak == 0
     end
 
-    test "all yellow", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
-
+    test "all yellow", %{socket: socket} do
       answer = get_answer(socket)
+      rotated = rotate_letters(answer)
 
       {:noreply, new_socket} =
         WordleLive.handle_event(
           "guess",
-          %{"guess" => to_string(rotate_letters(answer)), "no-input" => rotate_letters(answer)},
+          %{"guess" => to_string(rotated), "no-input" => rotated},
           socket
         )
 
@@ -132,8 +142,7 @@ defmodule WordleLiveTest do
              ]
     end
 
-    test "exit after a good guess", %{conn: conn, user: user, game: game} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "exit after a good guess", %{socket: socket, user: user, game: game} do
       answer = get_answer(socket)
 
       {:noreply, updated_socket} =
@@ -148,7 +157,7 @@ defmodule WordleLiveTest do
       assert updated_socket.assigns.highest_score == 60
 
       {:noreply, updated_socket} =
-        GameSiteWeb.MathLive.handle_event(
+        WordleLive.handle_event(
           "exit",
           %{
             "user_id" => user.id,
@@ -163,19 +172,6 @@ defmodule WordleLiveTest do
     end
   end
 
-  defp log_in_and_socket(conn, user) do
-    conn =
-      conn
-      |> log_in_user(user)
-
-    {:ok, view, _html} = live(conn, ~p"/wordle")
-
-    state = :sys.get_state(view.pid)
-    socket = state.socket
-
-    [conn, socket]
-  end
-
   defp get_answer(socket) do
     socket.assigns.word
   end
@@ -185,12 +181,9 @@ defmodule WordleLiveTest do
     start = round * 5
     last = round * 5 + 4
 
-    colors =
-      Enum.map(start..last, fn key ->
-        Map.get(socket.assigns.board_state, key)
-      end)
-
-    colors
+    Enum.map(start..last, fn key ->
+      Map.get(socket.assigns.board_state, key)
+    end)
   end
 
   defp rotate_letters(word) do

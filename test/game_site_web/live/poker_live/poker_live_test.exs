@@ -4,16 +4,34 @@ defmodule GameSiteWeb.PokerLiveTest do
   import Phoenix.LiveViewTest
   import GameSite.AccountsFixtures
 
+  defp get_socket(view) do
+    state = :sys.get_state(view.pid)
+    state.socket
+  end
+
+  defp log_in_and_socket(conn, user) do
+    conn = log_in_user(conn, user)
+    {:ok, view, _html} = live(conn, ~p"/poker")
+    socket = get_socket(view)
+
+    %{conn: conn, view: view, socket: socket}
+  end
+
   describe "events" do
-    setup do
+    setup %{conn: conn} do
       user = user_fixture()
 
-      %{user: user}
+      %{conn: conn, view: view, socket: socket} = log_in_and_socket(conn, user)
+
+      %{
+        conn: conn,
+        view: view,
+        socket: socket,
+        user: user
+      }
     end
 
-    test "new", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
-
+    test "new", %{socket: socket} do
       {:noreply, new_socket} =
         GameSiteWeb.PokerLive.handle_event(
           "new-hand",
@@ -27,9 +45,7 @@ defmodule GameSiteWeb.PokerLiveTest do
       assert length(new_socket.assigns.game.hand) == 0
     end
 
-    test "redraw", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
-
+    test "deal", %{socket: socket} do
       {:noreply, socket} =
         GameSiteWeb.PokerLive.handle_event(
           "new-hand",
@@ -67,18 +83,5 @@ defmodule GameSiteWeb.PokerLiveTest do
 
       [hand, ["#{rank}:#{suit}" | selected]]
     end)
-  end
-
-  defp log_in_and_socket(conn, user) do
-    conn =
-      conn
-      |> log_in_user(user)
-
-    {:ok, view, _html} = live(conn, ~p"/poker")
-
-    state = :sys.get_state(view.pid)
-    socket = state.socket
-
-    [conn, socket]
   end
 end
