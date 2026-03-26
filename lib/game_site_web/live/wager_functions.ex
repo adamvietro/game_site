@@ -1,0 +1,29 @@
+defmodule GameSiteWeb.WagerFunctions do
+  @moduledoc """
+    These are a set of helper functions for the entire site that will be used for more than
+    one set of games.
+  """
+  def add_subtract_wager("", guess, answer) do
+    if guess == to_string(answer) do
+      1
+    else
+      -1
+    end
+  end
+
+  def add_subtract_wager(wager, guess, answer) do
+    if guess == to_string(answer) do
+      String.to_integer(wager)
+    else
+      String.to_integer(wager) * -1
+    end
+  end
+
+  def correct?(guess, answer) do
+    guess == to_string(answer)
+  end
+
+  def wager_parse(wager) do
+    if wager == "", do: 1, else: String.to_integer(wager)
+  end
+end

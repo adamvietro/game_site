@@ -1,5 +1,4 @@
 defmodule GameSiteWeb.Router do
-  # alias GameSiteWeb.GuessingLive
   use GameSiteWeb, :router
 
   import GameSiteWeb.UserAuth
@@ -21,7 +20,20 @@ defmodule GameSiteWeb.Router do
   scope "/", GameSiteWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live_session :games,
+      on_mount: [{GameSiteWeb.UserAuth, :mount_current_user}] do
+      get "/", PageController, :home
+
+      live "/scores", ScoreLive.Index, :index
+
+      live "/guessing", GuessingLive, :game
+      live "/math", MathLive, :game
+      live "/rock-paper-scissors", RockPaperScissorsLive, :game
+      live "/wordle", WordleLive, :game
+      live "/poker", PokerLive, :game
+      live "/pento/:puzzle", PentoLive
+      live "/pento_choice", PentoLive.Picker
+    end
   end
 
   scope "/", GameSiteWeb do
@@ -34,19 +46,6 @@ defmodule GameSiteWeb.Router do
 
       live "/games/:id", GameLive.Show, :show
       live "/games/:id/show/edit", GameLive.Show, :edit
-
-      live "/scores", ScoreLive.Index, :index
-      # live "/scores/new", ScoreLive.Index, :new
-      # live "/scores/:id/edit", ScoreLive.Index, :edit
-
-      # live "/scores/:id", ScoreLive.Show, :show
-      # live "/scores/:id/show/edit", ScoreLive.Show, :edit
-
-      live "/1", GuessingLive, :game
-      live "/2", MathLive, :game
-      live "/3", RockPaperScissorsLive, :game
-      live "/4", WordleLive, :game
-      live "/5", PokerLive, :game
     end
   end
 
