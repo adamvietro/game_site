@@ -10,7 +10,7 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
             score: 10,
             outcome: nil,
             message: "",
-            flash_message: ""
+            flash_message: nil
 
   def set_computer_choice() do
     computer_choice()
