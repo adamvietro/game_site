@@ -18,42 +18,23 @@ defmodule GameSite.RPSTest do
     [conn, socket]
   end
 
-  defp get_winner(computer) do
-    case computer do
-      "rock" -> "paper"
-      "paper" -> "scissor"
-      "scissor" -> "rock"
-    end
-  end
-
-  defp get_loser(computer) do
-    case computer do
-      "rock" -> "scissor"
-      "scissor" -> "paper"
-      "paper" -> "rock"
-    end
-  end
-
   describe "Rock Paper Scissors" do
-    setup do
+    setup %{conn: conn} do
       user = user_fixture()
       game = game_fixture(%{game_id: 3})
 
-      %{user: user, game: game}
+      [conn, socket] = log_in_and_socket(conn, user)
+
+      {:ok, conn: conn, socket: socket, user: user, game: game}
     end
 
-    test "access route", %{conn: conn, user: user} do
-      conn =
-        conn
-        |> log_in_user(user)
-
+    test "access route", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/rock-paper-scissors")
 
       assert html =~ "Rock Paper"
     end
 
-    test "good guess", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "good guess", %{socket: socket} do
       computer = socket.assigns.computer
       winner = get_winner(computer)
 
@@ -69,8 +50,7 @@ defmodule GameSite.RPSTest do
       assert new_socket.assigns.message == "You Win!!"
     end
 
-    test "good guess bad wager", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "good guess bad wager", %{socket: socket} do
       computer = socket.assigns.computer
       winner = get_winner(computer)
 
@@ -86,8 +66,7 @@ defmodule GameSite.RPSTest do
       assert new_socket.assigns.message == "You Win!!"
     end
 
-    test "bad guess", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "bad guess", %{socket: socket} do
       computer = socket.assigns.computer
       lose = get_loser(computer)
 
@@ -103,8 +82,7 @@ defmodule GameSite.RPSTest do
       assert new_socket.assigns.message == "You Lose!!"
     end
 
-    test "bad guess higher wager", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "bad guess higher wager", %{socket: socket} do
       computer = socket.assigns.computer
       lose = get_loser(computer)
 
@@ -121,8 +99,7 @@ defmodule GameSite.RPSTest do
       assert new_socket.assigns.message == "You Lose!!"
     end
 
-    test "tie", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "tie", %{socket: socket} do
       computer = socket.assigns.computer
 
       {:noreply, new_socket} =
@@ -138,8 +115,7 @@ defmodule GameSite.RPSTest do
       assert new_socket.assigns.message == "You Tie!!"
     end
 
-    test "wrong answer and reset after score goes to 0", %{conn: conn, user: user} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "wrong answer and reset after score goes to 0", %{socket: socket} do
       computer = socket.assigns.computer
       lose = get_loser(computer)
 
@@ -157,8 +133,7 @@ defmodule GameSite.RPSTest do
       assert Phoenix.Flash.get(new_socket.assigns.flash, :error) == "Score at 0, resetting."
     end
 
-    test "exit after a correct answer", %{conn: conn, user: user, game: game} do
-      [_conn, socket] = log_in_and_socket(conn, user)
+    test "exit after a correct answer", %{socket: socket, user: user, game: game} do
       computer = socket.assigns.computer
       winner = get_winner(computer)
 
@@ -187,6 +162,22 @@ defmodule GameSite.RPSTest do
 
       assert Phoenix.Flash.get(updated_socket.assigns.flash, :info) ==
                "Score created successfully"
+    end
+  end
+
+  defp get_winner(computer) do
+    case computer do
+      "rock" -> "paper"
+      "paper" -> "scissor"
+      "scissor" -> "rock"
+    end
+  end
+
+  defp get_loser(computer) do
+    case computer do
+      "rock" -> "scissor"
+      "scissor" -> "paper"
+      "paper" -> "rock"
     end
   end
 end

@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.Live.GuessingLive.QuestionTest do
+defmodule GameSiteWeb.GuessingLive.QuestionTest do
   use ExUnit.Case, async: true
 
   alias GameSiteWeb.Live.GuessingLive.Question
