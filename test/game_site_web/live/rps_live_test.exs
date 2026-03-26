@@ -10,7 +10,7 @@ defmodule GameSite.RPSTest do
       conn
       |> log_in_user(user)
 
-    {:ok, view, _html} = live(conn, ~p"/3")
+    {:ok, view, _html} = live(conn, ~p"/rock-paper-scissors")
 
     state = :sys.get_state(view.pid)
     socket = state.socket
@@ -47,7 +47,7 @@ defmodule GameSite.RPSTest do
         conn
         |> log_in_user(user)
 
-      {:ok, _view, html} = live(conn, ~p"/3")
+      {:ok, _view, html} = live(conn, ~p"/rock-paper-scissors")
 
       assert html =~ "Rock Paper"
     end
@@ -66,7 +66,7 @@ defmodule GameSite.RPSTest do
 
       assert new_socket.assigns.score == 20
       assert new_socket.assigns.highest_score == 20
-      assert new_socket.assigns.outcome == "You Win!"
+      assert new_socket.assigns.message == "You Win!!"
     end
 
     test "good guess bad wager", %{conn: conn, user: user} do
@@ -83,7 +83,7 @@ defmodule GameSite.RPSTest do
 
       assert new_socket.assigns.score == 11
       assert new_socket.assigns.highest_score == 11
-      assert new_socket.assigns.outcome == "You Win!"
+      assert new_socket.assigns.message == "You Win!!"
     end
 
     test "bad guess", %{conn: conn, user: user} do
@@ -99,11 +99,11 @@ defmodule GameSite.RPSTest do
         )
 
       assert new_socket.assigns.score == 5
-      assert new_socket.assigns.highest_score == 0
-      assert new_socket.assigns.outcome == "You Lose!"
+      assert new_socket.assigns.highest_score == 5
+      assert new_socket.assigns.message == "You Lose!!"
     end
 
-    test "bad guess and score less than wager", %{conn: conn, user: user} do
+    test "bad guess higher wager", %{conn: conn, user: user} do
       [_conn, socket] = log_in_and_socket(conn, user)
       computer = socket.assigns.computer
       lose = get_loser(computer)
@@ -117,8 +117,8 @@ defmodule GameSite.RPSTest do
 
       assert new_socket.assigns.score == 4
       assert new_socket.assigns.wager == 4
-      assert new_socket.assigns.highest_score == 0
-      assert new_socket.assigns.outcome == "You Lose!"
+      assert new_socket.assigns.highest_score == 4
+      assert new_socket.assigns.message == "You Lose!!"
     end
 
     test "tie", %{conn: conn, user: user} do
@@ -134,8 +134,8 @@ defmodule GameSite.RPSTest do
 
       assert new_socket.assigns.score == 10
       assert new_socket.assigns.wager == 6
-      assert new_socket.assigns.highest_score == 0
-      assert new_socket.assigns.outcome == "You Tie!"
+      assert new_socket.assigns.highest_score == 10
+      assert new_socket.assigns.message == "You Tie!!"
     end
 
     test "wrong answer and reset after score goes to 0", %{conn: conn, user: user} do
@@ -153,7 +153,7 @@ defmodule GameSite.RPSTest do
       assert new_socket.assigns.score == 10
       assert new_socket.assigns.wager == 1
       assert new_socket.assigns.highest_score == 0
-      assert new_socket.assigns.outcome == ""
+      assert new_socket.assigns.message == ""
       assert Phoenix.Flash.get(new_socket.assigns.flash, :error) == "Score at 0, resetting."
     end
 
@@ -171,7 +171,8 @@ defmodule GameSite.RPSTest do
 
       assert new_socket.assigns.score == 20
       assert new_socket.assigns.highest_score == 20
-      assert new_socket.assigns.outcome == "You Win!"
+      assert new_socket.assigns.outcome == nil
+      assert new_socket.assigns.message == "You Win!!"
 
       {:noreply, updated_socket} =
         GameSiteWeb.RockPaperScissorsLive.handle_event(

@@ -36,7 +36,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
         conn
         |> log_in_user(user)
 
-      {:ok, _view, html} = live(conn, ~p"/1")
+      {:ok, _view, html} = live(conn, ~p"/guessing")
 
       assert html =~ "Guessing Game"
     end
@@ -46,7 +46,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
         conn
         |> log_in_user(user)
 
-      {:ok, view, _html} = live(conn, ~p"/1")
+      {:ok, view, _html} = live(conn, ~p"/guessing")
 
       socket = get_socket(view)
       answer = socket.assigns.answer
@@ -69,7 +69,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
         conn
         |> log_in_user(user)
 
-      {:ok, view, _html} = live(conn, ~p"/1")
+      {:ok, view, _html} = live(conn, ~p"/guessing")
 
       socket = get_socket(view)
       answer = socket.assigns.answer
@@ -90,7 +90,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
     test "one bad guess", %{conn: conn, user: user} do
       conn = log_in_user(conn, user)
 
-      {:ok, view, _html} = live(conn, ~p"/1")
+      {:ok, view, _html} = live(conn, ~p"/guessing")
 
       socket = get_socket(view)
 
@@ -110,7 +110,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
     test "5 bad guesses", %{conn: conn, user: user} do
       conn = log_in_user(conn, user)
 
-      {:ok, view, _html} = live(conn, ~p"/1")
+      {:ok, view, _html} = live(conn, ~p"/guessing")
 
       socket = get_socket(view)
 
@@ -127,7 +127,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
         conn
         |> log_in_user(user)
 
-      {:ok, view, _html} = live(conn, ~p"/1")
+      {:ok, view, _html} = live(conn, ~p"/guessing")
 
       socket = get_socket(view)
 
@@ -144,7 +144,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
         conn
         |> log_in_user(user)
 
-      {:ok, view, _html} = live(conn, ~p"/1")
+      {:ok, view, _html} = live(conn, ~p"/guessing")
 
       socket = get_socket(view)
 
@@ -160,7 +160,7 @@ defmodule GameSiteWeb.GuessingLiveTest do
         conn
         |> log_in_user(user)
 
-      {:ok, view, _html} = live(conn, ~p"/1")
+      {:ok, view, _html} = live(conn, ~p"/guessing")
 
       socket = get_socket(view)
       answer = socket.assigns.answer

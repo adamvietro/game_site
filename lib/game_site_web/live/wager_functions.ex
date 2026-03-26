@@ -3,9 +3,6 @@ defmodule GameSiteWeb.WagerFunctions do
     These are a set of helper functions for the entire site that will be used for more than
     one set of games.
   """
-
-  def highest_score(event_info), do: max(event_info.current_score, event_info.highest_score)
-
   def add_subtract_wager("", guess, answer) do
     if guess == to_string(answer) do
       1

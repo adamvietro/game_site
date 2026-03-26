@@ -106,7 +106,8 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
            round: round,
            score: score,
            highest_streak: highest_streak,
-           current_streak: current_streak
+           current_streak: current_streak,
+           highest_score: highest_score
          } = game_state
        ) do
     score = (6 - round) * 10 + score
@@ -116,6 +117,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
     %{
       game_state
       | score: score,
+        highest_score: max(highest_score, score),
         current_streak: current_streak,
         highest_streak: highest_streak,
         reset: true,

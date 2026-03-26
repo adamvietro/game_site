@@ -39,11 +39,6 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
   end
 
   @impl true
-  def handle_event("exit", params, socket) do
-    ScoreHandler.save_score(socket, params)
-  end
-
-  @impl true
   def handle_event("answer", params, socket) do
     game_state =
       %GameLogic{
@@ -65,17 +60,28 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
     {:noreply, assign(socket, :wager, socket.assigns.score)}
   end
 
+  @impl true
+  def handle_event("exit", params, socket) do
+    ScoreHandler.save_score(socket, params)
+  end
+
   defp assign_game_state(%GameLogic{} = game_state, socket) do
     socket =
       socket
-      |> put_flash(:error, game_state.flash_message)
       |> assign(computer: game_state.computer)
       |> assign(score: game_state.score)
       |> assign(wager: game_state.wager)
       |> assign(highest_score: game_state.highest_score)
       |> assign(form: to_form(%{"wager" => game_state.wager}))
-      |> assign(outcome: nil)
+      |> assign(outcome: game_state.outcome)
       |> assign(message: game_state.message)
+
+    socket =
+      if game_state.flash_message do
+        put_flash(socket, :error, game_state.flash_message)
+      else
+        socket
+      end
 
     {:noreply, socket}
   end
@@ -87,7 +93,8 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
       highest_score: 0,
       wager: 1,
       form: to_form(%{"wager" => 1}),
-      message: ""
+      message: "",
+      outcome: ""
     }
   end
 end

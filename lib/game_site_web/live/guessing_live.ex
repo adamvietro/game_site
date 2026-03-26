@@ -44,7 +44,35 @@ defmodule GameSiteWeb.GuessingLive do
 
   @impl true
   def handle_event("answer", params, socket) do
-    Question.handle_answer(params, socket)
+    event_info = Question.set_event_info(socket.assigns, params)
+    new_answer = Question.get_new_answer()
+
+    {flash_type, flash_msg, score, attempt, answer, wager} =
+      cond do
+        event_info.correct ->
+          highest_score = highest_score(event_info)
+          {:info, "Correct!", highest_score, 1, new_answer, event_info.wager}
+
+        event_info.attempt < 5 ->
+          {:error, "Incorrect.", socket.assigns.score, event_info.attempt + 1,
+           socket.assigns.answer, event_info.wager}
+
+        event_info.attempt >= 5 and event_info.current_score <= 0 ->
+          {:error, "Out of Points, resetting.", 10, 1, new_answer, 1}
+
+        event_info.attempt >= 5 ->
+          {:error, "Out of Guesses.", event_info.current_score, 1, new_answer,
+           min(event_info.wager, event_info.current_score)}
+      end
+
+    socket =
+      socket
+      |> clear_flash()
+      |> assign(score: score, attempt: attempt, answer: answer, wager: wager)
+      |> assign(form: to_form(%{}))
+      |> put_flash(flash_type, flash_msg)
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -56,4 +84,6 @@ defmodule GameSiteWeb.GuessingLive do
   def handle_event("set_max_wager", _params, socket) do
     {:noreply, assign(socket, :wager, socket.assigns.score)}
   end
+
+  def highest_score(event_info), do: max(event_info.current_score, event_info.highest_score)
 end

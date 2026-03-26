@@ -8,7 +8,7 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
             highest_score: 0,
             form: %{"wager" => 1},
             score: 10,
-            outcome: "",
+            outcome: nil,
             message: "",
             flash_message: ""
 
@@ -16,9 +16,9 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
     computer_choice()
   end
 
-  def parse_wager(wager) do
-    String.to_integer(wager)
-  end
+  def parse_wager(""), do: 1
+  def parse_wager(nil), do: 1
+  def parse_wager(wager), do: String.to_integer(wager)
 
   def determine_round(%__MODULE__{} = game_state) do
     game_state

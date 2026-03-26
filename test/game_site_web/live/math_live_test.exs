@@ -10,7 +10,7 @@ defmodule GameSiteWeb.MathLiveTest do
       conn
       |> log_in_user(user)
 
-    {:ok, view, _html} = live(conn, ~p"/2")
+    {:ok, view, _html} = live(conn, ~p"/math")
 
     state = :sys.get_state(view.pid)
     socket = state.socket
@@ -31,7 +31,7 @@ defmodule GameSiteWeb.MathLiveTest do
         conn
         |> log_in_user(user)
 
-      {:ok, _view, html} = live(conn, ~p"/2")
+      {:ok, _view, html} = live(conn, ~p"/math")
 
       assert html =~ "Math Game"
     end

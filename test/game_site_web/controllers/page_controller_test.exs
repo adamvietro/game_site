@@ -3,6 +3,6 @@ defmodule GameSiteWeb.PageControllerTest do
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Welcome to my game site."
+    assert html_response(conn, 200) =~ "Welcome to my personal game development site"
   end
 end
