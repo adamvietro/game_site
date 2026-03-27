@@ -14,6 +14,8 @@ defmodule GameSite.Application do
       {Phoenix.PubSub, name: GameSite.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: GameSite.Finch},
+      {Registry, keys: :unique, name: GameSite.MultiPoker.RoomRegistry},
+      {DynamicSupervisor, strategy: :one_for_one, name: GameSite.MultiPoker.RoomSupervisor},
       # Start a worker by calling: GameSite.Worker.start_link(arg)
       # {GameSite.Worker, arg},
       # Start to serve requests, typically the last entry

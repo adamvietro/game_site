@@ -36,6 +36,10 @@ defmodule GameSite.MultiPoker.Room do
     GenServer.cast(pid, {:update_status, status})
   end
 
+  def get_state(pid) do
+    GenServer.call(pid, :get_room_state)
+  end
+
   def start_link(host, opts \\ []) do
     GenServer.start_link(__MODULE__, {host, opts})
   end
@@ -71,5 +75,10 @@ defmodule GameSite.MultiPoker.Room do
   @impl true
   def handle_cast({:has_room}, state) do
     {:noreply, %__MODULE__{state | full: false}}
+  end
+
+  @impl true
+  def handle_call(:get_room_state, _from, state) do
+    {:reply, state, state}
   end
 end
