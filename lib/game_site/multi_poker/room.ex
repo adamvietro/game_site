@@ -41,7 +41,13 @@ defmodule GameSite.MultiPoker.Room do
   end
 
   def start_link(host, opts \\ []) do
-    GenServer.start_link(__MODULE__, {host, opts})
+    room_id = Keyword.fetch!(opts, :room_id)
+
+    GenServer.start_link(
+      __MODULE__,
+      {host, opts},
+      name: via(room_id)
+    )
   end
 
   @impl true
@@ -80,5 +86,9 @@ defmodule GameSite.MultiPoker.Room do
   @impl true
   def handle_call(:get_room_state, _from, state) do
     {:reply, state, state}
+  end
+
+  defp via(room_id) do
+    {:via, Registry, {GameSite.MultiPoker.RoomRegistry, room_id}}
   end
 end
