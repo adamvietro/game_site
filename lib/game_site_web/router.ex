@@ -33,6 +33,8 @@ defmodule GameSiteWeb.Router do
       live "/poker", PokerLive, :game
       live "/pento/:puzzle", PentoLive
       live "/pento_choice", PentoLive.Picker
+      live "/multi-poker", MultiPokerLive.Lobby
+      live "/multi-poker/:room", MultiPokerLive
     end
   end
 
