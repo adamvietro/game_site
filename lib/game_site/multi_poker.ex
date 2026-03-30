@@ -1,16 +1,26 @@
 defmodule GameSite.MultiPoker do
   alias GameSite.MultiPoker.{Room, Player}
+  alias Ecto.UUID
 
   @room_supervisor GameSite.MultiPoker.RoomSupervisor
   @registry GameSite.MultiPoker.RoomRegistry
 
   def create_room(user_id) do
-    room_id = Ecto.UUID.generate()
-    player = Player.new(user_id)
+    case get_room_by_host(user_id) do
+      {room_id, _pid} ->
+        {:error, :already_has_room, room_id}
 
-    case start_room(room_id, player) do
-      {:ok, _pid} -> {:ok, room_id}
-      {:error, reason} -> {:error, reason}
+      nil ->
+        room_id = UUID.generate()
+        player = Player.new(user_id)
+
+        case DynamicSupervisor.start_child(
+               @room_supervisor,
+               {Room, %{room_id: room_id, host: player}}
+             ) do
+          {:ok, _pid} -> {:ok, room_id}
+          error -> error
+        end
     end
   end
 
@@ -28,12 +38,19 @@ defmodule GameSite.MultiPoker do
     end
   end
 
-  defp start_room(room_id, host_player) do
-    spec = %{
-      id: room_id,
-      start: {Room, :start_link, [host_player, [room_id: room_id]]}
-    }
-
-    DynamicSupervisor.start_child(@room_supervisor, spec)
+  defp get_room_by_host(user_id) do
+    Registry.select(@registry, [
+      {
+        {:"$1", :"$2", :"$3"},
+        [],
+        [{{:"$1", :"$2"}}]
+      }
+    ])
+    |> Enum.find(fn {_room_id, pid} ->
+      case Room.get_state(pid) do
+        %{host_id: ^user_id} -> true
+        _ -> false
+      end
+    end)
   end
 end

@@ -7,31 +7,80 @@ defmodule GameSite.MultiPoker.Room do
             room_id: nil,
             room_status: :waiting,
             host_id: nil,
-            full: false
+            max_players: 6,
+            phase: :pre_flop,
+            deck: [],
+            community_cards: [],
+            small_blind: 10,
+            big_blind: 20,
+            current_player_turn: nil,
+            pot: 0,
+            current_hand_number: 0,
+            dealer_position: 0
+
+  @allowed_keys [
+    :players,
+    :room_id,
+    :room_status,
+    :host_id,
+    :max_players,
+    :phase,
+    :deck,
+    :community_cards,
+    :small_blind,
+    :big_blind,
+    :current_player_turn,
+    :pot,
+    :current_hand_number,
+    :dealer_position
+  ]
 
   def new(%Player{} = host, opts \\ []) do
     host_id = host.player_id
-    room_id = Keyword.get(opts, :room_id)
-    room_status = Keyword.get(opts, :room_status, :waiting)
-    full = Keyword.get(opts, :full, false)
 
     %__MODULE__{
       players: %{host_id => host},
-      room_id: room_id,
-      room_status: room_status,
+      room_id: Keyword.get(opts, :room_id),
+      room_status: Keyword.get(opts, :room_status, :waiting),
       host_id: host_id,
-      full: full
+      max_players: Keyword.get(opts, :max_players, 6),
+
+      # game state
+      phase: Keyword.get(opts, :phase, :pre_flop),
+      deck: Keyword.get(opts, :deck, []),
+      community_cards: Keyword.get(opts, :community_cards, []),
+
+      # blinds
+      small_blind: Keyword.get(opts, :small_blind, 10),
+      big_blind: Keyword.get(opts, :big_blind, 20),
+
+      # flow
+      current_player_turn: Keyword.get(opts, :current_player_turn, nil),
+      pot: Keyword.get(opts, :pot, 0),
+      current_hand_number: Keyword.get(opts, :current_hand_number, 0),
+      dealer_position: Keyword.get(opts, :dealer_position, 0)
     }
   end
 
-  def start_link(host, opts \\ []) do
-    room_id = Keyword.fetch!(opts, :room_id)
+  def change(%__MODULE__{} = room, opts) do
+    valid_opts =
+      Enum.filter(opts, fn {key, _value} ->
+        key in @allowed_keys
+      end)
 
+    struct(room, valid_opts)
+  end
+
+  def start_link(%{room_id: room_id} = attrs) do
     GenServer.start_link(
       __MODULE__,
-      {host, opts},
+      attrs,
       name: via(room_id)
     )
+  end
+
+  def update_room(pid, opts) do
+    GenServer.cast(pid, {:update_room, opts})
   end
 
   def add_player(pid, %Player{} = player) do
@@ -55,9 +104,14 @@ defmodule GameSite.MultiPoker.Room do
   end
 
   @impl true
-  def init({host, opts}) do
-    initial_state = new(host, opts)
+  def init(%{host: host, room_id: room_id}) do
+    initial_state = new(host, room_id: room_id)
     {:ok, initial_state}
+  end
+
+  @impl true
+  def handle_cast({:update_room, opts}, %__MODULE__{} = state) do
+    {:noreply, change(state, opts)}
   end
 
   @impl true
@@ -90,16 +144,6 @@ defmodule GameSite.MultiPoker.Room do
       end
 
     {:noreply, %__MODULE__{state | players: new_players}}
-  end
-
-  @impl true
-  def handle_cast({:full_room}, state) do
-    {:noreply, %__MODULE__{state | full: true}}
-  end
-
-  @impl true
-  def handle_cast({:has_room}, state) do
-    {:noreply, %__MODULE__{state | full: false}}
   end
 
   @impl true

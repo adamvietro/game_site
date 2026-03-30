@@ -31,10 +31,18 @@ defmodule GameSiteWeb.MultiPokerLive.Lobby do
   @impl true
   def handle_event("create_room", _params, socket) do
     current_user = socket.assigns.current_user
-    {_, room_id} = MultiPoker.create_room(current_user.id)
 
-    socket =
-      assign(socket, :rooms, list_room_summaries())
+    {socket, room_id} =
+      case MultiPoker.create_room(current_user.id) do
+        {_, room_id} ->
+          {socket, room_id}
+
+        {:error, :already_has_room, room_id} ->
+          socket =
+            assign(socket, :rooms, list_room_summaries())
+
+          {socket, room_id}
+      end
 
     {:noreply, redirect(socket, to: "/multi-poker/#{room_id}")}
   end
