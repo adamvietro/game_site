@@ -20,6 +20,11 @@ defmodule GameSite.MultiPoker.GameLogic do
     end
   end
 
+  def player_bet(%Room{current_player_turn: current_player_turn} = room, player_id, amount)
+      when current_player_turn != player_id or amount <= 0 do
+    room
+  end
+
   def player_bet(%Room{players: players, pot: pot} = room, player_id, amount) do
     case Map.fetch(players, player_id) do
       {:ok, player} ->
@@ -41,6 +46,11 @@ defmodule GameSite.MultiPoker.GameLogic do
       :error ->
         room
     end
+  end
+
+  def player_fold(%Room{current_player_turn: current_player_turn} = room, player_id)
+      when current_player_turn != player_id do
+    room
   end
 
   def player_fold(%Room{players: players} = room, player_id) do
