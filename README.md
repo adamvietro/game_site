@@ -86,6 +86,19 @@ The project includes:
 
 --------------------------------------------------
 
+## Design Decisions
+
+### Why LiveView?
+Chose LiveView to simplify real-time updates and reduce frontend complexity.
+
+### State Management
+Moved toward server-owned state to avoid client inconsistencies.
+
+### Tradeoffs
+Accepted increased server responsibility in exchange for simpler UI logic.
+
+--------------------------------------------------
+
 <!-- 📌 TODO / Notes
 
 Core Improvements
@@ -114,6 +127,4 @@ Gameplay Features
 
 Testing
 - Add more robust test coverage -->
-
---------------------------------------------------
 
