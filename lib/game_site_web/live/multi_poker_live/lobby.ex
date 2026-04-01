@@ -17,7 +17,11 @@ defmodule GameSiteWeb.MultiPokerLive.Lobby do
   end
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
+    socket =
+      socket
+      |> set_current_viewer_id(session)
+
     rooms =
       if connected?(socket) do
         list_room_summaries()
@@ -30,10 +34,10 @@ defmodule GameSiteWeb.MultiPokerLive.Lobby do
 
   @impl true
   def handle_event("create_room", _params, socket) do
-    current_user = socket.assigns.current_user
+    current_viewer_id = socket.assigns.current_viewer_id
 
     {socket, room_id} =
-      case MultiPoker.create_room(current_user.id) do
+      case MultiPoker.create_room(current_viewer_id) do
         {_, room_id} ->
           {socket, room_id}
 
@@ -70,5 +74,10 @@ defmodule GameSiteWeb.MultiPokerLive.Lobby do
         display_id: display_id
       }
     end)
+  end
+
+  def set_current_viewer_id(%{assigns: %{current_user: current_user}} = socket, _session)
+      when not is_nil(current_user) do
+    assign(socket, :current_viewer_id, "user:#{current_user.id}")
   end
 end

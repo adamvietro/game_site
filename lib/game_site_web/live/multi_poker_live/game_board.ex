@@ -42,9 +42,9 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   end
 
   attr(:players, :map, required: true)
-  attr(:current_player, :integer, required: false, default: nil)
+  attr(:current_player_turn, :integer, required: true)
   attr(:community_cards, :list, required: true)
-  attr(:current_player_id, :integer, required: true)
+  attr(:current_viewer_id, :string, required: true)
 
   def game_table(assigns) do
     ~H"""
@@ -53,8 +53,8 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
         <.player_hand
           player_id={player.player_id}
           player_hand={player.hand}
-          current_player={@current_player}
-          show_hand={player.player_id == @current_player}
+          current_player_turn={@current_player_turn}
+          show_hand={player.viewer_id == @current_viewer_id}
         />
       <% end %>
 
@@ -65,7 +65,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   attr(:player_id, :integer, required: true)
   attr(:player_hand, :list, required: true)
-  attr(:current_player, :integer, required: false, default: nil)
+  attr(:current_player_turn, :integer, required: false, default: nil)
   attr(:show_hand, :boolean, required: true)
 
   def player_hand(assigns) do
@@ -73,7 +73,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     <div class="space-y-2">
       <div class="text-center font-medium">
         Player {@player_id}
-        <%= if @player_id == @current_player do %>
+        <%= if @player_id == @current_player_turn do %>
           <span class="ml-2 text-green-600">(Current Turn)</span>
         <% end %>
       </div>

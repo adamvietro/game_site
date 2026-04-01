@@ -1,5 +1,6 @@
 defmodule GameSite.MultiPoker.Player do
   defstruct player_id: nil,
+            viewer_id: nil,
             ready?: false,
             chips: 1000,
             current_bet: 0,
@@ -8,7 +9,7 @@ defmodule GameSite.MultiPoker.Player do
             hand: [],
             connected?: true
 
-  def new(id, opts \\ []) do
+  def new(player_id, viewer_id, opts \\ []) do
     ready = Keyword.get(opts, :ready?, false)
     chips = Keyword.get(opts, :chips, 1000)
     current_bet = Keyword.get(opts, :current_bet, 0)
@@ -18,7 +19,8 @@ defmodule GameSite.MultiPoker.Player do
     connected = Keyword.get(opts, :connected?, true)
 
     %__MODULE__{
-      player_id: id,
+      player_id: player_id,
+      viewer_id: viewer_id,
       ready?: ready,
       chips: chips,
       current_bet: current_bet,

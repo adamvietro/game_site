@@ -7,7 +7,7 @@ defmodule GameSiteWeb.MultiPokerLive do
 
   def render(assigns) do
     ~H"""
-    <%= if is_nil(@room) do %>
+    <%= if @room == nil  do %>
       Room is loading...
     <% else %>
       <p>Room Status: {@room.room_status}</p>
@@ -25,15 +25,19 @@ defmodule GameSiteWeb.MultiPokerLive do
 
       <GameBoard.game_table
         players={@room.players}
-        current_player={@room.current_player_turn}
+        current_player_turn={@room.current_player_turn}
         community_cards={@room.community_cards}
-        current_player_id={@current_user.id}
+        current_viewer_id={@current_viewer_id}
       />
     <% end %>
     """
   end
 
-  def mount(params, _session, socket) do
+  def mount(params, session, socket) do
+    socket =
+      socket
+      |> set_current_viewer_id(session)
+
     if connected?(socket) do
       case MultiPoker.get_room(params["room"]) do
         {:ok, room} -> {:ok, assign(socket, :room, room)}
@@ -44,6 +48,12 @@ defmodule GameSiteWeb.MultiPokerLive do
     end
   end
 
-  def set_current_user_id(%{assigns: %{current_user: current_user}}) do
+  def set_current_viewer_id(%{assigns: %{current_user: current_user}} = socket, _session)
+      when not is_nil(current_user) do
+    assign(socket, :current_viewer_id, "user:#{current_user.id}")
+  end
+
+  def set_current_viewer_id(socket, session) do
+    assign(socket, :current_viewer_id, "guest:#{session["guest_id"]}")
   end
 end
