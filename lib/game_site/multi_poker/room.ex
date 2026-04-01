@@ -91,6 +91,10 @@ defmodule GameSite.MultiPoker.Room do
     GenServer.call(pid, :get_room_state)
   end
 
+  def get_player_by_viewer_id(pid, viewer_id) do
+    GenServer.call(pid, {:get_player_by_viewer_id, viewer_id})
+  end
+
   # viewer-facing actions
 
   def add_player(pid, viewer_id) do
@@ -199,6 +203,16 @@ defmodule GameSite.MultiPoker.Room do
   end
 
   @impl true
+  def handle_call({:get_player_by_viewer_id, viewer_id}, _from, %__MODULE__{} = state) do
+    player =
+      state.players
+      |> Map.values()
+      |> Enum.find(fn player -> player.viewer_id == viewer_id end)
+
+    {:reply, player, state}
+  end
+
+  @impl true
   def handle_call({:add_player, viewer_id}, _from, %__MODULE__{} = state) do
     case find_player_id_by_viewer_id(state, viewer_id) do
       nil ->
@@ -220,6 +234,38 @@ defmodule GameSite.MultiPoker.Room do
 
   defp via(room_id) do
     {:via, Registry, {GameSite.MultiPoker.RoomRegistry, room_id}}
+  end
+
+  def viewer_state(%__MODULE__{} = room, current_viewer_id) do
+    case get_player_by_viewer_id_from_room(room, current_viewer_id) do
+      nil ->
+        %{
+          action_state: :not_joined,
+          player_chips: 0,
+          player_id: nil
+        }
+
+      %Player{} = player ->
+        action_state =
+          cond do
+            player.folded? -> :folded
+            player.chips == 0 -> :all_in
+            room.current_player_turn == player.player_id -> :your_turn
+            true -> :waiting
+          end
+
+        %{
+          action_state: action_state,
+          player_chips: player.chips,
+          player_id: player.player_id
+        }
+    end
+  end
+
+  defp get_player_by_viewer_id_from_room(%__MODULE__{} = room, viewer_id) do
+    room.players
+    |> Map.values()
+    |> Enum.find(fn player -> player.viewer_id == viewer_id end)
   end
 
   defp find_player_id_by_viewer_id(%__MODULE__{} = state, viewer_id) do

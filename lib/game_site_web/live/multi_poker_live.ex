@@ -1,7 +1,8 @@
 defmodule GameSiteWeb.MultiPokerLive do
+  alias Ecto.Multi
   use GameSiteWeb, :live_view
 
-  alias GameSite.MultiPoker.{GameLogic, Room}
+  alias GameSite.MultiPoker.{GameLogic, Room, Player}
   alias GameSite.MultiPoker
   alias GameSiteWeb.MultiPokerLive.GameBoard
 
@@ -29,6 +30,12 @@ defmodule GameSiteWeb.MultiPokerLive do
         community_cards={@room.community_cards}
         current_viewer_id={@current_viewer_id}
       />
+
+      <GameBoard.player_actions
+        action_state={@viewer_state.action_state}
+        player_chips={@viewer_state.player_chips}
+        bet_amount={0}
+      />
     <% end %>
     """
   end
@@ -40,8 +47,24 @@ defmodule GameSiteWeb.MultiPokerLive do
 
     if connected?(socket) do
       case MultiPoker.get_room(params["room"]) do
-        {:ok, room} -> {:ok, assign(socket, :room, room)}
-        :error -> {:ok, assign(socket, :room, :bad_room)}
+        {:ok, room} ->
+          viewer_state = Room.viewer_state(room, socket.assigns.current_viewer_id)
+
+          socket =
+            socket
+            |> assign(:room, room)
+            |> assign(:viewer_state, viewer_state)
+            |> assign(:form, to_form(%{}))
+
+          {:ok, socket}
+
+        :error ->
+          socket =
+            socket
+            |> assign(:room, :bad_room)
+            |> assign(:form, to_form(%{}))
+
+          {:ok, socket}
       end
     else
       {:ok, assign(socket, :room, nil)}

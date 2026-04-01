@@ -38,6 +38,24 @@ defmodule GameSite.MultiPoker do
     end
   end
 
+  def add_player(room_id, viewer_id) do
+    with {:ok, pid} <- get_room_pid(room_id) do
+      Room.add_player(pid, viewer_id)
+    end
+  end
+
+  def player_bet(room_id, viewer_id, amount) do
+    with {:ok, pid} <- get_room_pid(room_id) do
+      Room.player_bet(pid, viewer_id, amount)
+    end
+  end
+
+  def player_fold(room_id, viewer_id) do
+    with {:ok, pid} <- get_room_pid(room_id) do
+      Room.player_fold(pid, viewer_id)
+    end
+  end
+
   defp get_room_by_host(viewer_id) do
     Registry.select(@registry, [
       {
