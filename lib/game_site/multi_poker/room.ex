@@ -346,6 +346,7 @@ defmodule GameSite.MultiPoker.Room do
         %{
           action_state: action_state,
           player_chips: player.chips,
+          player_current_bet: player.current_bet,
           player_id: player.player_id
         }
     end

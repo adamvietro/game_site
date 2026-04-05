@@ -11,14 +11,6 @@ defmodule GameSiteWeb.MultiPokerLive do
     <%= if @room == nil  do %>
       Room is loading...
     <% else %>
-      <p>Room Status: {@room.room_status}</p>
-      <p>Small Blind: {@room.small_blind}</p>
-      <p>Big Blind: {@room.big_blind}</p>
-      <p>Host: {@room.host_id}</p>
-      <p>Host: {@current_viewer_id}</p>
-
-      <p>Deck:</p>
-      <pre><%= inspect(@room.deck) %></pre>
       <GameBoard.score_board
         phase={@room.phase}
         current_player_turn={@room.current_player_turn}
@@ -35,13 +27,15 @@ defmodule GameSiteWeb.MultiPokerLive do
       />
 
       <GameBoard.player_actions
+        room_status={@room.room_status}
         action_state={@viewer_state.action_state}
         player_chips={@viewer_state.player_chips}
+        player_current_bet={@viewer_state.player_current_bet}
         bet_amount={get_current_min_bet_needed(@room, @current_viewer_id)}
       />
 
       <div column-2>
-        <GameBoard.join_game viewer_state={@viewer_state} />
+        <GameBoard.join_game viewer_state={@viewer_state} room_status={@room.room_status} />
         <GameBoard.player_ready game_state={@room.room_status} viewer_state={@viewer_state} />
       </div>
     <% end %>

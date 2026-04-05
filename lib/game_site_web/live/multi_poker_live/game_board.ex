@@ -3,9 +3,9 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   use Phoenix.Component
 
   attr(:phase, :atom, required: true)
-  attr(:current_player_turn, :integer, required: true)
+  attr(:current_player_turn, :integer, required: false, default: nil)
   attr(:pot, :integer, required: true)
-  attr(:dealer_player_id, :integer, required: true)
+  attr(:dealer_player_id, :integer, required: false, default: nil)
   attr(:current_round_max_bet, :integer, required: true)
 
   def score_board(assigns) do
@@ -26,22 +26,17 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-sm text-gray-500">Current Turn</p>
-          <p class="text-base font-medium">
-            {player_label(@current_player_turn)}
-          </p>
+          <p class="text-base font-medium">{player_label(@current_player_turn)}</p>
         </div>
 
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-sm text-gray-500">Dealer</p>
-          <p class="text-base font-medium">
-            {player_label(@dealer_player_id)}
-          </p>
+          <p class="text-base font-medium">{player_label(@dealer_player_id)}</p>
         </div>
-        <div class="bg-gray-50 rounded-lg p-3">
+
+        <div class="bg-gray-50 rounded-lg p-3 sm:col-span-2">
           <p class="text-sm text-gray-500">Current Round Max Bet</p>
-          <p class="text-base font-medium">
-            {@current_round_max_bet}
-          </p>
+          <p class="text-base font-medium">{@current_round_max_bet}</p>
         </div>
       </div>
     </section>
@@ -56,16 +51,24 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   def game_table(assigns) do
     ~H"""
     <div class="space-y-6">
-      <%= for {_id, player} <- @players do %>
-        <.player_hand
-          player_id={player.player_id}
-          player_hand={player.hand}
-          current_player_turn={@current_player_turn}
-          show_hand={player.viewer_id == @current_viewer_id}
-        />
-      <% end %>
+      <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="text-center font-medium mb-3">Community Cards</div>
+        <.community_cards community_cards={@community_cards} />
+      </div>
 
-      <.community_cards community_cards={@community_cards} />
+      <div class="space-y-4">
+        <%= for {_id, player} <- @players do %>
+          <.player_hand
+            player_id={player.player_id}
+            player_hand={player.hand}
+            current_player_turn={@current_player_turn}
+            show_hand={player.viewer_id == @current_viewer_id}
+            chips={player.chips}
+            current_bet={player.current_bet}
+            folded?={player.folded?}
+          />
+        <% end %>
+      </div>
     </div>
     """
   end
@@ -74,18 +77,40 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   attr(:player_hand, :list, required: true)
   attr(:current_player_turn, :integer, required: false, default: nil)
   attr(:show_hand, :boolean, required: true)
+  attr(:chips, :integer, required: true)
+  attr(:current_bet, :integer, required: true)
+  attr(:folded?, :boolean, required: true)
 
   def player_hand(assigns) do
     ~H"""
-    <div class="space-y-2">
-      <div class="text-center font-medium">
-        Player {@player_id}
-        <%= if @player_id == @current_player_turn do %>
-          <span class="ml-2 text-green-600">(Current Turn)</span>
-        <% end %>
-      </div>
+    <div class={[
+      "rounded-xl border bg-white p-4 shadow-sm",
+      @player_id == @current_player_turn && "border-green-500 ring-2 ring-green-200",
+      @player_id != @current_player_turn && "border-gray-200"
+    ]}>
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="md:flex-1">
+          <div class="mb-2 font-medium text-left">
+            Player {@player_id}
+            <%= if @player_id == @current_player_turn do %>
+              <span class="ml-2 text-green-600">(Current Turn)</span>
+            <% end %>
+            <%= if @folded? do %>
+              <span class="ml-2 text-red-600">(Folded)</span>
+            <% end %>
+          </div>
 
-      <.card_row cards={@player_hand} total_slots={2} reveal?={@show_hand} />
+          <div class="flex justify-start">
+            <.card_row cards={@player_hand} total_slots={2} reveal?={@show_hand} />
+          </div>
+        </div>
+
+        <div class="min-w-[180px] rounded-lg bg-gray-50 p-3 text-sm text-gray-700 md:text-right">
+          <div class="font-semibold text-gray-900 mb-2">Player Stats</div>
+          <div>Chips: {@chips}</div>
+          <div>Current Bet: {@current_bet}</div>
+        </div>
+      </div>
     </div>
     """
   end
@@ -94,8 +119,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def community_cards(assigns) do
     ~H"""
-    <div class="space-y-2">
-      <div class="text-center font-medium">Community Cards</div>
+    <div class="flex justify-center">
       <.card_row cards={@community_cards} total_slots={5} reveal?={true} />
     </div>
     """
@@ -107,7 +131,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def card_row(assigns) do
     ~H"""
-    <div class="flex flex-wrap justify-center gap-4 min-h-[7rem] md:min-h-[8rem]">
+    <div class="flex flex-wrap gap-4 min-h-[7rem] md:min-h-[8rem]">
       <%= for card <- fill_cards(@cards, @total_slots) do %>
         <div class="flex flex-col items-center">
           <%= cond do %>
@@ -133,16 +157,21 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     """
   end
 
+  attr(:room_status, :atom, required: true)
   attr(:action_state, :atom, required: true)
   attr(:player_chips, :integer, required: true)
+  attr(:player_current_bet, :integer, required: true)
   attr(:bet_amount, :integer, required: false, default: 0)
 
   def player_actions(assigns) do
     ~H"""
-    <%= if @action_state == :your_turn  do %>
-      <.player_controls player_chips={@player_chips} bet_amount={@bet_amount} disabled={false} />
-    <% else %>
-      <.player_controls player_chips={@player_chips} bet_amount={@bet_amount} disabled={true} />
+    <%= if @room_status == :playing do %>
+      <.player_controls
+        player_chips={@player_chips}
+        player_current_bet={@player_current_bet}
+        bet_amount={@bet_amount}
+        disabled={@action_state != :your_turn}
+      />
     <% end %>
     """
   end
@@ -150,10 +179,30 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   attr(:disabled, :boolean, required: true)
   attr(:bet_amount, :integer, required: false, default: 0)
   attr(:player_chips, :integer, required: true)
+  attr(:player_current_bet, :integer, required: true)
 
   def player_controls(assigns) do
     ~H"""
-    <div class="space-y-4">
+    <section class="bg-white shadow-md rounded-xl p-4 border border-gray-200 space-y-4">
+      <h2 class="text-lg font-semibold text-center">Player Actions</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <p class="text-sm text-gray-500">Your Chips</p>
+          <p class="text-base font-medium">{@player_chips}</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <p class="text-sm text-gray-500">Your Current Bet</p>
+          <p class="text-base font-medium">{@player_current_bet}</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <p class="text-sm text-gray-500">Amount Needed</p>
+          <p class="text-base font-medium">{@bet_amount}</p>
+        </div>
+      </div>
+
       <form phx-submit="player-bet" class="space-y-4">
         <div class="max-w-xs mx-auto">
           <label for="bet_amount" class="block text-sm font-medium text-gray-700 mb-1">
@@ -213,25 +262,28 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
           </button>
         </div>
       </form>
-    </div>
+    </section>
     """
   end
 
   attr(:viewer_state, :map, required: true)
+  attr(:room_status, :atom, required: true)
 
   def join_game(assigns) do
     ~H"""
-    <%= if @viewer_state.action_state == :not_joined do %>
-      <button phx-click="join-game" class="px-4 py-2 bg-blue-600 text-white rounded">
-        Join Game
-      </button>
-    <% end %>
+    <div class="flex justify-center">
+      <%= if @room_status == :waiting and @viewer_state.action_state == :not_joined do %>
+        <button phx-click="join-game" class="px-4 py-2 bg-blue-600 text-white rounded">
+          Join Game
+        </button>
+      <% end %>
 
-    <%= if @viewer_state.action_state != :not_joined do %>
-      <button phx-click="leave-game" class="px-4 py-2 bg-red-600 text-white rounded">
-        Leave Game
-      </button>
-    <% end %>
+      <%= if @viewer_state.action_state != :not_joined do %>
+        <button phx-click="leave-game" class="px-4 py-2 bg-red-600 text-white rounded">
+          Leave Game
+        </button>
+      <% end %>
+    </div>
     """
   end
 
@@ -240,11 +292,13 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def player_ready(assigns) do
     ~H"""
-    <%= if @game_state == :waiting and @viewer_state.action_state != :not_joined do %>
-      <button phx-click="player-ready" class="px-4 py-2 bg-blue-600 text-white rounded">
-        Ready!
-      </button>
-    <% end %>
+    <div class="flex justify-center">
+      <%= if @game_state == :waiting and @viewer_state.action_state != :not_joined do %>
+        <button phx-click="player-ready" class="px-4 py-2 bg-blue-600 text-white rounded">
+          Ready!
+        </button>
+      <% end %>
+    </div>
     """
   end
 
