@@ -6,6 +6,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   attr(:current_player_turn, :integer, required: true)
   attr(:pot, :integer, required: true)
   attr(:dealer_player_id, :integer, required: true)
+  attr(:current_round_max_bet, :integer, required: true)
 
   def score_board(assigns) do
     ~H"""
@@ -34,6 +35,12 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
           <p class="text-sm text-gray-500">Dealer</p>
           <p class="text-base font-medium">
             {player_label(@dealer_player_id)}
+          </p>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3">
+          <p class="text-sm text-gray-500">Current Round Max Bet</p>
+          <p class="text-base font-medium">
+            {@current_round_max_bet}
           </p>
         </div>
       </div>
@@ -156,7 +163,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
             id="bet_amount"
             name="bet_amount"
             type="number"
-            min="1"
+            min={@bet_amount}
             max={@player_chips}
             value={@bet_amount}
             disabled={@disabled}

@@ -1,7 +1,7 @@
 defmodule GameSiteWeb.MultiPokerLive do
   use GameSiteWeb, :live_view
 
-  alias GameSite.MultiPoker.{GameLogic, Room, Player, PubSub}
+  alias GameSite.MultiPoker.{Room, PubSub}
   alias GameSite.MultiPoker
   alias GameSiteWeb.MultiPokerLive.GameBoard
 
@@ -14,6 +14,8 @@ defmodule GameSiteWeb.MultiPokerLive do
       <p>Room Status: {@room.room_status}</p>
       <p>Small Blind: {@room.small_blind}</p>
       <p>Big Blind: {@room.big_blind}</p>
+      <p>Host: {@room.host_id}</p>
+      <p>Host: {@current_viewer_id}</p>
 
       <p>Deck:</p>
       <pre><%= inspect(@room.deck) %></pre>
@@ -22,6 +24,7 @@ defmodule GameSiteWeb.MultiPokerLive do
         current_player_turn={@room.current_player_turn}
         pot={@room.pot}
         dealer_player_id={@room.dealer_player_id}
+        current_round_max_bet={@room.current_round_max_bet}
       />
 
       <GameBoard.game_table
@@ -34,7 +37,7 @@ defmodule GameSiteWeb.MultiPokerLive do
       <GameBoard.player_actions
         action_state={@viewer_state.action_state}
         player_chips={@viewer_state.player_chips}
-        bet_amount={0}
+        bet_amount={get_current_min_bet_needed(@room, @current_viewer_id)}
       />
 
       <GameBoard.join_game viewer_state={@viewer_state} />
@@ -164,5 +167,18 @@ defmodule GameSiteWeb.MultiPokerLive do
 
   def set_current_viewer_id(socket, session) do
     assign(socket, :current_viewer_id, "guest:#{session["guest_id"]}")
+  end
+
+  defp get_current_min_bet_needed(
+         %Room{current_round_max_bet: current_round_max_bet} = room,
+         viewer_id
+       ) do
+    case Room.get_player_by_viewer_id_from_room(room, viewer_id) do
+      nil ->
+        0
+
+      player ->
+        max(current_round_max_bet - player.current_bet, 0)
+    end
   end
 end

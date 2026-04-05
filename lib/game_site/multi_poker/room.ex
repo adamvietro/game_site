@@ -16,7 +16,8 @@ defmodule GameSite.MultiPoker.Room do
             current_player_turn: nil,
             pot: 0,
             current_hand_number: 0,
-            dealer_player_id: nil
+            dealer_player_id: nil,
+            current_round_max_bet: 0
 
   @allowed_keys [
     :players,
@@ -32,7 +33,8 @@ defmodule GameSite.MultiPoker.Room do
     :current_player_turn,
     :pot,
     :current_hand_number,
-    :dealer_player_id
+    :dealer_player_id,
+    :current_round_max_bet
   ]
 
   def new(%Player{} = host, opts \\ []) do
@@ -52,7 +54,8 @@ defmodule GameSite.MultiPoker.Room do
       current_player_turn: Keyword.get(opts, :current_player_turn, host_id),
       pot: Keyword.get(opts, :pot, 0),
       current_hand_number: Keyword.get(opts, :current_hand_number, 0),
-      dealer_player_id: Keyword.get(opts, :dealer_player_id, host_id)
+      dealer_player_id: Keyword.get(opts, :dealer_player_id, host_id),
+      current_round_max_bet: Keyword.get(opts, :current_round_max_bet, 0)
     }
   end
 
@@ -102,7 +105,7 @@ defmodule GameSite.MultiPoker.Room do
   end
 
   def player_check(pid, viewer_id) do
-    GenServer.call(pid, {:player_check, viewer_id})
+    GenServer.cast(pid, {:player_check, viewer_id})
   end
 
   def player_fold(pid, viewer_id) do
@@ -326,7 +329,7 @@ defmodule GameSite.MultiPoker.Room do
     end
   end
 
-  defp get_player_by_viewer_id_from_room(%__MODULE__{} = room, viewer_id) do
+  def get_player_by_viewer_id_from_room(%__MODULE__{} = room, viewer_id) do
     room.players
     |> Map.values()
     |> Enum.find(fn player -> player.viewer_id == viewer_id end)

@@ -39,7 +39,8 @@ defmodule GameSite.MultiPoker.GameLogic do
         %Room{
           room
           | players: new_players,
-            pot: pot + amount
+            pot: pot + amount,
+            current_round_max_bet: max(room.current_round_max_bet, player.current_bet + amount)
         }
         |> advance_to_next_player()
 
@@ -243,6 +244,24 @@ defmodule GameSite.MultiPoker.GameLogic do
         |> rotate_after(current_index)
         |> List.first()
     end
+  end
+
+  defp betting_round_complete?(%Room{players: players}) do
+    active_players =
+      players
+      |> Map.values()
+      |> Enum.reject(& &1.folded?)
+
+    highest_bet =
+      active_players
+      |> Enum.map(& &1.current_bet)
+      |> Enum.max(fn -> 0 end)
+
+    Enum.all?(active_players, fn player ->
+      player.folded? or
+        player.chips == 0 or
+        (player.waiting and player.current_bet == highest_bet)
+    end)
   end
 
   defp rotate_after(players, index) do
