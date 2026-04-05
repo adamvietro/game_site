@@ -1,5 +1,4 @@
 defmodule GameSiteWeb.MultiPokerLive do
-  alias Ecto.Multi
   use GameSiteWeb, :live_view
 
   alias GameSite.MultiPoker.{GameLogic, Room, Player}
@@ -69,6 +68,11 @@ defmodule GameSiteWeb.MultiPokerLive do
     else
       {:ok, assign(socket, :room, nil)}
     end
+  end
+
+  def handle_cast("join-game", socket) do
+    
+
   end
 
   def set_current_viewer_id(%{assigns: %{current_user: current_user}} = socket, _session)
