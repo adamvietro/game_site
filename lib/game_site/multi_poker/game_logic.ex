@@ -1,25 +1,6 @@
 defmodule GameSite.MultiPoker.GameLogic do
   alias GameSite.MultiPoker.{Room, Player, Deck}
 
-  def start_hand(%Room{} = room) do
-    room
-    |> advance_to_next_dealer()
-    |> reset_room_for_new_hand()
-    |> reset_players_for_new_hand()
-    |> shuffle_new_deck()
-    |> deal_player_hole_cards()
-    |> set_first_player_turn()
-  end
-
-  def advance_phase_and_deal(%Room{phase: phase} = room) do
-    case phase do
-      :pre_flop -> deal_community_cards(room, 3, :flop)
-      :flop -> deal_community_cards(room, 1, :turn)
-      :turn -> deal_community_cards(room, 1, :river)
-      :river -> Room.change(room, phase: :showdown)
-    end
-  end
-
   def player_bet(%Room{current_player_turn: current_player_turn} = room, player_id, amount)
       when current_player_turn != player_id or amount <= 0 do
     room
@@ -112,6 +93,26 @@ defmodule GameSite.MultiPoker.GameLogic do
 
       :error ->
         room
+    end
+  end
+
+  def start_hand(%Room{} = room) do
+    room
+    |> advance_to_next_dealer()
+    |> reset_room_for_new_hand()
+    |> reset_players_for_new_hand()
+    |> shuffle_new_deck()
+    |> deal_player_hole_cards()
+    |> set_first_player_turn()
+  end
+
+  def advance_phase_and_deal(%Room{phase: phase} = room) do
+    case phase do
+      :new_hand -> start_hand(room)
+      :pre_flop -> deal_community_cards(room, 3, :flop)
+      :flop -> deal_community_cards(room, 1, :turn)
+      :turn -> deal_community_cards(room, 1, :river)
+      :river -> Room.change(room, phase: :showdown)
     end
   end
 

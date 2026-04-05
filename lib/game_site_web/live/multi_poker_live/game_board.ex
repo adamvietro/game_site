@@ -185,11 +185,12 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
             Fold
           </button>
 
+          <% check_disabled = @disabled or @bet_amount > 0 %>
           <button
             type="button"
             phx-click="player-check"
-            disabled={@disabled}
-            class={button_class("bg-gray-500 hover:bg-gray-600", @disabled)}
+            disabled={check_disabled}
+            class={button_class("bg-gray-500 hover:bg-gray-600", check_disabled)}
           >
             Check
           </button>
