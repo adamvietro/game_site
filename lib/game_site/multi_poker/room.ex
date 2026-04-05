@@ -100,6 +100,10 @@ defmodule GameSite.MultiPoker.Room do
 
   # viewer-facing actions
 
+  def player_ready(pid, viewer_id) do
+    GenServer.cast(pid, {:player_ready, viewer_id})
+  end
+
   def add_player(pid, viewer_id) do
     GenServer.call(pid, {:add_player, viewer_id})
   end
@@ -151,6 +155,24 @@ defmodule GameSite.MultiPoker.Room do
   @impl true
   def handle_cast({:update_status, status}, %__MODULE__{} = state) do
     {:noreply, %__MODULE__{state | room_status: status}}
+  end
+
+  @impl true
+  def handle_cast({:player_ready, viewer_id}, state) do
+    case find_player_id_by_viewer_id(state, viewer_id) do
+      nil ->
+        {:noreply, state}
+
+      player_id ->
+        new_state =
+          state
+          |> mark_player_ready(player_id)
+          |> maybe_start_hand()
+
+        if new_state != state, do: PubSub.broadcast_room_updated(new_state)
+
+        {:noreply, new_state}
+    end
   end
 
   @impl true
@@ -360,4 +382,32 @@ defmodule GameSite.MultiPoker.Room do
       state
     end
   end
+
+  defp mark_player_ready(%__MODULE__{} = state, player_id) do
+    case Map.fetch(state.players, player_id) do
+      {:ok, player} ->
+        updated_player = Player.change(player, ready?: true)
+        new_players = Map.put(state.players, player_id, updated_player)
+        %__MODULE__{state | players: new_players}
+
+      :error ->
+        state
+    end
+  end
+
+  defp maybe_start_hand(%__MODULE__{} = state) do
+    if can_start_hand?(state) do
+      state
+      |> change(room_status: :playing)
+      |> GameLogic.start_hand()
+    else
+      state
+    end
+  end
+
+  defp can_start_hand?(%__MODULE__{room_status: :waiting, players: players}) do
+    map_size(players) >= 2 and Enum.all?(Map.values(players), & &1.ready?)
+  end
+
+  defp can_start_hand?(_state), do: false
 end

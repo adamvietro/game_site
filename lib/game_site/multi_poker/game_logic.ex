@@ -9,21 +9,28 @@ defmodule GameSite.MultiPoker.GameLogic do
   def player_bet(%Room{players: players, pot: pot} = room, player_id, amount) do
     case Map.fetch(players, player_id) do
       {:ok, player} ->
-        updated_player =
-          Player.change(player,
-            current_bet: player.current_bet + amount,
-            chips: player.chips - amount
-          )
+        cond do
+          amount > player.chips ->
+            room
 
-        new_players = Map.put(players, player_id, updated_player)
+          true ->
+            updated_player =
+              Player.change(player,
+                current_bet: player.current_bet + amount,
+                chips: player.chips - amount,
+                waiting?: true
+              )
 
-        %Room{
-          room
-          | players: new_players,
-            pot: pot + amount,
-            current_round_max_bet: max(room.current_round_max_bet, player.current_bet + amount)
-        }
-        |> advance_to_next_player()
+            new_players = Map.put(players, player_id, updated_player)
+
+            %Room{
+              room
+              | players: new_players,
+                pot: pot + amount,
+                current_round_max_bet: max(room.current_round_max_bet, updated_player.current_bet)
+            }
+            |> maybe_advance_round()
+        end
 
       :error ->
         room
@@ -38,11 +45,11 @@ defmodule GameSite.MultiPoker.GameLogic do
   def player_fold(%Room{players: players} = room, player_id) do
     case Map.fetch(players, player_id) do
       {:ok, player} ->
-        updated_player = Player.change(player, folded?: true)
+        updated_player = Player.change(player, folded?: true, waiting?: true)
         new_players = Map.put(players, player_id, updated_player)
 
         %Room{room | players: new_players}
-        |> advance_to_next_player()
+        |> maybe_advance_round()
 
       :error ->
         room
@@ -54,14 +61,21 @@ defmodule GameSite.MultiPoker.GameLogic do
     room
   end
 
-  def player_check(%Room{players: players} = room, player_id) do
+  def player_check(
+        %Room{players: players, current_round_max_bet: current_round_max_bet} = room,
+        player_id
+      ) do
     case Map.fetch(players, player_id) do
       {:ok, player} ->
-        updated_player = Player.change(player, waiting: true)
-        new_players = Map.put(players, player_id, updated_player)
+        if player.current_bet != current_round_max_bet do
+          room
+        else
+          updated_player = Player.change(player, waiting?: true)
+          new_players = Map.put(players, player_id, updated_player)
 
-        %Room{room | players: new_players}
-        |> advance_to_next_player()
+          %Room{room | players: new_players}
+          |> maybe_advance_round()
+        end
 
       :error ->
         room
@@ -76,10 +90,13 @@ defmodule GameSite.MultiPoker.GameLogic do
   def player_all_in(%Room{players: players, pot: pot} = room, player_id) do
     case Map.fetch(players, player_id) do
       {:ok, player} ->
+        all_in_amount = player.chips
+
         updated_player =
           Player.change(player,
-            current_bet: player.current_bet + player.chips,
-            chips: 0
+            current_bet: player.current_bet + all_in_amount,
+            chips: 0,
+            waiting?: true
           )
 
         new_players = Map.put(players, player_id, updated_player)
@@ -87,9 +104,10 @@ defmodule GameSite.MultiPoker.GameLogic do
         %Room{
           room
           | players: new_players,
-            pot: pot + updated_player.current_bet
+            pot: pot + all_in_amount,
+            current_round_max_bet: max(room.current_round_max_bet, updated_player.current_bet)
         }
-        |> advance_to_next_player()
+        |> maybe_advance_round()
 
       :error ->
         room
@@ -108,11 +126,42 @@ defmodule GameSite.MultiPoker.GameLogic do
 
   def advance_phase_and_deal(%Room{phase: phase} = room) do
     case phase do
-      :new_hand -> start_hand(room)
-      :pre_flop -> deal_community_cards(room, 3, :flop)
-      :flop -> deal_community_cards(room, 1, :turn)
-      :turn -> deal_community_cards(room, 1, :river)
-      :river -> Room.change(room, phase: :showdown)
+      :new_hand ->
+        start_hand(room)
+
+      :pre_flop ->
+        room
+        |> reset_players_for_new_round()
+        |> deal_community_cards(3, :flop)
+        |> set_first_player_turn
+
+      :flop ->
+        room
+        |> reset_players_for_new_round()
+        |> deal_community_cards(1, :turn)
+        |> set_first_player_turn
+
+      :turn ->
+        room
+        |> reset_players_for_new_round()
+        |> deal_community_cards(1, :river)
+        |> set_first_player_turn
+
+      :river ->
+        Room.change(room, phase: :showdown)
+
+      :showdown ->
+        room
+    end
+  end
+
+  def advance_to_next_player(%Room{current_player_turn: current_player_turn} = room) do
+    case next_active_player(room, current_player_turn) do
+      nil ->
+        room
+
+      next_player ->
+        Room.change(room, current_player_turn: next_player.player_id)
     end
   end
 
@@ -132,9 +181,9 @@ defmodule GameSite.MultiPoker.GameLogic do
       phase: :pre_flop,
       deck: [],
       community_cards: [],
-      current_player_turn: nil,
       pot: 0,
-      current_hand_number: room.current_hand_number + 1
+      current_hand_number: room.current_hand_number + 1,
+      current_round_max_bet: 0
     )
   end
 
@@ -146,13 +195,29 @@ defmodule GameSite.MultiPoker.GameLogic do
             ready?: false,
             current_bet: 0,
             folded?: false,
-            hand: []
+            hand: [],
+            waiting?: false
           )
 
         {player_id, updated_player}
       end)
 
     %Room{room | players: new_players}
+  end
+
+  defp reset_players_for_new_round(%Room{players: players} = room) do
+    new_players =
+      Enum.into(players, %{}, fn {player_id, player} ->
+        updated_player =
+          Player.change(player,
+            current_bet: 0,
+            waiting?: false
+          )
+
+        {player_id, updated_player}
+      end)
+
+    %Room{room | players: new_players, current_round_max_bet: 0}
   end
 
   defp shuffle_new_deck(%Room{} = room) do
@@ -192,17 +257,6 @@ defmodule GameSite.MultiPoker.GameLogic do
     end
   end
 
-  def advance_to_next_player(%Room{current_player_turn: current_player_turn} = room) do
-    case next_active_player(room, current_player_turn) do
-      nil ->
-        room
-        |> advance_phase_and_deal()
-
-      next_player ->
-        Room.change(room, current_player_turn: next_player.player_id)
-    end
-  end
-
   defp advance_to_next_dealer(%Room{dealer_player_id: dealer_player_id} = room) do
     case next_seated_player(room, dealer_player_id) do
       nil ->
@@ -220,16 +274,19 @@ defmodule GameSite.MultiPoker.GameLogic do
   end
 
   defp next_active_player(%Room{} = room, current_player_id) do
-    players = ordered_players(room)
+    players =
+      room
+      |> ordered_players()
+      |> Enum.reject(fn player -> player.folded? or player.chips == 0 end)
 
     case Enum.find_index(players, fn player -> player.player_id == current_player_id end) do
       nil ->
-        Enum.find(players, fn player -> not player.folded? end)
+        List.first(players)
 
       current_index ->
         players
         |> rotate_after(current_index)
-        |> Enum.find(fn player -> not player.folded? end)
+        |> List.first()
     end
   end
 
@@ -247,22 +304,36 @@ defmodule GameSite.MultiPoker.GameLogic do
     end
   end
 
-  defp betting_round_complete?(%Room{players: players}) do
+  defp maybe_advance_round(%Room{} = room) do
+    if betting_round_complete?(room) do
+      advance_phase_and_deal(room)
+    else
+      advance_to_next_player(room)
+    end
+  end
+
+  defp betting_round_complete?(%Room{
+         players: players,
+         current_round_max_bet: current_round_max_bet
+       }) do
     active_players =
       players
       |> Map.values()
       |> Enum.reject(& &1.folded?)
 
-    highest_bet =
-      active_players
-      |> Enum.map(& &1.current_bet)
-      |> Enum.max(fn -> 0 end)
+    case active_players do
+      [] ->
+        true
 
-    Enum.all?(active_players, fn player ->
-      player.folded? or
-        player.chips == 0 or
-        (player.waiting and player.current_bet == highest_bet)
-    end)
+      [_one_player_left] ->
+        true
+
+      _ ->
+        Enum.all?(active_players, fn player ->
+          player.chips == 0 or
+            (player.waiting? and player.current_bet == current_round_max_bet)
+        end)
+    end
   end
 
   defp rotate_after(players, index) do

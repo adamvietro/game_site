@@ -40,7 +40,10 @@ defmodule GameSiteWeb.MultiPokerLive do
         bet_amount={get_current_min_bet_needed(@room, @current_viewer_id)}
       />
 
-      <GameBoard.join_game viewer_state={@viewer_state} />
+      <div column-2>
+        <GameBoard.join_game viewer_state={@viewer_state} />
+        <GameBoard.player_ready game_state={@room.room_status} viewer_state={@viewer_state} />
+      </div>
     <% end %>
     """
   end
@@ -92,6 +95,17 @@ defmodule GameSiteWeb.MultiPokerLive do
   @impl true
   def handle_info({:room_closed, _room_id}, socket) do
     {:noreply, push_navigate(socket, to: "/multi-poker")}
+  end
+
+  @impl true
+  def handle_event(
+        "player-ready",
+        _params,
+        %{assigns: %{current_viewer_id: viewer_id, room: %Room{room_id: room_id}}} = socket
+      ) do
+    MultiPoker.player_ready(room_id, viewer_id)
+
+    {:noreply, socket}
   end
 
   @impl true

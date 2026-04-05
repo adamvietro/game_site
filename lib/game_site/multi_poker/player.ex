@@ -7,7 +7,8 @@ defmodule GameSite.MultiPoker.Player do
             folded?: false,
             seat_position: nil,
             hand: [],
-            connected?: true
+            connected?: true,
+            waiting?: false
 
   def new(player_id, viewer_id, opts \\ []) do
     ready = Keyword.get(opts, :ready?, false)
@@ -17,6 +18,7 @@ defmodule GameSite.MultiPoker.Player do
     seat_position = Keyword.get(opts, :seat_position, nil)
     hand = Keyword.get(opts, :hand, [])
     connected = Keyword.get(opts, :connected?, true)
+    waiting = Keyword.get(opts, :waiting?, false)
 
     %__MODULE__{
       player_id: player_id,
@@ -27,7 +29,8 @@ defmodule GameSite.MultiPoker.Player do
       folded?: folded,
       seat_position: seat_position,
       hand: hand,
-      connected?: connected
+      connected?: connected,
+      waiting?: waiting
     }
   end
 

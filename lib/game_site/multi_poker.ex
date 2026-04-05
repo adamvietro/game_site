@@ -38,6 +38,12 @@ defmodule GameSite.MultiPoker do
     end
   end
 
+  def player_ready(room_id, viewer_id) do
+    with {:ok, pid} <- get_room_pid(room_id) do
+      Room.player_ready(pid, viewer_id)
+    end
+  end
+
   def add_player(room_id, viewer_id) do
     with {:ok, pid} <- get_room_pid(room_id) do
       Room.add_player(pid, viewer_id)

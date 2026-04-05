@@ -235,6 +235,19 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     """
   end
 
+  attr(:game_state, :atom, required: true)
+  attr(:viewer_state, :map, required: true)
+
+  def player_ready(assigns) do
+    ~H"""
+    <%= if @game_state == :waiting and @viewer_state.action_state != :not_joined do %>
+      <button phx-click="player-ready" class="px-4 py-2 bg-blue-600 text-white rounded">
+        Ready!
+      </button>
+    <% end %>
+    """
+  end
+
   defp button_class(base, true) do
     "#{base} opacity-50 cursor-not-allowed pointer-events-none rounded-lg px-4 py-2 text-white font-medium shadow"
   end
