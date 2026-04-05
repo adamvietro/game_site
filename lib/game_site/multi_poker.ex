@@ -44,15 +44,33 @@ defmodule GameSite.MultiPoker do
     end
   end
 
+  def player_check(room_id, viewer_id) do
+    with {:ok, pid} <- get_room_pid(room_id) do
+      Room.player_check(pid, viewer_id)
+    end
+  end
+
   def player_bet(room_id, viewer_id, amount) do
     with {:ok, pid} <- get_room_pid(room_id) do
       Room.player_bet(pid, viewer_id, amount)
     end
   end
 
+  def player_all_in(room_id, viewer_id) do
+    with {:ok, pid} <- get_room_pid(room_id) do
+      Room.player_all_in(pid, viewer_id)
+    end
+  end
+
   def player_fold(room_id, viewer_id) do
     with {:ok, pid} <- get_room_pid(room_id) do
       Room.player_fold(pid, viewer_id)
+    end
+  end
+
+  def player_leave_game(room_id, viewer_id) do
+    with {:ok, pid} <- get_room_pid(room_id) do
+      Room.player_leave_game(pid, viewer_id)
     end
   end
 

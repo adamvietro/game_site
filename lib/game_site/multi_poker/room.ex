@@ -1,7 +1,7 @@
 defmodule GameSite.MultiPoker.Room do
   use GenServer
 
-  alias GameSite.MultiPoker.{GameLogic, Player}
+  alias GameSite.MultiPoker.{GameLogic, Player, PubSub}
 
   defstruct players: %{},
             room_id: nil,
@@ -101,6 +101,10 @@ defmodule GameSite.MultiPoker.Room do
     GenServer.call(pid, {:add_player, viewer_id})
   end
 
+  def player_check(pid, viewer_id) do
+    GenServer.call(pid, {:player_check, viewer_id})
+  end
+
   def player_fold(pid, viewer_id) do
     GenServer.cast(pid, {:player_fold, viewer_id})
   end
@@ -109,7 +113,11 @@ defmodule GameSite.MultiPoker.Room do
     GenServer.cast(pid, {:player_bet, viewer_id, amount})
   end
 
-  def remove_player(pid, viewer_id) do
+  def player_all_in(pid, viewer_id) do
+    GenServer.cast(pid, {:player_all_in, viewer_id})
+  end
+
+  def player_leave_game(pid, viewer_id) do
     GenServer.cast(pid, {:remove_player, viewer_id})
   end
 
@@ -149,7 +157,11 @@ defmodule GameSite.MultiPoker.Room do
         {:noreply, state}
 
       player_id ->
-        {:noreply, GameLogic.player_fold(state, player_id)}
+        new_state = GameLogic.player_fold(state, player_id)
+
+        if new_state != state, do: PubSub.broadcast_room_updated(new_state)
+
+        {:noreply, new_state}
     end
   end
 
@@ -160,7 +172,41 @@ defmodule GameSite.MultiPoker.Room do
         {:noreply, state}
 
       player_id ->
-        {:noreply, GameLogic.player_bet(state, player_id, amount)}
+        new_state = GameLogic.player_bet(state, player_id, amount)
+
+        if new_state != state, do: PubSub.broadcast_room_updated(new_state)
+
+        {:noreply, new_state}
+    end
+  end
+
+  @impl true
+  def handle_cast({:player_check, viewer_id}, %__MODULE__{} = state) do
+    case find_player_id_by_viewer_id(state, viewer_id) do
+      nil ->
+        {:noreply, state}
+
+      player_id ->
+        new_state = GameLogic.player_check(state, player_id)
+
+        if new_state != state, do: PubSub.broadcast_room_updated(new_state)
+
+        {:noreply, new_state}
+    end
+  end
+
+  @impl true
+  def handle_cast({:player_all_in, viewer_id}, %__MODULE__{} = state) do
+    case find_player_id_by_viewer_id(state, viewer_id) do
+      nil ->
+        {:noreply, state}
+
+      player_id ->
+        new_state = GameLogic.player_all_in(state, player_id)
+
+        if new_state != state, do: PubSub.broadcast_room_updated(new_state)
+
+        {:noreply, new_state}
     end
   end
 
@@ -171,8 +217,23 @@ defmodule GameSite.MultiPoker.Room do
         {:noreply, state}
 
       player_id ->
-        new_players = Map.delete(state.players, player_id)
-        {:noreply, %__MODULE__{state | players: new_players}}
+        if player_id == state.host_id do
+          PubSub.broadcast_room_closed(state.room_id)
+          PubSub.broadcast_lobby_updated()
+
+          {:stop, :normal, state}
+        else
+          new_state =
+            state
+            |> remove_player(player_id)
+            |> maybe_advance_turn(player_id)
+
+          if new_state != state do
+            PubSub.broadcast_room_updated(new_state)
+          end
+
+          {:noreply, new_state}
+        end
     end
   end
 
@@ -223,8 +284,11 @@ defmodule GameSite.MultiPoker.Room do
           player_id ->
             player = Player.new(player_id, viewer_id)
             new_players = Map.put(state.players, player_id, player)
+            new_state = %__MODULE__{state | players: new_players}
 
-            {:reply, {:ok, player}, %__MODULE__{state | players: new_players}}
+            PubSub.broadcast_room_updated(new_state)
+
+            {:reply, {:ok, player}, new_state}
         end
 
       player_id ->
@@ -279,5 +343,18 @@ defmodule GameSite.MultiPoker.Room do
   defp next_player_id(%__MODULE__{} = state) do
     used_ids = Map.keys(state.players)
     Enum.find(1..state.max_players, fn id -> id not in used_ids end)
+  end
+
+  defp remove_player(%__MODULE__{} = state, player_id) do
+    new_players = Map.delete(state.players, player_id)
+    %__MODULE__{state | players: new_players}
+  end
+
+  defp maybe_advance_turn(%__MODULE__{} = state, player_id) do
+    if state.current_player_turn == player_id do
+      GameLogic.advance_to_next_player(state)
+    else
+      state
+    end
   end
 end

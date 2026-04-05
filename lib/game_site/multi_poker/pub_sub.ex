@@ -23,4 +23,8 @@ defmodule GameSite.MultiPoker.PubSub do
   def broadcast_room_updated(room) do
     PubSub.broadcast(@pubsub, room_topic(room.room_id), {:room_updated, room})
   end
+
+  def broadcast_room_closed(room_id) do
+    PubSub.broadcast(@pubsub, room_topic(room_id), {:room_closed, room_id})
+  end
 end

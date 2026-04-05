@@ -67,6 +67,53 @@ defmodule GameSite.MultiPoker.GameLogic do
     end
   end
 
+  def player_check(%Room{current_player_turn: current_player_turn} = room, player_id)
+      when current_player_turn != player_id do
+    room
+  end
+
+  def player_check(%Room{players: players} = room, player_id) do
+    case Map.fetch(players, player_id) do
+      {:ok, player} ->
+        updated_player = Player.change(player, waiting: true)
+        new_players = Map.put(players, player_id, updated_player)
+
+        %Room{room | players: new_players}
+        |> advance_to_next_player()
+
+      :error ->
+        room
+    end
+  end
+
+  def player_all_in(%Room{current_player_turn: current_player_turn} = room, player_id)
+      when current_player_turn != player_id do
+    room
+  end
+
+  def player_all_in(%Room{players: players, pot: pot} = room, player_id) do
+    case Map.fetch(players, player_id) do
+      {:ok, player} ->
+        updated_player =
+          Player.change(player,
+            current_bet: player.current_bet + player.chips,
+            chips: 0
+          )
+
+        new_players = Map.put(players, player_id, updated_player)
+
+        %Room{
+          room
+          | players: new_players,
+            pot: pot + updated_player.current_bet
+        }
+        |> advance_to_next_player()
+
+      :error ->
+        room
+    end
+  end
+
   defp deal_community_cards(%Room{deck: deck, community_cards: board} = room, n, next_phase) do
     [cards, new_deck] = Deck.choose_n_cards(deck, n)
     ordered_cards = Enum.reverse(cards)
@@ -143,10 +190,11 @@ defmodule GameSite.MultiPoker.GameLogic do
     end
   end
 
-  defp advance_to_next_player(%Room{current_player_turn: current_player_turn} = room) do
+  def advance_to_next_player(%Room{current_player_turn: current_player_turn} = room) do
     case next_active_player(room, current_player_turn) do
       nil ->
         room
+        |> advance_phase_and_deal()
 
       next_player ->
         Room.change(room, current_player_turn: next_player.player_id)

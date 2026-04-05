@@ -1,10 +1,11 @@
 defmodule GameSiteWeb.MultiPokerLive do
   use GameSiteWeb, :live_view
 
-  alias GameSite.MultiPoker.{GameLogic, Room, Player}
+  alias GameSite.MultiPoker.{GameLogic, Room, Player, PubSub}
   alias GameSite.MultiPoker
   alias GameSiteWeb.MultiPokerLive.GameBoard
 
+  @impl true
   def render(assigns) do
     ~H"""
     <%= if @room == nil  do %>
@@ -35,10 +36,13 @@ defmodule GameSiteWeb.MultiPokerLive do
         player_chips={@viewer_state.player_chips}
         bet_amount={0}
       />
+
+      <GameBoard.join_game viewer_state={@viewer_state} />
     <% end %>
     """
   end
 
+  @impl true
   def mount(params, session, socket) do
     socket =
       socket
@@ -47,6 +51,8 @@ defmodule GameSiteWeb.MultiPokerLive do
     if connected?(socket) do
       case MultiPoker.get_room(params["room"]) do
         {:ok, room} ->
+          PubSub.subscribe_room(room.room_id)
+
           viewer_state = Room.viewer_state(room, socket.assigns.current_viewer_id)
 
           socket =
@@ -70,9 +76,85 @@ defmodule GameSiteWeb.MultiPokerLive do
     end
   end
 
-  def handle_cast("join-game", socket) do
-    
+  @impl true
+  def handle_info({:room_updated, room}, socket) do
+    viewer_state = Room.viewer_state(room, socket.assigns.current_viewer_id)
 
+    {:noreply,
+     socket
+     |> assign(room: room)
+     |> assign(:viewer_state, viewer_state)}
+  end
+
+  @impl true
+  def handle_info({:room_closed, _room_id}, socket) do
+    {:noreply, push_navigate(socket, to: "/multi-poker")}
+  end
+
+  @impl true
+  def handle_event(
+        "player-bet",
+        %{"bet_amount" => bet_amount},
+        %{assigns: %{current_viewer_id: viewer_id, room: %Room{room_id: room_id}}} = socket
+      ) do
+    amount = String.to_integer(bet_amount)
+    MultiPoker.player_bet(room_id, viewer_id, amount)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event(
+        "join-game",
+        _params,
+        %{assigns: %{current_viewer_id: viewer_id, room: %Room{room_id: room_id}}} = socket
+      ) do
+    MultiPoker.add_player(room_id, viewer_id)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event(
+        "player-fold",
+        _params,
+        %{assigns: %{current_viewer_id: viewer_id, room: %Room{room_id: room_id}}} = socket
+      ) do
+    MultiPoker.player_fold(room_id, viewer_id)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event(
+        "player-check",
+        _params,
+        %{assigns: %{current_viewer_id: viewer_id, room: %Room{room_id: room_id}}} = socket
+      ) do
+    MultiPoker.player_check(room_id, viewer_id)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event(
+        "player-all-in",
+        _params,
+        %{assigns: %{current_viewer_id: viewer_id, room: %Room{room_id: room_id}}} = socket
+      ) do
+    MultiPoker.player_all_in(room_id, viewer_id)
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "leave-game",
+        _params,
+        %{assigns: %{current_viewer_id: viewer_id, room: %Room{room_id: room_id}}} = socket
+      ) do
+    MultiPoker.player_leave_game(room_id, viewer_id)
+
+    {:noreply, socket}
   end
 
   def set_current_viewer_id(%{assigns: %{current_user: current_user}} = socket, _session)

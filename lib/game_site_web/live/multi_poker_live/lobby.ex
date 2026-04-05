@@ -1,7 +1,7 @@
 defmodule GameSiteWeb.MultiPokerLive.Lobby do
   use GameSiteWeb, :live_view
 
-  alias GameSite.MultiPoker.Room
+  alias GameSite.MultiPoker.{Room, PubSub}
   alias GameSite.MultiPoker
   alias GameSiteWeb.MultiPokerLive.Component
 
@@ -24,12 +24,20 @@ defmodule GameSiteWeb.MultiPokerLive.Lobby do
 
     rooms =
       if connected?(socket) do
+        PubSub.subscribe_lobby()
         list_room_summaries()
       else
         []
       end
 
     {:ok, assign(socket, :rooms, rooms)}
+  end
+
+  @impl true
+  def handle_info({:lobby_updated}, socket) do
+    rooms = list_room_summaries()
+
+    {:noreply, assign(socket, :rooms, rooms)}
   end
 
   @impl true
@@ -47,6 +55,8 @@ defmodule GameSiteWeb.MultiPokerLive.Lobby do
 
           {socket, room_id}
       end
+
+    PubSub.broadcast_lobby_updated()
 
     {:noreply, redirect(socket, to: "/multi-poker/#{room_id}")}
   end
@@ -79,5 +89,9 @@ defmodule GameSiteWeb.MultiPokerLive.Lobby do
   def set_current_viewer_id(%{assigns: %{current_user: current_user}} = socket, _session)
       when not is_nil(current_user) do
     assign(socket, :current_viewer_id, "user:#{current_user.id}")
+  end
+
+  def set_current_viewer_id(socket, _session) do
+    assign(socket, :current_viewer_id, :not_signed_in)
   end
 end

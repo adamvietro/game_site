@@ -147,64 +147,83 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   def player_controls(assigns) do
     ~H"""
     <div class="space-y-4">
-      <div class="max-w-xs mx-auto">
-        <label for="bet_amount" class="block text-sm font-medium text-gray-700 mb-1">
-          Bet Amount
-        </label>
-        <input
-          id="bet_amount"
-          name="bet_amount"
-          type="number"
-          min="1"
-          max={@player_chips}
-          value={@bet_amount}
-          disabled={@disabled}
-          class={[
-            "w-full rounded-lg border px-3 py-2 shadow-sm focus:outline-none",
-            "border-gray-300 focus:ring-2 focus:ring-blue-500",
-            @disabled && "bg-gray-100 cursor-not-allowed opacity-70"
-          ]}
-        />
-      </div>
+      <form phx-submit="player-bet" class="space-y-4">
+        <div class="max-w-xs mx-auto">
+          <label for="bet_amount" class="block text-sm font-medium text-gray-700 mb-1">
+            Bet Amount
+          </label>
+          <input
+            id="bet_amount"
+            name="bet_amount"
+            type="number"
+            min="1"
+            max={@player_chips}
+            value={@bet_amount}
+            disabled={@disabled}
+            class={[
+              "w-full rounded-lg border px-3 py-2 shadow-sm focus:outline-none",
+              "border-gray-300 focus:ring-2 focus:ring-blue-500",
+              @disabled && "bg-gray-100 cursor-not-allowed opacity-70"
+            ]}
+          />
+        </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <button
-          type="button"
-          phx-click="player-fold"
-          disabled={@disabled}
-          class={button_class("bg-red-500 hover:bg-red-600", @disabled)}
-        >
-          Fold
-        </button>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <button
+            type="button"
+            phx-click="player-fold"
+            disabled={@disabled}
+            class={button_class("bg-red-500 hover:bg-red-600", @disabled)}
+          >
+            Fold
+          </button>
 
-        <button
-          type="button"
-          phx-click="player-check"
-          disabled={@disabled}
-          class={button_class("bg-gray-500 hover:bg-gray-600", @disabled)}
-        >
-          Check
-        </button>
+          <button
+            type="button"
+            phx-click="player-check"
+            disabled={@disabled}
+            class={button_class("bg-gray-500 hover:bg-gray-600", @disabled)}
+          >
+            Check
+          </button>
 
-        <button
-          type="button"
-          phx-click="player-bet"
-          disabled={@disabled}
-          class={button_class("bg-blue-500 hover:bg-blue-600", @disabled)}
-        >
-          Bet
-        </button>
+          <button
+            type="submit"
+            disabled={@disabled}
+            class={button_class("bg-blue-500 hover:bg-blue-600", @disabled)}
+          >
+            Bet
+          </button>
 
-        <button
-          type="button"
-          phx-click="player-all-in"
-          disabled={@disabled}
-          class={button_class("bg-yellow-500 hover:bg-yellow-600", @disabled)}
-        >
-          All In
-        </button>
-      </div>
+          <button
+            type="button"
+            phx-click="player-all-in"
+            disabled={@disabled}
+            class={button_class("bg-yellow-500 hover:bg-yellow-600", @disabled)}
+          >
+            All In
+          </button>
+        </div>
+      </form>
     </div>
+    """
+  end
+
+  attr(:viewer_state, :map, required: true)
+
+  def join_game(assigns) do
+    ~H"""
+    <%= if @viewer_state.action_state == :not_joined do %>
+      <button phx-click="join-game" class="px-4 py-2 bg-blue-600 text-white rounded">
+        Join Game
+      </button>
+    <% end %>
+
+    <%= if @viewer_state.action_state != :not_joined do %>
+      <button phx-click="leave-game" class="px-4 py-2 bg-red-600 text-white rounded">
+        Leave Game
+      </button>
+    <% end %>
     """
   end
 
