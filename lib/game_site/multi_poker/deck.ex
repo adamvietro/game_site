@@ -12,6 +12,8 @@ defmodule GameSite.MultiPoker.Deck do
     Enum.shuffle(deck)
   end
 
+  def choose_n_cards(deck, 0), do: [[], deck]
+
   def choose_n_cards(deck, n) do
     [dealt_cards, deck] =
       Enum.reduce(1..n, [[], deck], fn _, [chosen, remaining] ->

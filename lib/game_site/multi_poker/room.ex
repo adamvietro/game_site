@@ -329,7 +329,7 @@ defmodule GameSite.MultiPoker.Room do
 
             PubSub.broadcast_room_updated(new_state)
 
-            {:reply, {:ok}, new_state}
+            {:reply, :ok, new_state}
         end
 
       player_id ->
