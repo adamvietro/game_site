@@ -17,6 +17,7 @@ defmodule GameSite.MultiPoker.GameLogic do
             updated_player =
               Player.change(player,
                 current_bet: player.current_bet + amount,
+                total_contribution: player.total_contribution + amount,
                 chips: player.chips - amount,
                 waiting?: true
               )
@@ -95,6 +96,7 @@ defmodule GameSite.MultiPoker.GameLogic do
         updated_player =
           Player.change(player,
             current_bet: player.current_bet + all_in_amount,
+            total_contribution: player.total_contribution + all_in_amount,
             chips: 0,
             waiting?: true
           )
@@ -128,6 +130,16 @@ defmodule GameSite.MultiPoker.GameLogic do
   def end_hand(%Room{} = room) do
     room
     |> resolve_winner_and_award_pot()
+    |> reset_players_to_not_ready()
+    |> Room.change(
+      room_status: :waiting,
+      current_player_turn: nil
+    )
+  end
+
+  def end_hand_by_fold(%Room{} = room) do
+    room
+    |> resolve_winner_by_fold()
     |> reset_players_to_not_ready()
     |> Room.change(
       room_status: :waiting,
@@ -177,6 +189,21 @@ defmodule GameSite.MultiPoker.GameLogic do
     end
   end
 
+  def resolve_winner_by_fold(%Room{} = room) do
+    active_players =
+      room.players
+      |> Map.values()
+      |> Enum.reject(& &1.folded?)
+
+    case active_players do
+      [] ->
+        room
+
+      [%Player{player_id: winner_player_id} | _rest] ->
+        award_pot(room, winner_player_id, nil)
+    end
+  end
+
   def award_pot(%Room{players: players, pot: pot} = room, winner_player_id, winning_hand) do
     case Map.fetch(players, winner_player_id) do
       {:ok, player} ->
@@ -217,13 +244,15 @@ defmodule GameSite.MultiPoker.GameLogic do
       |> Map.update(small_blind_player.player_id, small_blind_player, fn player ->
         Player.change(player,
           current_bet: room.small_blind,
-          chips: player.chips - room.small_blind
+          chips: player.chips - room.small_blind,
+          total_contribution: player.total_contribution + room.small_blind
         )
       end)
       |> Map.update(big_blind_player.player_id, big_blind_player, fn player ->
         Player.change(player,
           current_bet: room.big_blind,
-          chips: player.chips - room.big_blind
+          chips: player.chips - room.big_blind,
+          total_contribution: player.total_contribution + room.big_blind
         )
       end)
 
@@ -396,10 +425,26 @@ defmodule GameSite.MultiPoker.GameLogic do
   end
 
   defp maybe_advance_round(%Room{} = room) do
-    if betting_round_complete?(room) do
-      advance_phase_and_deal(room)
-    else
-      advance_to_next_player(room)
+    players = Map.values(room.players)
+
+    in_hand =
+      Enum.reject(players, & &1.folded?)
+
+    can_act =
+      Enum.reject(players, fn p -> p.folded? or p.chips == 0 end)
+
+    cond do
+      length(in_hand) <= 1 ->
+        end_hand_by_fold(room)
+
+      can_act == [] ->
+        auto_runout_to_end(room)
+
+      betting_round_complete?(room) ->
+        advance_phase_and_deal(room)
+
+      true ->
+        advance_to_next_player(room)
     end
   end
 
@@ -417,9 +462,6 @@ defmodule GameSite.MultiPoker.GameLogic do
 
     cond do
       length(in_hand) <= 1 ->
-        true
-
-      can_act == [] ->
         true
 
       true ->
@@ -460,5 +502,17 @@ defmodule GameSite.MultiPoker.GameLogic do
   defp rotate_after(players, index) do
     {left, right} = Enum.split(players, index + 1)
     right ++ left
+  end
+
+  defp auto_runout_to_end(%Room{phase: :river} = room) do
+    room
+    |> Room.change(phase: :showdown)
+    |> end_hand()
+  end
+
+  defp auto_runout_to_end(%Room{} = room) do
+    room
+    |> advance_phase_and_deal()
+    |> auto_runout_to_end()
   end
 end

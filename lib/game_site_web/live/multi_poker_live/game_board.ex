@@ -39,7 +39,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   attr(:community_cards, :list, required: true)
   attr(:current_viewer_id, :string, required: true)
   attr(:phase, :atom, required: true)
-  attr(:winning_player_id, :integer, required: true)
+  attr(:winning_player_id, :integer, required: false, default: nil)
   attr(:dealer_player_id, :integer, required: false, default: nil)
 
   def game_table(assigns) do
@@ -67,6 +67,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
             ready?={player.ready?}
             winning_player_id={@winning_player_id}
             dealer_player_id={@dealer_player_id}
+            is_current_viewer={player.viewer_id == @current_viewer_id}
           />
         <% end %>
       </div>
@@ -82,8 +83,9 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   attr(:current_bet, :integer, required: true)
   attr(:folded?, :boolean, required: true)
   attr(:ready?, :boolean, required: true)
-  attr(:winning_player_id, :integer, required: true)
+  attr(:winning_player_id, :integer, required: false, default: nil)
   attr(:dealer_player_id, :integer, required: false, default: nil)
+  attr(:is_current_viewer, :boolean, required: true)
 
   def player_hand(assigns) do
     ~H"""
@@ -96,6 +98,12 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
             <%= if @player_id == @dealer_player_id do %>
               <span class="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
                 Dealer
+              </span>
+            <% end %>
+
+            <%= if @is_current_viewer do %>
+              <span class="ml-2 inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                You
               </span>
             <% end %>
 
