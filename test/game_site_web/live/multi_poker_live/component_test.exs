@@ -12,7 +12,6 @@ defmodule GameSiteWeb.MultiPokerLive.ComponentTest do
       assert html =~ "Poker Game Overview"
       assert html =~ "Here you can create or join a room to play some poker"
       assert html =~ "You must be logged in to create a room."
-      assert html =~ "If you want to keep track of your chip count you need to create an account."
       assert html =~ "There will be a max of 6 players per room."
       assert html =~ "You will start with 1000 chips if you are a new player."
     end

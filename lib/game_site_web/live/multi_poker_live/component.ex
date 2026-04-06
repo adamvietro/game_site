@@ -8,7 +8,6 @@ defmodule GameSiteWeb.MultiPokerLive.Component do
     <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
       <li>Here you can create or join a room to play some poker</li>
       <li>You must be logged in to create a room.</li>
-      <li>If you want to keep track of your chip count you need to create an account.</li>
       <li>There will be a max of 6 players per room.</li>
       <li>You will start with 1000 chips if you are a new player.</li>
     </ul>
