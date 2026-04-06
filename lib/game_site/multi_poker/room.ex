@@ -107,8 +107,8 @@ defmodule GameSite.MultiPoker.Room do
     GenServer.cast(pid, {:player_ready, viewer_id})
   end
 
-  def add_player(pid, viewer_id) do
-    GenServer.call(pid, {:add_player, viewer_id})
+  def player_add(pid, viewer_id) do
+    GenServer.call(pid, {:player_add, viewer_id})
   end
 
   def player_check(pid, viewer_id) do
@@ -302,7 +302,7 @@ defmodule GameSite.MultiPoker.Room do
   end
 
   @impl true
-  def handle_call({:add_player, viewer_id}, _from, %__MODULE__{} = state) do
+  def handle_call({:player_add, viewer_id}, _from, %__MODULE__{} = state) do
     case find_player_id_by_viewer_id(state, viewer_id) do
       nil ->
         case next_player_id(state) do

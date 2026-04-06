@@ -36,7 +36,11 @@ defmodule GameSiteWeb.MultiPokerLive do
       />
 
       <div column-2>
-        <GameBoard.join_game viewer_state={@viewer_state} room_status={@room.room_status} />
+        <GameBoard.join_game
+          viewer_state={@viewer_state}
+          room_status={@room.room_status}
+          room_full={room_full(@room)}
+        />
         <GameBoard.player_ready game_state={@room.room_status} viewer_state={@viewer_state} />
       </div>
     <% end %>
@@ -49,31 +53,29 @@ defmodule GameSiteWeb.MultiPokerLive do
       socket
       |> set_current_viewer_id(session)
 
-    if connected?(socket) do
-      case MultiPoker.get_room(params["room"]) do
-        {:ok, room} ->
+    case MultiPoker.get_room(params["room"]) do
+      {:ok, room} ->
+        if connected?(socket) do
           PubSub.subscribe_room(room.room_id)
+        end
 
-          viewer_state = Room.viewer_state(room, socket.assigns.current_viewer_id)
+        viewer_state = Room.viewer_state(room, socket.assigns.current_viewer_id)
 
-          socket =
-            socket
-            |> assign(:room, room)
-            |> assign(:viewer_state, viewer_state)
-            |> assign(:form, to_form(%{}))
+        socket =
+          socket
+          |> assign(:room, room)
+          |> assign(:viewer_state, viewer_state)
+          |> assign(:form, to_form(%{}))
 
-          {:ok, socket}
+        {:ok, socket}
 
-        :error ->
-          socket =
-            socket
-            |> assign(:room, :bad_room)
-            |> assign(:form, to_form(%{}))
+      :error ->
+        socket =
+          socket
+          |> put_flash(:error, "That room does not exist.")
+          |> push_navigate(to: "/multi-poker")
 
-          {:ok, socket}
-      end
-    else
-      {:ok, assign(socket, :room, nil)}
+        {:ok, socket}
     end
   end
 
@@ -121,7 +123,7 @@ defmodule GameSiteWeb.MultiPokerLive do
         _params,
         %{assigns: %{current_viewer_id: viewer_id, room: %Room{room_id: room_id}}} = socket
       ) do
-    MultiPoker.add_player(room_id, viewer_id)
+    MultiPoker.player_add(room_id, viewer_id)
 
     {:noreply, socket}
   end
@@ -189,5 +191,9 @@ defmodule GameSiteWeb.MultiPokerLive do
       player ->
         max(current_round_max_bet - player.current_bet, 0)
     end
+  end
+
+  defp room_full(%Room{players: players}) do
+    map_size(players) >= 6
   end
 end

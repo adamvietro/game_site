@@ -278,11 +278,12 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   attr(:viewer_state, :map, required: true)
   attr(:room_status, :atom, required: true)
+  attr(:room_full, :boolean, required: true)
 
   def join_game(assigns) do
     ~H"""
     <div class="flex justify-center">
-      <%= if @room_status == :waiting and @viewer_state.action_state == :not_joined do %>
+      <%= if @room_status == :waiting and @viewer_state.action_state == :not_joined and not @room_full do %>
         <button phx-click="join-game" class="px-4 py-2 bg-blue-600 text-white rounded">
           Join Game
         </button>

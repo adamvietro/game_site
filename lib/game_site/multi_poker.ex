@@ -44,9 +44,9 @@ defmodule GameSite.MultiPoker do
     end
   end
 
-  def add_player(room_id, viewer_id) do
+  def player_add(room_id, viewer_id) do
     with {:ok, pid} <- get_room_pid(room_id) do
-      Room.add_player(pid, viewer_id)
+      Room.player_add(pid, viewer_id)
     end
   end
 
