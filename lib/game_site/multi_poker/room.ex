@@ -1,5 +1,5 @@
 defmodule GameSite.MultiPoker.Room do
-  use GenServer
+  use GenServer, restart: :temporary
 
   alias GameSite.MultiPoker.{GameLogic, Player, PubSub}
 
