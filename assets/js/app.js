@@ -54,6 +54,39 @@ window.addEventListener("phx:fireworks", () => {
 
 let Hooks = {}
 
+Hooks.HelpBubble = {
+  mounted() {
+    const button = this.el.querySelector("[data-help-button]")
+    const panel = this.el.querySelector("[data-help-panel]")
+
+    if (!button || !panel) return
+
+    panel.style.display = "none"
+
+    const closePanel = (event) => {
+      if (!this.el.contains(event.target)) {
+        panel.style.display = "none"
+      }
+    }
+
+    const togglePanel = () => {
+      panel.style.display = panel.style.display === "none" ? "block" : "none"
+    }
+
+    button.addEventListener("click", togglePanel)
+    document.addEventListener("click", closePanel)
+
+    this.cleanup = () => {
+      button.removeEventListener("click", togglePanel)
+      document.removeEventListener("click", closePanel)
+    }
+  },
+
+  destroyed() {
+    this.cleanup?.()
+  }
+}
+
 Hooks.CopyBonus = {
   mounted() {
     this.el.addEventListener("click", (e) => {

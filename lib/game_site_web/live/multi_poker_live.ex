@@ -3,7 +3,7 @@ defmodule GameSiteWeb.MultiPokerLive do
 
   alias GameSite.MultiPoker.{Room, PubSub}
   alias GameSite.MultiPoker
-  alias GameSiteWeb.MultiPokerLive.GameBoard
+  alias GameSiteWeb.MultiPokerLive.{GameBoard, InstructionHelper}
 
   @impl true
   def render(assigns) do
@@ -19,6 +19,9 @@ defmodule GameSiteWeb.MultiPokerLive do
         current_round_max_bet={@room.current_round_max_bet}
         winning_hand={@room.winning_hand}
       />
+      <div class="ml-4">
+        <InstructionHelper.helper_bubble />
+      </div>
 
       <GameBoard.game_table
         players={@room.players}

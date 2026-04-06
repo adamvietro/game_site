@@ -12,12 +12,20 @@
 }
 
 a {
-  cursor: pointer; /* hand icon */
-  text-decoration: none; /* optional, remove underline initially */
+  cursor: pointer;
+  /* hand icon */
+  text-decoration: none;
+  /* optional, remove underline initially */
   /* color: blue; optional default link color */
 }
 
 a:hover {
-  text-decoration: underline; /* underline on hover */
-  color: rgb(139, 0, 30); /* or any hover color you want */
+  text-decoration: underline;
+  /* underline on hover */
+  color: rgb(139, 0, 30);
+  /* or any hover color you want */
+}
+
+[x-cloak] {
+  display: none !important;
 }
