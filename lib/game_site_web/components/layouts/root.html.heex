@@ -12,6 +12,8 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js">
     </script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js">
+    </script>
     <style>
       /* Custom styles here if needed */
     </style>
@@ -56,14 +58,17 @@
         <div class="flex flex-wrap justify-center gap-4 py-3 border">
           <.link navigate={~p"/"} class="nav-link">Home</.link>
           <.link navigate={~p"/scores"} class="nav-link">Scores</.link>
-
+          
+<!-- Single Player -->
           <div x-data="{ open: false }" x-on:click.outside="open = false" class="relative">
             <button type="button" class="nav-link" x-on:click="open = !open">
               Single Player
             </button>
 
             <div
+              x-cloak
               x-show="open"
+              x-transition
               class="absolute left-0 mt-2 bg-white rounded shadow-md min-w-[200px] z-30 overflow-hidden border border-gray-200"
             >
               <div class="flex flex-col">
@@ -78,14 +83,17 @@
               </div>
             </div>
           </div>
-
+          
+<!-- Multiplayer -->
           <div x-data="{ open: false }" x-on:click.outside="open = false" class="relative">
             <button type="button" class="nav-link" x-on:click="open = !open">
               Multiplayer
             </button>
 
             <div
+              x-cloak
               x-show="open"
+              x-transition
               class="absolute left-0 mt-2 bg-white rounded shadow-md min-w-[200px] z-30 overflow-hidden border border-gray-200"
             >
               <div class="flex flex-col">

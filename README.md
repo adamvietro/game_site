@@ -86,20 +86,7 @@ The project includes:
 
 --------------------------------------------------
 
-## Design Decisions
-
-### Why LiveView?
-Chose LiveView to simplify real-time updates and reduce frontend complexity.
-
-### State Management
-Moved toward server-owned state to avoid client inconsistencies.
-
-### Tradeoffs
-Accepted increased server responsibility in exchange for simpler UI logic.
-
---------------------------------------------------
-
-<!-- 📌 TODO / Notes
+📌 TODO / Notes
 
 Core Improvements
 - Better score display with dropdown UI
@@ -126,5 +113,13 @@ Gameplay Features
   - Add multiplayer support
 
 Testing
-- Add more robust test coverage -->
+- Add more robust test coverage
 
+--------------------------------------------------
+
+📚 Learn More
+
+Phoenix: https://www.phoenixframework.org/
+Docs: https://hexdocs.pm/phoenix
+Guides: https://hexdocs.pm/phoenix/overview.html
+Forum: https://elixirforum.com/c/phoenix-forum
