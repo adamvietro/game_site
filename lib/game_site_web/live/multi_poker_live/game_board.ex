@@ -7,6 +7,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   attr(:pot, :integer, required: true)
   attr(:dealer_player_id, :integer, required: false, default: nil)
   attr(:current_round_max_bet, :integer, required: true)
+  attr(:winning_hand, :map, required: false, default: nil)
 
   def score_board(assigns) do
     ~H"""
@@ -34,10 +35,19 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
           <p class="text-base font-medium">{player_label(@dealer_player_id)}</p>
         </div>
 
-        <div class="bg-gray-50 rounded-lg p-3 sm:col-span-2">
+        <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-sm text-gray-500">Current Round Max Bet</p>
           <p class="text-base font-medium">{@current_round_max_bet}</p>
         </div>
+
+        <%= if @winning_hand do %>
+          <div class="bg-yellow-50 rounded-lg p-3">
+            <p class="text-sm text-gray-500">Winning Hand</p>
+            <p class="text-base font-medium">
+              {format_hand(@winning_hand)}
+            </p>
+          </div>
+        <% end %>
       </div>
     </section>
     """
@@ -293,7 +303,9 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   def player_ready(assigns) do
     ~H"""
     <div class="flex justify-center">
-      <%= if @game_state == :waiting and @viewer_state.action_state != :not_joined do %>
+      <%= if @game_state == :waiting and
+            @viewer_state.action_state != :not_joined and
+            not @viewer_state.ready? do %>
         <button phx-click="player-ready" class="px-4 py-2 bg-blue-600 text-white rounded">
           Ready!
         </button>
@@ -336,4 +348,21 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
       trimmed ++ List.duplicate(nil, total_slots - length(trimmed))
     end)
   end
+
+  defp format_hand(cards) do
+    Enum.map_join(cards, "  ", fn {rank, suit} ->
+      "#{rank_to_string(rank)}#{suit_symbol(suit)}"
+    end)
+  end
+
+  defp suit_symbol("hearts"), do: "♥"
+  defp suit_symbol("diamonds"), do: "♦"
+  defp suit_symbol("clubs"), do: "♣"
+  defp suit_symbol("spades"), do: "♠"
+
+  defp rank_to_string(11), do: "J"
+  defp rank_to_string(12), do: "Q"
+  defp rank_to_string(13), do: "K"
+  defp rank_to_string(14), do: "A"
+  defp rank_to_string(n), do: Integer.to_string(n)
 end

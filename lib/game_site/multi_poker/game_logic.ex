@@ -187,7 +187,7 @@ defmodule GameSite.MultiPoker.GameLogic do
         updated_player = Player.change(player, chips: player.chips + pot)
         new_players = Map.put(players, winner_player_id, updated_player)
 
-        %Room{room | players: new_players}
+        %Room{room | players: new_players, winning_hand: winning_hand}
 
       :error ->
         room

@@ -332,9 +332,11 @@ defmodule GameSite.MultiPoker.Room do
     case get_player_by_viewer_id_from_room(room, current_viewer_id) do
       nil ->
         %{
+          player_id: nil,
           action_state: :not_joined,
           player_chips: 0,
-          player_id: nil
+          player_current_bet: 0,
+          ready?: false
         }
 
       %Player{} = player ->
@@ -350,7 +352,8 @@ defmodule GameSite.MultiPoker.Room do
           action_state: action_state,
           player_chips: player.chips,
           player_current_bet: player.current_bet,
-          player_id: player.player_id
+          player_id: player.player_id,
+          ready?: player.ready?
         }
     end
   end

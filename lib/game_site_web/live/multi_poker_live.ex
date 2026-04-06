@@ -17,6 +17,7 @@ defmodule GameSiteWeb.MultiPokerLive do
         pot={@room.pot}
         dealer_player_id={@room.dealer_player_id}
         current_round_max_bet={@room.current_round_max_bet}
+        winning_hand={@room.winning_hand}
       />
 
       <GameBoard.game_table
