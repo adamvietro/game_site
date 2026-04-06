@@ -347,14 +347,11 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     |> Enum.map_join(" ", &String.capitalize/1)
   end
 
-  defp player_label(nil), do: "—"
-  defp player_label(player_id), do: "Player #{player_id}"
-
   defp card_image_url({rank, suit}) do
     "/images/cards/#{suit}_#{rank}.png"
   end
 
-  defp card_to_string({rank, suit}), do: "#{rank} of #{String.capitalize(suit)}"
+  defp card_to_string({rank, suit}), do: "#{rank_to_string(rank)} of #{suit_symbol(suit)}"
 
   defp card_back(), do: "/images/logo.svg"
 
@@ -363,12 +360,6 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     |> Enum.take(total_slots)
     |> then(fn trimmed ->
       trimmed ++ List.duplicate(nil, total_slots - length(trimmed))
-    end)
-  end
-
-  defp format_hand(cards) do
-    Enum.map_join(cards, "  ", fn {rank, suit} ->
-      "#{rank_to_string(rank)}#{suit_symbol(suit)}"
     end)
   end
 

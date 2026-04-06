@@ -407,22 +407,24 @@ defmodule GameSite.MultiPoker.GameLogic do
          players: players,
          current_round_max_bet: current_round_max_bet
        }) do
-    active_players =
-      players
-      |> Map.values()
-      |> Enum.reject(& &1.folded?)
+    players = Map.values(players)
 
-    case active_players do
-      [] ->
+    in_hand =
+      Enum.reject(players, & &1.folded?)
+
+    can_act =
+      Enum.reject(players, fn p -> p.folded? or p.chips == 0 end)
+
+    cond do
+      length(in_hand) <= 1 ->
         true
 
-      [_one_player_left] ->
+      can_act == [] ->
         true
 
-      _ ->
-        Enum.all?(active_players, fn player ->
-          player.chips == 0 or
-            (player.waiting? and player.current_bet == current_round_max_bet)
+      true ->
+        Enum.all?(can_act, fn player ->
+          player.waiting? and player.current_bet == current_round_max_bet
         end)
     end
   end
