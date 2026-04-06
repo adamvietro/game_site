@@ -312,7 +312,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     <div class="flex justify-center">
       <%= if @game_state == :waiting and
             @viewer_state.action_state != :not_joined and
-            not @viewer_state.ready? do %>
+            not @viewer_state.ready? and not @viewer_state.busted? do %>
         <button phx-click="player-ready" class="px-4 py-2 bg-blue-600 text-white rounded">
           Ready!
         </button>

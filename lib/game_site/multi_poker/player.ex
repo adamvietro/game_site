@@ -9,7 +9,8 @@ defmodule GameSite.MultiPoker.Player do
             hand: [],
             connected?: true,
             waiting?: false,
-            total_contribution: 0
+            total_contribution: 0,
+            busted?: false
 
   def new(player_id, viewer_id, opts \\ []) do
     ready = Keyword.get(opts, :ready?, false)
@@ -21,6 +22,7 @@ defmodule GameSite.MultiPoker.Player do
     connected = Keyword.get(opts, :connected?, true)
     waiting = Keyword.get(opts, :waiting?, false)
     total_contribution = Keyword.get(opts, :total_contribution, 0)
+    busted = Keyword.get(opts, :busted?, false)
 
     %__MODULE__{
       player_id: player_id,
@@ -33,7 +35,8 @@ defmodule GameSite.MultiPoker.Player do
       hand: hand,
       connected?: connected,
       waiting?: waiting,
-      total_contribution: total_contribution
+      total_contribution: total_contribution,
+      busted?: busted
     }
   end
 

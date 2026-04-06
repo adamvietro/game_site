@@ -118,6 +118,7 @@ defmodule GameSite.MultiPoker.GameLogic do
 
   def start_hand(%Room{} = room) do
     room
+    |> remove_busted_players()
     |> advance_to_next_dealer()
     |> reset_room_for_new_hand()
     |> reset_players_for_new_hand()
@@ -130,7 +131,7 @@ defmodule GameSite.MultiPoker.GameLogic do
   def end_hand(%Room{} = room) do
     room
     |> resolve_winner_and_award_pot()
-    |> reset_players_to_not_ready()
+    |> reset_players_to_not_ready_and_busted()
     |> Room.change(
       room_status: :waiting,
       current_player_turn: nil
@@ -140,7 +141,7 @@ defmodule GameSite.MultiPoker.GameLogic do
   def end_hand_by_fold(%Room{} = room) do
     room
     |> resolve_winner_by_fold()
-    |> reset_players_to_not_ready()
+    |> reset_players_to_not_ready_and_busted()
     |> Room.change(
       room_status: :waiting,
       current_player_turn: nil
@@ -222,12 +223,13 @@ defmodule GameSite.MultiPoker.GameLogic do
     end
   end
 
-  def reset_players_to_not_ready(%Room{players: players} = room) do
+  def reset_players_to_not_ready_and_busted(%Room{players: players} = room) do
     new_players =
       Enum.into(players, %{}, fn {player_id, player} ->
         updated_player =
           Player.change(player,
-            ready?: false
+            ready?: false,
+            busted?: player.chips == 0
           )
 
         {player_id, updated_player}
@@ -314,6 +316,7 @@ defmodule GameSite.MultiPoker.GameLogic do
           Player.change(player,
             ready?: false,
             current_bet: 0,
+            total_contribution: 0,
             folded?: false,
             hand: [],
             waiting?: false
@@ -494,7 +497,12 @@ defmodule GameSite.MultiPoker.GameLogic do
   end
 
   defp can_start_hand?(%Room{room_status: :waiting, players: players}) do
-    map_size(players) >= 2 and Enum.all?(Map.values(players), & &1.ready?)
+    eligible_players =
+      players
+      |> Map.values()
+      |> Enum.reject(& &1.busted?)
+
+    length(eligible_players) >= 2 and Enum.all?(eligible_players, & &1.ready?)
   end
 
   defp can_start_hand?(_state), do: false
@@ -514,5 +522,14 @@ defmodule GameSite.MultiPoker.GameLogic do
     room
     |> advance_phase_and_deal()
     |> auto_runout_to_end()
+  end
+
+  defp remove_busted_players(%Room{players: players} = room) do
+    new_players =
+      players
+      |> Enum.reject(fn {_player_id, player} -> player.busted? end)
+      |> Map.new()
+
+    %Room{room | players: new_players}
   end
 end

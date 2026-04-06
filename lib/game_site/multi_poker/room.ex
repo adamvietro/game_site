@@ -174,14 +174,20 @@ defmodule GameSite.MultiPoker.Room do
         {:noreply, state}
 
       player_id ->
-        new_state =
-          state
-          |> GameLogic.mark_player_ready(player_id)
-          |> GameLogic.maybe_start_hand()
+        case Map.get(state.players, player_id) do
+          %{busted?: true} ->
+            {:noreply, state}
 
-        if new_state != state, do: PubSub.broadcast_room_updated(new_state)
+          _player ->
+            new_state =
+              state
+              |> GameLogic.mark_player_ready(player_id)
+              |> GameLogic.maybe_start_hand()
 
-        {:noreply, new_state}
+            if new_state != state, do: PubSub.broadcast_room_updated(new_state)
+
+            {:noreply, new_state}
+        end
     end
   end
 
@@ -343,12 +349,14 @@ defmodule GameSite.MultiPoker.Room do
           action_state: :not_joined,
           player_chips: 0,
           player_current_bet: 0,
-          ready?: false
+          ready?: false,
+          busted?: false
         }
 
       %Player{} = player ->
         action_state =
           cond do
+            player.busted? -> :busted
             player.folded? -> :folded
             player.chips == 0 -> :all_in
             room.current_player_turn == player.player_id -> :your_turn
@@ -360,7 +368,8 @@ defmodule GameSite.MultiPoker.Room do
           player_chips: player.chips,
           player_current_bet: player.current_bet,
           player_id: player.player_id,
-          ready?: player.ready?
+          ready?: player.ready?,
+          busted?: player.busted?
         }
     end
   end
