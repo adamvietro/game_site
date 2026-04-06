@@ -260,6 +260,7 @@ defmodule GameSite.MultiPoker.GameLogic do
 
     room
     |> Room.change(current_round_max_bet: room.big_blind)
+    |> Room.change(pot: room.pot + room.small_blind + room.big_blind)
     |> Room.change(players: new_players)
   end
 
