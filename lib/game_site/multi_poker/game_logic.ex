@@ -119,6 +119,7 @@ defmodule GameSite.MultiPoker.GameLogic do
     |> advance_to_next_dealer()
     |> reset_room_for_new_hand()
     |> reset_players_for_new_hand()
+    |> set_blinds()
     |> shuffle_new_deck()
     |> deal_player_hole_cards()
     |> set_first_player_turn()
@@ -160,11 +161,6 @@ defmodule GameSite.MultiPoker.GameLogic do
       :river ->
         room
         |> Room.change(phase: :showdown)
-        # Set all players to waiting: true
-        |> set_first_player_turn
-
-      :showdown ->
-        room
         |> end_hand()
     end
   end
@@ -206,6 +202,41 @@ defmodule GameSite.MultiPoker.GameLogic do
       end)
 
     %Room{room | players: new_players}
+  end
+
+  def set_blinds(%Room{players: players} = room) do
+    {small_blind_player, big_blind_player} = find_next_seated_players_for_blinds(room)
+
+    new_players =
+      players
+      |> Map.update(small_blind_player.player_id, small_blind_player, fn player ->
+        Player.change(player,
+          current_bet: room.small_blind,
+          chips: player.chips - room.small_blind
+        )
+      end)
+      |> Map.update(big_blind_player.player_id, big_blind_player, fn player ->
+        Player.change(player,
+          current_bet: room.big_blind,
+          chips: player.chips - room.big_blind
+        )
+      end)
+
+    room
+    |> Room.change(current_round_max_bet: room.big_blind)
+    |> Room.change(players: new_players)
+  end
+
+  defp find_next_seated_players_for_blinds(%Room{dealer_player_id: dealer_player_id} = room) do
+    small_blind_player = next_seated_player(room, dealer_player_id)
+
+    big_blind_player =
+      case small_blind_player do
+        nil -> nil
+        player -> next_seated_player(room, player.player_id)
+      end
+
+    {small_blind_player, big_blind_player}
   end
 
   def advance_to_next_player(%Room{current_player_turn: current_player_turn} = room) do
@@ -366,12 +397,10 @@ defmodule GameSite.MultiPoker.GameLogic do
     end
   end
 
-  defp betting_round_complete?(
-         %Room{
-           players: players,
-           current_round_max_bet: current_round_max_bet
-         } = room
-       ) do
+  defp betting_round_complete?(%Room{
+         players: players,
+         current_round_max_bet: current_round_max_bet
+       }) do
     active_players =
       players
       |> Map.values()
@@ -382,7 +411,7 @@ defmodule GameSite.MultiPoker.GameLogic do
         true
 
       [_one_player_left] ->
-        end_hand(room)
+        true
 
       _ ->
         Enum.all?(active_players, fn player ->

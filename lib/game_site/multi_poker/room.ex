@@ -11,8 +11,8 @@ defmodule GameSite.MultiPoker.Room do
             phase: :pre_flop,
             deck: [],
             community_cards: [],
-            small_blind: 10,
-            big_blind: 20,
+            small_blind: 50,
+            big_blind: 100,
             current_player_turn: nil,
             pot: 0,
             current_hand_number: 0,
@@ -51,8 +51,8 @@ defmodule GameSite.MultiPoker.Room do
       phase: Keyword.get(opts, :phase, :pre_flop),
       deck: Keyword.get(opts, :deck, []),
       community_cards: Keyword.get(opts, :community_cards, []),
-      small_blind: Keyword.get(opts, :small_blind, 10),
-      big_blind: Keyword.get(opts, :big_blind, 20),
+      small_blind: Keyword.get(opts, :small_blind, 50),
+      big_blind: Keyword.get(opts, :big_blind, 100),
       current_player_turn: Keyword.get(opts, :current_player_turn, host_id),
       pot: Keyword.get(opts, :pot, 0),
       current_hand_number: Keyword.get(opts, :current_hand_number, 0),
@@ -146,13 +146,17 @@ defmodule GameSite.MultiPoker.Room do
   end
 
   @impl true
-  def handle_cast(:advance_phase_and_deal, %__MODULE__{} = state) do
-    {:noreply, GameLogic.advance_phase_and_deal(state)}
+  def handle_cast(:start_hand, %__MODULE__{} = state) do
+    new_state = GameLogic.start_hand(state)
+    PubSub.broadcast_room_updated(new_state)
+    {:noreply, new_state}
   end
 
   @impl true
-  def handle_cast(:start_hand, %__MODULE__{} = state) do
-    {:noreply, GameLogic.start_hand(state)}
+  def handle_cast(:advance_phase_and_deal, %__MODULE__{} = state) do
+    new_state = GameLogic.advance_phase_and_deal(state)
+    PubSub.broadcast_room_updated(new_state)
+    {:noreply, new_state}
   end
 
   @impl true

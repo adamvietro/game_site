@@ -289,7 +289,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
         </button>
       <% end %>
 
-      <%= if @viewer_state.action_state != :not_joined do %>
+      <%= if @viewer_state.action_state != :not_joined and @room_status == :waiting do %>
         <button phx-click="leave-game" class="px-4 py-2 bg-red-600 text-white rounded">
           Leave Game
         </button>
