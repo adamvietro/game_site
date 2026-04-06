@@ -18,7 +18,8 @@ defmodule GameSite.MultiPoker.Room do
             current_hand_number: 0,
             dealer_player_id: nil,
             current_round_max_bet: 0,
-            winning_hand: nil
+            winning_hand: nil,
+            winning_player_id: nil
 
   @allowed_keys [
     :players,
@@ -36,7 +37,8 @@ defmodule GameSite.MultiPoker.Room do
     :current_hand_number,
     :dealer_player_id,
     :current_round_max_bet,
-    :winning_hand
+    :winning_hand,
+    :winning_player_id
   ]
 
   def new(%Player{} = host, opts \\ []) do
@@ -58,7 +60,8 @@ defmodule GameSite.MultiPoker.Room do
       current_hand_number: Keyword.get(opts, :current_hand_number, 0),
       dealer_player_id: Keyword.get(opts, :dealer_player_id, host_id),
       current_round_max_bet: Keyword.get(opts, :current_round_max_bet, 0),
-      winning_hand: Keyword.get(opts, :winning_hand, nil)
+      winning_hand: Keyword.get(opts, :winning_hand, nil),
+      winning_player_id: Keyword.get(opts, :winning_player_id, nil)
     }
   end
 

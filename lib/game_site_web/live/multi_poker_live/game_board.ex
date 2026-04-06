@@ -14,7 +14,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     <section class="bg-white shadow-md rounded-xl p-4 border border-gray-200">
       <h2 class="text-lg font-semibold mb-4 text-center">Table Info</h2>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-sm text-gray-500">Phase</p>
           <p class="text-base font-medium">{format_phase(@phase)}</p>
@@ -26,28 +26,9 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
         </div>
 
         <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-sm text-gray-500">Current Turn</p>
-          <p class="text-base font-medium">{player_label(@current_player_turn)}</p>
-        </div>
-
-        <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-sm text-gray-500">Dealer</p>
-          <p class="text-base font-medium">{player_label(@dealer_player_id)}</p>
-        </div>
-
-        <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-sm text-gray-500">Current Round Max Bet</p>
           <p class="text-base font-medium">{@current_round_max_bet}</p>
         </div>
-
-        <%= if @winning_hand do %>
-          <div class="bg-yellow-50 rounded-lg p-3">
-            <p class="text-sm text-gray-500">Winning Hand</p>
-            <p class="text-base font-medium">
-              {format_hand(@winning_hand)}
-            </p>
-          </div>
-        <% end %>
       </div>
     </section>
     """
@@ -57,6 +38,9 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   attr(:current_player_turn, :integer, required: true)
   attr(:community_cards, :list, required: true)
   attr(:current_viewer_id, :string, required: true)
+  attr(:phase, :atom, required: true)
+  attr(:winning_player_id, :integer, required: true)
+  attr(:dealer_player_id, :integer, required: false, default: nil)
 
   def game_table(assigns) do
     ~H"""
@@ -72,10 +56,17 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
             player_id={player.player_id}
             player_hand={player.hand}
             current_player_turn={@current_player_turn}
-            show_hand={player.viewer_id == @current_viewer_id}
+            show_hand={
+              player.viewer_id == @current_viewer_id or
+                @phase == :showdown or
+                not is_nil(@winning_player_id)
+            }
             chips={player.chips}
             current_bet={player.current_bet}
             folded?={player.folded?}
+            ready?={player.ready?}
+            winning_player_id={@winning_player_id}
+            dealer_player_id={@dealer_player_id}
           />
         <% end %>
       </div>
@@ -90,21 +81,28 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   attr(:chips, :integer, required: true)
   attr(:current_bet, :integer, required: true)
   attr(:folded?, :boolean, required: true)
+  attr(:ready?, :boolean, required: true)
+  attr(:winning_player_id, :integer, required: true)
+  attr(:dealer_player_id, :integer, required: false, default: nil)
 
   def player_hand(assigns) do
     ~H"""
-    <div class={[
-      "rounded-xl border bg-white p-4 shadow-sm",
-      @player_id == @current_player_turn && "border-green-500 ring-2 ring-green-200",
-      @player_id != @current_player_turn && "border-gray-200"
-    ]}>
+    <div class={player_border_class(assigns)}>
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div class="md:flex-1">
           <div class="mb-2 font-medium text-left">
             Player {@player_id}
+
+            <%= if @player_id == @dealer_player_id do %>
+              <span class="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                Dealer
+              </span>
+            <% end %>
+
             <%= if @player_id == @current_player_turn do %>
               <span class="ml-2 text-green-600">(Current Turn)</span>
             <% end %>
+
             <%= if @folded? do %>
               <span class="ml-2 text-red-600">(Folded)</span>
             <% end %>
@@ -313,6 +311,24 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
       <% end %>
     </div>
     """
+  end
+
+  defp player_border_class(assigns) do
+    base = "rounded-xl border bg-white p-4 shadow-sm"
+
+    cond do
+      assigns.player_id == assigns.winning_player_id ->
+        "#{base} border-green-600 ring-2 ring-green-300"
+
+      assigns.ready? ->
+        "#{base} border-red-500"
+
+      assigns.player_id == assigns.current_player_turn ->
+        "#{base} border-green-500 ring-2 ring-green-200"
+
+      true ->
+        "#{base} border-gray-200"
+    end
   end
 
   defp button_class(base, true) do

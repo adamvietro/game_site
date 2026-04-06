@@ -25,6 +25,9 @@ defmodule GameSiteWeb.MultiPokerLive do
         current_player_turn={@room.current_player_turn}
         community_cards={@room.community_cards}
         current_viewer_id={@current_viewer_id}
+        phase={@room.phase}
+        winning_player_id={@room.winning_player_id}
+        dealer_player_id={@room.dealer_player_id}
       />
 
       <GameBoard.player_actions
