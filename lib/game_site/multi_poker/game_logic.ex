@@ -397,18 +397,18 @@ defmodule GameSite.MultiPoker.GameLogic do
   end
 
   defp next_active_player(%Room{} = room, current_player_id) do
-    players =
-      room
-      |> ordered_players()
-      |> Enum.reject(fn player -> player.folded? or player.chips == 0 end)
+    seated_players = ordered_players(room)
 
-    case Enum.find_index(players, fn player -> player.player_id == current_player_id end) do
+    case Enum.find_index(seated_players, fn player -> player.player_id == current_player_id end) do
       nil ->
-        List.first(players)
+        seated_players
+        |> Enum.reject(fn player -> player.folded? or player.chips == 0 end)
+        |> List.first()
 
       current_index ->
-        players
+        seated_players
         |> rotate_after(current_index)
+        |> Enum.reject(fn player -> player.folded? or player.chips == 0 end)
         |> List.first()
     end
   end

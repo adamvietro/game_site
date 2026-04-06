@@ -24,7 +24,7 @@ defmodule GameSite.MultiPoker.RoomTest do
   test "add_player/2 adds a player", %{pid: pid} do
     player = Player.new(2, 2)
 
-    {:ok} = Room.add_player(pid, player.player_id)
+    {:ok} = Room.player_add(pid, player.player_id)
     Process.sleep(10)
 
     room = Room.get_state(pid)
@@ -35,7 +35,7 @@ defmodule GameSite.MultiPoker.RoomTest do
   test "remove_player/2 removes a player", %{pid: pid} do
     player = Player.new(2, 2)
 
-    {:ok} = Room.add_player(pid, player.player_id)
+    {:ok} = Room.player_add(pid, player.player_id)
     Process.sleep(10)
     Room.player_leave_game(pid, player.player_id)
     Process.sleep(10)
@@ -72,7 +72,7 @@ defmodule GameSite.MultiPoker.RoomTest do
         Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
-      Room.add_player(pid, player)
+      Room.player_add(pid, player)
 
       state = Room.get_state(pid)
 
@@ -84,7 +84,7 @@ defmodule GameSite.MultiPoker.RoomTest do
 
       player = Player.new(2, 2)
 
-      {:ok} = Room.add_player(pid, player.player_id)
+      {:ok} = Room.player_add(pid, player.player_id)
       Room.player_leave_game(pid, player.player_id)
       Process.sleep(10)
 
@@ -100,7 +100,7 @@ defmodule GameSite.MultiPoker.RoomTest do
         Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
-      Room.add_player(pid, player.player_id)
+      Room.player_add(pid, player.player_id)
       Room.update_player(pid, 2, ready?: true, chips: 900)
 
       state = Room.get_state(pid)
@@ -127,7 +127,7 @@ defmodule GameSite.MultiPoker.RoomTest do
         Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
-      Room.add_player(pid, player)
+      Room.player_add(pid, player)
       Room.start_hand(pid)
 
       state = Room.get_state(pid)
@@ -146,7 +146,7 @@ defmodule GameSite.MultiPoker.RoomTest do
         Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
-      Room.add_player(pid, player)
+      Room.player_add(pid, player)
       Room.update_room(pid, current_player_turn: 1)
 
       Room.player_bet(pid, 1, 25)
@@ -165,7 +165,7 @@ defmodule GameSite.MultiPoker.RoomTest do
         Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
-      Room.add_player(pid, player)
+      Room.player_add(pid, player)
       Room.update_room(pid, current_player_turn: 1)
 
       Room.player_fold(pid, 1)
