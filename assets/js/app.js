@@ -23,6 +23,11 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import KeyInput from "./hooks/KeyInput"
 
+import Alpine from "alpinejs"
+
+window.Alpine = Alpine
+Alpine.start()
+
 window.addEventListener("phx:fireworks", () => {
   console.log("🎆 Fireworks! 🎆")
   confetti({

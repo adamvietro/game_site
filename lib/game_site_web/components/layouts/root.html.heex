@@ -56,12 +56,43 @@
         <div class="flex flex-wrap justify-center gap-4 py-3 border">
           <.link navigate={~p"/"} class="nav-link">Home</.link>
           <.link navigate={~p"/scores"} class="nav-link">Scores</.link>
-          <.link navigate={~p"/guessing"} class="nav-link">Guessing Game</.link>
-          <.link navigate={~p"/math"} class="nav-link">Math Game</.link>
-          <.link navigate={~p"/rock-paper-scissors"} class="nav-link">Rock Paper Scissors</.link>
-          <.link navigate={~p"/wordle"} class="nav-link">Wordle</.link>
-          <.link navigate={~p"/poker"} class="nav-link">Poker</.link>
-          <.link navigate={~p"/pento_choice"} class="nav-link">Pento</.link>
+
+          <div x-data="{ open: false }" x-on:click.outside="open = false" class="relative">
+            <button type="button" class="nav-link" x-on:click="open = !open">
+              Single Player
+            </button>
+
+            <div
+              x-show="open"
+              class="absolute left-0 mt-2 bg-white rounded shadow-md min-w-[200px] z-30 overflow-hidden border border-gray-200"
+            >
+              <div class="flex flex-col">
+                <.link navigate={~p"/guessing"} class="dropdown-link">Guessing Game</.link>
+                <.link navigate={~p"/math"} class="dropdown-link">Math Game</.link>
+                <.link navigate={~p"/rock-paper-scissors"} class="dropdown-link">
+                  Rock Paper Scissors
+                </.link>
+                <.link navigate={~p"/wordle"} class="dropdown-link">Wordle</.link>
+                <.link navigate={~p"/poker"} class="dropdown-link">Poker</.link>
+                <.link navigate={~p"/pento_choice"} class="dropdown-link">Pento</.link>
+              </div>
+            </div>
+          </div>
+
+          <div x-data="{ open: false }" x-on:click.outside="open = false" class="relative">
+            <button type="button" class="nav-link" x-on:click="open = !open">
+              Multiplayer
+            </button>
+
+            <div
+              x-show="open"
+              class="absolute left-0 mt-2 bg-white rounded shadow-md min-w-[200px] z-30 overflow-hidden border border-gray-200"
+            >
+              <div class="flex flex-col">
+                <.link navigate={~p"/multi-poker"} class="dropdown-link">Poker</.link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </nav>
@@ -72,14 +103,22 @@
     </main>
 
     <style>
-            .nav-link {
-        @apply px-4 py-2 rounded-md text-gray-200 hover:bg-gray-600 hover:text-white font-semibold transition border border-white;
+      .nav-link {
+        @apply px-4 py-2 rounded-md text-gray-200 hover:bg-gray-600 hover:text-white font-semibold transition border border-white cursor-pointer bg-transparent;
       }
+
       .nav-link[aria-current="page"] {
         @apply bg-gray-900 text-white;
       }
 
-          
+      .dropdown-link {
+        @apply px-3 py-2 text-gray-700 hover:bg-gray-100 transition;
+        white-space: nowrap;
+      }
+
+      [x-cloak] {
+        display: none !important;
+      }
     </style>
   </body>
 </html>
