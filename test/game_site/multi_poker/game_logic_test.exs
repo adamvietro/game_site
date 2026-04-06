@@ -29,13 +29,27 @@ defmodule GameSite.MultiPoker.GameLogicTest do
   end
 
   describe "start_hand/1" do
+    test "total chips + pot remains constant after blinds" do
+      room =
+        build_room_with_players()
+        |> GameLogic.start_hand()
+
+      total_chips =
+        room.players
+        |> Map.values()
+        |> Enum.map(& &1.chips)
+        |> Enum.sum()
+
+      assert total_chips + room.pot == 3000
+    end
+
     test "resets room hand state, posts blinds, deals two cards to each player, and sets first turn" do
       room = build_room_with_players()
 
       updated_room = GameLogic.start_hand(room)
 
       assert updated_room.phase == :pre_flop
-      assert updated_room.pot == 0
+      assert updated_room.pot == 150
       assert updated_room.community_cards == []
       assert updated_room.current_hand_number == 1
       assert updated_room.dealer_player_id == 2
