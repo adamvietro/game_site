@@ -17,7 +17,8 @@ defmodule GameSite.MultiPoker.Room do
             pot: 0,
             current_hand_number: 0,
             dealer_player_id: nil,
-            current_round_max_bet: 0
+            current_round_max_bet: 0,
+            winning_hand: nil
 
   @allowed_keys [
     :players,
@@ -34,7 +35,8 @@ defmodule GameSite.MultiPoker.Room do
     :pot,
     :current_hand_number,
     :dealer_player_id,
-    :current_round_max_bet
+    :current_round_max_bet,
+    :winning_hand
   ]
 
   def new(%Player{} = host, opts \\ []) do
@@ -55,7 +57,8 @@ defmodule GameSite.MultiPoker.Room do
       pot: Keyword.get(opts, :pot, 0),
       current_hand_number: Keyword.get(opts, :current_hand_number, 0),
       dealer_player_id: Keyword.get(opts, :dealer_player_id, host_id),
-      current_round_max_bet: Keyword.get(opts, :current_round_max_bet, 0)
+      current_round_max_bet: Keyword.get(opts, :current_round_max_bet, 0),
+      winning_hand: Keyword.get(opts, :winning_hand, nil)
     }
   end
 
@@ -166,8 +169,8 @@ defmodule GameSite.MultiPoker.Room do
       player_id ->
         new_state =
           state
-          |> mark_player_ready(player_id)
-          |> maybe_start_hand()
+          |> GameLogic.mark_player_ready(player_id)
+          |> GameLogic.maybe_start_hand()
 
         if new_state != state, do: PubSub.broadcast_room_updated(new_state)
 
@@ -313,7 +316,7 @@ defmodule GameSite.MultiPoker.Room do
 
             PubSub.broadcast_room_updated(new_state)
 
-            {:reply, {:ok, player}, new_state}
+            {:reply, {:ok}, new_state}
         end
 
       player_id ->
@@ -383,32 +386,4 @@ defmodule GameSite.MultiPoker.Room do
       state
     end
   end
-
-  defp mark_player_ready(%__MODULE__{} = state, player_id) do
-    case Map.fetch(state.players, player_id) do
-      {:ok, player} ->
-        updated_player = Player.change(player, ready?: true)
-        new_players = Map.put(state.players, player_id, updated_player)
-        %__MODULE__{state | players: new_players}
-
-      :error ->
-        state
-    end
-  end
-
-  defp maybe_start_hand(%__MODULE__{} = state) do
-    if can_start_hand?(state) do
-      state
-      |> change(room_status: :playing)
-      |> GameLogic.start_hand()
-    else
-      state
-    end
-  end
-
-  defp can_start_hand?(%__MODULE__{room_status: :waiting, players: players}) do
-    map_size(players) >= 2 and Enum.all?(Map.values(players), & &1.ready?)
-  end
-
-  defp can_start_hand?(_state), do: false
 end

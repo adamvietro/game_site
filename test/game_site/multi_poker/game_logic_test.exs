@@ -5,15 +5,15 @@ defmodule GameSite.MultiPoker.GameLogicTest do
 
   defp build_room_with_players() do
     host =
-      Player.new(1)
+      Player.new(1, 1)
       |> Player.change(seat_position: 0, chips: 1000)
 
     player_2 =
-      Player.new(2)
+      Player.new(2, 2)
       |> Player.change(seat_position: 1, chips: 1000)
 
     player_3 =
-      Player.new(3)
+      Player.new(3, 3)
       |> Player.change(seat_position: 2, chips: 1000)
 
     Room.new(host, room_id: "room-1")
@@ -185,11 +185,12 @@ defmodule GameSite.MultiPoker.GameLogicTest do
   describe "player_fold/2" do
     test "current player can fold and turn advances" do
       room = build_room_with_players()
+      assert room.current_player_turn == 2
 
       updated_room = GameLogic.player_fold(room, 2)
 
       assert updated_room.players[2].folded? == true
-      assert updated_room.current_player_turn == 3
+      assert updated_room.current_player_turn == 1
     end
 
     test "non-current player cannot fold" do
@@ -206,9 +207,30 @@ defmodule GameSite.MultiPoker.GameLogicTest do
         |> Room.change(
           current_player_turn: 2,
           players: %{
-            1 => Player.new(1) |> Player.change(seat_position: 0, folded?: false, chips: 1000),
-            2 => Player.new(2) |> Player.change(seat_position: 1, folded?: false, chips: 1000),
-            3 => Player.new(3) |> Player.change(seat_position: 2, folded?: true, chips: 1000)
+            1 =>
+              Player.new(1, 1)
+              |> Player.change(
+                seat_position: 0,
+                folded?: false,
+                player_status: :waiting,
+                chips: 1000
+              ),
+            2 =>
+              Player.new(2, 2)
+              |> Player.change(
+                seat_position: 1,
+                folded?: false,
+                player_status: :waiting,
+                chips: 1000
+              ),
+            3 =>
+              Player.new(3, 3)
+              |> Player.change(
+                seat_position: 2,
+                folded?: false,
+                player_status: :waiting,
+                chips: 1000
+              )
           }
         )
 

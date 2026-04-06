@@ -13,8 +13,8 @@ defmodule GameSite.MultiPokerTest do
 
     assert {:ok, room} = MultiPoker.get_room(room_id)
     assert room.room_id == room_id
-    assert room.host_id == 123
-    assert Map.has_key?(room.players, 123)
+    assert room.host_id == 1
+    assert Map.has_key?(room.players, 1)
   end
 
   test "get_room_pid/1 returns :error for missing room" do

@@ -5,7 +5,7 @@ defmodule GameSite.MultiPoker.RoomTest do
 
   setup do
     room_id = Ecto.UUID.generate()
-    host = Player.new(1)
+    host = Player.new(1, 1)
 
     {:ok, pid} = Room.start_link(%{room_id: room_id, host: host})
 
@@ -22,9 +22,9 @@ defmodule GameSite.MultiPoker.RoomTest do
   end
 
   test "add_player/2 adds a player", %{pid: pid} do
-    player = Player.new(2)
+    player = Player.new(2, 2)
 
-    :ok = Room.add_player(pid, player)
+    {:ok} = Room.add_player(pid, player.player_id)
     Process.sleep(10)
 
     room = Room.get_state(pid)
@@ -33,11 +33,11 @@ defmodule GameSite.MultiPoker.RoomTest do
   end
 
   test "remove_player/2 removes a player", %{pid: pid} do
-    player = Player.new(2)
+    player = Player.new(2, 2)
 
-    :ok = Room.add_player(pid, player)
+    {:ok} = Room.add_player(pid, player.player_id)
     Process.sleep(10)
-    :ok = Room.remove_player(pid, player)
+    Room.player_leave_game(pid, player.player_id)
     Process.sleep(10)
 
     room = Room.get_state(pid)
@@ -69,7 +69,7 @@ defmodule GameSite.MultiPoker.RoomTest do
       {pid, _host, _room_id} = start_room()
 
       player =
-        Player.new(2)
+        Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
       Room.add_player(pid, player)
@@ -79,15 +79,14 @@ defmodule GameSite.MultiPoker.RoomTest do
       assert state.players[2].player_id == 2
     end
 
-    test "remove_player/2 removes a player from the room" do
+    test "player_leave_game/2 removes a player from the room" do
       {pid, _host, _room_id} = start_room()
 
-      player =
-        Player.new(2)
-        |> Player.change(seat_position: 1, chips: 1000)
+      player = Player.new(2, 2)
 
-      Room.add_player(pid, player)
-      Room.remove_player(pid, player)
+      {:ok} = Room.add_player(pid, player.player_id)
+      Room.player_leave_game(pid, player.player_id)
+      Process.sleep(10)
 
       state = Room.get_state(pid)
 
@@ -98,16 +97,16 @@ defmodule GameSite.MultiPoker.RoomTest do
       {pid, _host, _room_id} = start_room()
 
       player =
-        Player.new(2)
+        Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
-      Room.add_player(pid, player)
+      Room.add_player(pid, player.player_id)
       Room.update_player(pid, 2, ready?: true, chips: 900)
 
       state = Room.get_state(pid)
 
-      assert state.players[2].ready? == true
-      assert state.players[2].chips == 900
+      assert Map.get(state.players, 2).ready? == true
+      assert Map.get(state.players, 2).chips == 900
     end
 
     test "update_room/2 updates room-level fields" do
@@ -125,7 +124,7 @@ defmodule GameSite.MultiPoker.RoomTest do
       {pid, _host, _room_id} = start_room()
 
       player =
-        Player.new(2)
+        Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
       Room.add_player(pid, player)
@@ -144,7 +143,7 @@ defmodule GameSite.MultiPoker.RoomTest do
       {pid, _host, _room_id} = start_room()
 
       player =
-        Player.new(2)
+        Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
       Room.add_player(pid, player)
@@ -163,7 +162,7 @@ defmodule GameSite.MultiPoker.RoomTest do
       {pid, _host, _room_id} = start_room()
 
       player =
-        Player.new(2)
+        Player.new(2, 2)
         |> Player.change(seat_position: 1, chips: 1000)
 
       Room.add_player(pid, player)
@@ -179,7 +178,7 @@ defmodule GameSite.MultiPoker.RoomTest do
 
   defp start_room() do
     host =
-      Player.new(1)
+      Player.new(1, 1)
       |> Player.change(chips: 1000)
 
     room_id = Ecto.UUID.generate()

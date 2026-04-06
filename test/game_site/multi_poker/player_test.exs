@@ -4,7 +4,7 @@ defmodule GameSite.MultiPoker.PlayerTest do
   alias GameSite.MultiPoker.Player
 
   test "new/1 builds a player with defaults" do
-    player = Player.new(123)
+    player = Player.new(123, 123)
 
     assert player.player_id == 123
     assert player.ready? == false
@@ -18,7 +18,7 @@ defmodule GameSite.MultiPoker.PlayerTest do
 
   test "new/2 applies passed options" do
     player =
-      Player.new(123,
+      Player.new(123, 123,
         ready?: true,
         chips: 500,
         current_bet: 25,
@@ -39,7 +39,7 @@ defmodule GameSite.MultiPoker.PlayerTest do
   end
 
   test "change/2 updates only passed fields" do
-    player = Player.new(123)
+    player = Player.new(123, 123)
 
     updated = Player.change(player, chips: 200, ready?: true)
 
@@ -51,7 +51,7 @@ defmodule GameSite.MultiPoker.PlayerTest do
   end
 
   test "set_ready/2 updates ready state" do
-    player = Player.new(123)
+    player = Player.new(123, 123)
 
     updated = Player.set_ready(player, true)
 

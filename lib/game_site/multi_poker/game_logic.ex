@@ -1,5 +1,5 @@
 defmodule GameSite.MultiPoker.GameLogic do
-  alias GameSite.MultiPoker.{Room, Player, Deck}
+  alias GameSite.MultiPoker.{Room, Player, Deck, HandEvaluator}
 
   def player_bet(%Room{current_player_turn: current_player_turn} = room, player_id, amount)
       when current_player_turn != player_id or amount <= 0 do
@@ -124,6 +124,16 @@ defmodule GameSite.MultiPoker.GameLogic do
     |> set_first_player_turn()
   end
 
+  def end_hand(%Room{} = room) do
+    room
+    |> resolve_winner_and_award_pot()
+    |> reset_players_to_not_ready()
+    |> Room.change(
+      room_status: :waiting,
+      current_player_turn: nil
+    )
+  end
+
   def advance_phase_and_deal(%Room{phase: phase} = room) do
     case phase do
       :new_hand ->
@@ -148,11 +158,54 @@ defmodule GameSite.MultiPoker.GameLogic do
         |> set_first_player_turn
 
       :river ->
-        Room.change(room, phase: :showdown)
+        room
+        |> Room.change(phase: :showdown)
+        # Set all players to waiting: true
+        |> set_first_player_turn
 
       :showdown ->
         room
+        |> end_hand()
     end
+  end
+
+  def resolve_winner_and_award_pot(%Room{} = room) do
+    ordered_players = HandEvaluator.evaluate_hands(room)
+
+    case ordered_players do
+      [] ->
+        room
+
+      [{winner_player_id, winning_hand} | _rest] ->
+        award_pot(room, winner_player_id, winning_hand)
+    end
+  end
+
+  def award_pot(%Room{players: players, pot: pot} = room, winner_player_id, winning_hand) do
+    case Map.fetch(players, winner_player_id) do
+      {:ok, player} ->
+        updated_player = Player.change(player, chips: player.chips + pot)
+        new_players = Map.put(players, winner_player_id, updated_player)
+
+        %Room{room | players: new_players}
+
+      :error ->
+        room
+    end
+  end
+
+  def reset_players_to_not_ready(%Room{players: players} = room) do
+    new_players =
+      Enum.into(players, %{}, fn {player_id, player} ->
+        updated_player =
+          Player.change(player,
+            ready?: false
+          )
+
+        {player_id, updated_player}
+      end)
+
+    %Room{room | players: new_players}
   end
 
   def advance_to_next_player(%Room{current_player_turn: current_player_turn} = room) do
@@ -183,7 +236,8 @@ defmodule GameSite.MultiPoker.GameLogic do
       community_cards: [],
       pot: 0,
       current_hand_number: room.current_hand_number + 1,
-      current_round_max_bet: 0
+      current_round_max_bet: 0,
+      winning_hand: nil
     )
   end
 
@@ -312,10 +366,12 @@ defmodule GameSite.MultiPoker.GameLogic do
     end
   end
 
-  defp betting_round_complete?(%Room{
-         players: players,
-         current_round_max_bet: current_round_max_bet
-       }) do
+  defp betting_round_complete?(
+         %Room{
+           players: players,
+           current_round_max_bet: current_round_max_bet
+         } = room
+       ) do
     active_players =
       players
       |> Map.values()
@@ -326,7 +382,7 @@ defmodule GameSite.MultiPoker.GameLogic do
         true
 
       [_one_player_left] ->
-        true
+        end_hand(room)
 
       _ ->
         Enum.all?(active_players, fn player ->
@@ -335,6 +391,34 @@ defmodule GameSite.MultiPoker.GameLogic do
         end)
     end
   end
+
+  def mark_player_ready(%Room{} = state, player_id) do
+    case Map.fetch(state.players, player_id) do
+      {:ok, player} ->
+        updated_player = Player.change(player, ready?: true)
+        new_players = Map.put(state.players, player_id, updated_player)
+        %Room{state | players: new_players}
+
+      :error ->
+        state
+    end
+  end
+
+  def maybe_start_hand(%Room{} = state) do
+    if can_start_hand?(state) do
+      state
+      |> Room.change(room_status: :playing)
+      |> start_hand()
+    else
+      state
+    end
+  end
+
+  defp can_start_hand?(%Room{room_status: :waiting, players: players}) do
+    map_size(players) >= 2 and Enum.all?(Map.values(players), & &1.ready?)
+  end
+
+  defp can_start_hand?(_state), do: false
 
   defp rotate_after(players, index) do
     {left, right} = Enum.split(players, index + 1)
