@@ -203,7 +203,11 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def player_controls(assigns) do
     ~H"""
-    <section class="rounded-lg border border-zinc-800 bg-zinc-950/80 p-3 space-y-3">
+    <section class={[
+      "rounded-lg border bg-zinc-950/80 p-3 space-y-3 transition",
+      @disabled && "border-zinc-800",
+      !@disabled && "border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+    ]}>
       <form phx-submit="player-bet" class="space-y-3">
         <div class="flex items-end gap-2">
           <div class="flex-1">
@@ -218,6 +222,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
               max={@player_chips}
               value={@bet_amount}
               disabled={@disabled}
+              step="50"
               class={[
                 "w-full rounded-md border px-3 py-2 text-sm bg-zinc-900 text-zinc-100 focus:outline-none",
                 "border-zinc-700 focus:ring-2 focus:ring-blue-500",
