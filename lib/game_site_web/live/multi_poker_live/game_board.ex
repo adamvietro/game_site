@@ -11,23 +11,21 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def score_board(assigns) do
     ~H"""
-    <section class="bg-white shadow-md rounded-xl p-4 border border-gray-200">
-      <h2 class="text-lg font-semibold mb-4 text-center">Table Info</h2>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-sm text-gray-500">Phase</p>
-          <p class="text-base font-medium">{format_phase(@phase)}</p>
+    <section class="bg-white/5 border border-gray-800 rounded-lg px-3 py-2">
+      <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
+        <div>
+          <span class="text-gray-400 text-xs">Phase</span>
+          <span class="ml-1 font-medium text-white">{format_phase(@phase)}</span>
         </div>
 
-        <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-sm text-gray-500">Pot</p>
-          <p class="text-base font-medium">{@pot}</p>
+        <div>
+          <span class="text-gray-400 text-xs">Pot</span>
+          <span class="ml-1 font-medium text-white">{@pot}</span>
         </div>
 
-        <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-sm text-gray-500">Current Round Max Bet</p>
-          <p class="text-base font-medium">{@current_round_max_bet}</p>
+        <div>
+          <span class="text-gray-400 text-xs">Max Bet</span>
+          <span class="ml-1 font-medium text-white">{@current_round_max_bet}</span>
         </div>
       </div>
     </section>
@@ -44,13 +42,12 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def game_table(assigns) do
     ~H"""
-    <div class="space-y-6">
-      <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div class="text-center font-medium mb-3">Community Cards</div>
+    <div class="space-y-3 sm:space-y-4">
+      <div class="rounded-lg border border-gray-800 bg-black/40 p-2 sm:p-3 shadow-sm">
         <.community_cards community_cards={@community_cards} />
       </div>
 
-      <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-1">
         <%= for {_id, player} <- @players do %>
           <.player_hand
             player_id={player.player_id}
@@ -90,41 +87,51 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   def player_hand(assigns) do
     ~H"""
     <div class={player_border_class(assigns)}>
-      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div class="md:flex-1">
-          <div class="mb-2 font-medium text-left">
-            Player {@player_id}
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-wrap items-center gap-1">
+          <%= if @is_current_viewer do %>
+            <span class="inline-flex items-center rounded-full bg-indigo-500/15 px-2 py-0.5 text-[11px] font-medium text-indigo-400">
+              You
+            </span>
+          <% end %>
 
-            <%= if @player_id == @dealer_player_id do %>
-              <span class="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
-                Dealer
-              </span>
-            <% end %>
+          <%= if @player_id == @dealer_player_id do %>
+            <span class="inline-flex items-center rounded-full bg-blue-500/15 px-2 py-0.5 text-[11px] font-medium text-blue-400">
+              Dealer
+            </span>
+          <% end %>
 
-            <%= if @is_current_viewer do %>
-              <span class="ml-2 inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
-                You
-              </span>
-            <% end %>
+          <%= if @player_id == @current_player_turn do %>
+            <span class="inline-flex items-center rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-medium text-green-400">
+              Turn
+            </span>
+          <% end %>
 
-            <%= if @player_id == @current_player_turn do %>
-              <span class="ml-2 text-green-600">(Current Turn)</span>
-            <% end %>
+          <%= if @folded? do %>
+            <span class="inline-flex items-center rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] font-medium text-red-400">
+              Folded
+            </span>
+          <% end %>
 
-            <%= if @folded? do %>
-              <span class="ml-2 text-red-600">(Folded)</span>
-            <% end %>
-          </div>
-
-          <div class="flex justify-start">
-            <.card_row cards={@player_hand} total_slots={2} reveal?={@show_hand} />
-          </div>
+          <%= if @ready? do %>
+            <span class="inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
+              Ready
+            </span>
+          <% end %>
         </div>
 
-        <div class="min-w-[180px] rounded-lg bg-gray-50 p-3 text-sm text-gray-700 md:text-right">
-          <div class="font-semibold text-gray-900 mb-2">Player Stats</div>
-          <div>Chips: {@chips}</div>
-          <div>Current Bet: {@current_bet}</div>
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 overflow-x-auto">
+            <.card_row cards={@player_hand} total_slots={2} reveal?={@show_hand} />
+          </div>
+
+          <div class="shrink-0 rounded-md border border-zinc-700 px-2 py-1 text-right min-w-[60px]">
+            <div class="text-[9px] text-zinc-500 leading-none">CHIPS</div>
+            <div class="text-sm font-semibold text-white leading-tight">{@chips}</div>
+
+            <div class="mt-1 text-[9px] text-zinc-500 leading-none">BET</div>
+            <div class="text-sm font-semibold text-white leading-tight">{@current_bet}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -135,7 +142,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def community_cards(assigns) do
     ~H"""
-    <div class="flex justify-center">
+    <div class="flex items-center justify-center overflow-x-auto leading-none">
       <.card_row cards={@community_cards} total_slots={5} reveal?={true} />
     </div>
     """
@@ -147,24 +154,21 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def card_row(assigns) do
     ~H"""
-    <div class="flex flex-wrap gap-4 min-h-[7rem] md:min-h-[8rem]">
+    <div class="flex gap-2 sm:gap-3 overflow-x-auto">
       <%= for card <- fill_cards(@cards, @total_slots) do %>
-        <div class="flex flex-col items-center">
+        <div class="flex flex-col items-center shrink-0">
           <%= cond do %>
             <% card && @reveal? -> %>
               <img
                 src={card_image_url(card)}
                 alt={card_to_string(card)}
-                class="w-20 h-28 border rounded shadow transition"
+                class="w-12 h-16 sm:w-16 sm:h-24 md:w-20 md:h-28 border rounded shadow transition"
               />
-              <div class="mt-1 text-sm text-center">
-                {card_to_string(card)}
-              </div>
             <% true -> %>
               <img
                 src={card_back()}
                 alt="Hidden card"
-                class="w-20 h-28 border rounded shadow transition"
+                class="w-12 h-16 sm:w-16 sm:h-24 md:w-20 md:h-28 border rounded shadow transition"
               />
           <% end %>
         </div>
@@ -199,53 +203,44 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def player_controls(assigns) do
     ~H"""
-    <section class="bg-white shadow-md rounded-xl p-4 border border-gray-200 space-y-4">
-      <h2 class="text-lg font-semibold text-center">Player Actions</h2>
+    <section class="rounded-lg border border-zinc-800 bg-zinc-950/80 p-3 space-y-3">
+      <form phx-submit="player-bet" class="space-y-3">
+        <div class="flex items-end gap-2">
+          <div class="flex-1">
+            <label for="bet_amount" class="mb-1 block text-xs font-medium text-zinc-400">
+              Bet Amount
+            </label>
+            <input
+              id="bet_amount"
+              name="bet_amount"
+              type="number"
+              min={@bet_amount}
+              max={@player_chips}
+              value={@bet_amount}
+              disabled={@disabled}
+              class={[
+                "w-full rounded-md border px-3 py-2 text-sm bg-zinc-900 text-zinc-100 focus:outline-none",
+                "border-zinc-700 focus:ring-2 focus:ring-blue-500",
+                @disabled && "bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-70"
+              ]}
+            />
+          </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div class="bg-gray-50 rounded-lg p-3 text-center">
-          <p class="text-sm text-gray-500">Your Chips</p>
-          <p class="text-base font-medium">{@player_chips}</p>
-        </div>
-
-        <div class="bg-gray-50 rounded-lg p-3 text-center">
-          <p class="text-sm text-gray-500">Your Current Bet</p>
-          <p class="text-base font-medium">{@player_current_bet}</p>
-        </div>
-
-        <div class="bg-gray-50 rounded-lg p-3 text-center">
-          <p class="text-sm text-gray-500">Amount Needed</p>
-          <p class="text-base font-medium">{@bet_amount}</p>
-        </div>
-      </div>
-
-      <form phx-submit="player-bet" class="space-y-4">
-        <div class="max-w-xs mx-auto">
-          <label for="bet_amount" class="block text-sm font-medium text-gray-700 mb-1">
-            Bet Amount
-          </label>
-          <input
-            id="bet_amount"
-            name="bet_amount"
-            type="number"
-            min={@bet_amount}
-            max={@player_chips}
-            value={@bet_amount}
+          <button
+            type="submit"
             disabled={@disabled}
-            class={[
-              "w-full rounded-lg border px-3 py-2 shadow-sm focus:outline-none",
-              "border-gray-300 focus:ring-2 focus:ring-blue-500",
-              @disabled && "bg-gray-100 cursor-not-allowed opacity-70"
-            ]}
-          />
+            class={button_class("bg-blue-600 hover:bg-blue-700", @disabled)}
+          >
+            Bet
+          </button>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
           <button
             type="button"
             phx-click="player-fold"
             disabled={@disabled}
-            class={button_class("bg-red-500 hover:bg-red-600", @disabled)}
+            class={button_class("bg-red-600 hover:bg-red-700", @disabled)}
           >
             Fold
           </button>
@@ -255,27 +250,21 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
             type="button"
             phx-click="player-check"
             disabled={check_disabled}
-            class={button_class("bg-gray-500 hover:bg-gray-600", check_disabled)}
+            class={button_class("bg-zinc-700 hover:bg-zinc-600", check_disabled)}
           >
             Check
-          </button>
-
-          <button
-            type="submit"
-            disabled={@disabled}
-            class={button_class("bg-blue-500 hover:bg-blue-600", @disabled)}
-          >
-            Bet
           </button>
 
           <button
             type="button"
             phx-click="player-all-in"
             disabled={@disabled}
-            class={button_class("bg-yellow-500 hover:bg-yellow-600", @disabled)}
+            class={button_class("bg-yellow-600 hover:bg-yellow-700", @disabled)}
           >
             All In
           </button>
+
+          <div class="hidden sm:block"></div>
         </div>
       </form>
     </section>
@@ -290,13 +279,19 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     ~H"""
     <div class="flex justify-center">
       <%= if @room_status == :waiting and @viewer_state.action_state == :not_joined and not @room_full do %>
-        <button phx-click="join-game" class="px-4 py-2 bg-blue-600 text-white rounded">
+        <button
+          phx-click="join-game"
+          class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700 transition"
+        >
           Join Game
         </button>
       <% end %>
 
       <%= if @viewer_state.action_state != :not_joined and @room_status == :waiting do %>
-        <button phx-click="leave-game" class="px-4 py-2 bg-red-600 text-white rounded">
+        <button
+          phx-click="leave-game"
+          class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-red-700 transition"
+        >
           Leave Game
         </button>
       <% end %>
@@ -312,9 +307,13 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     <div class="flex justify-center">
       <%= if @game_state == :waiting and
             @viewer_state.action_state != :not_joined and
-            not @viewer_state.ready? and not @viewer_state.busted? do %>
-        <button phx-click="player-ready" class="px-4 py-2 bg-blue-600 text-white rounded">
-          Ready!
+            not @viewer_state.ready? and
+            not @viewer_state.busted? do %>
+        <button
+          phx-click="player-ready"
+          class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-emerald-700 transition"
+        >
+          Ready
         </button>
       <% end %>
     </div>
@@ -322,7 +321,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   end
 
   defp player_border_class(assigns) do
-    base = "rounded-xl border bg-white p-4 shadow-sm"
+    base = "rounded-xl border bg-white p-3 sm:p-4 shadow-sm"
 
     cond do
       assigns.player_id == assigns.winning_player_id ->

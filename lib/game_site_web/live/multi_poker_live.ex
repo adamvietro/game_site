@@ -8,46 +8,49 @@ defmodule GameSiteWeb.MultiPokerLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <%= if @room == nil  do %>
+    <%= if @room == nil do %>
       Room is loading...
     <% else %>
-      <GameBoard.score_board
-        phase={@room.phase}
-        current_player_turn={@room.current_player_turn}
-        pot={@room.pot}
-        dealer_player_id={@room.dealer_player_id}
-        current_round_max_bet={@room.current_round_max_bet}
-        winning_hand={@room.winning_hand}
-      />
-      <div class="ml-4">
-        <InstructionHelper.helper_bubble />
-      </div>
+      <div class="space-y-4 px-2 sm:px-4">
+        <div class="flex justify-start left gap-6">
+          <InstructionHelper.helper_bubble />
+          <GameBoard.score_board
+            phase={@room.phase}
+            current_player_turn={@room.current_player_turn}
+            pot={@room.pot}
+            dealer_player_id={@room.dealer_player_id}
+            current_round_max_bet={@room.current_round_max_bet}
+            winning_hand={@room.winning_hand}
+          />
+        </div>
 
-      <GameBoard.game_table
-        players={@room.players}
-        current_player_turn={@room.current_player_turn}
-        community_cards={@room.community_cards}
-        current_viewer_id={@current_viewer_id}
-        phase={@room.phase}
-        winning_player_id={@room.winning_player_id}
-        dealer_player_id={@room.dealer_player_id}
-      />
-
-      <GameBoard.player_actions
-        room_status={@room.room_status}
-        action_state={@viewer_state.action_state}
-        player_chips={@viewer_state.player_chips}
-        player_current_bet={@viewer_state.player_current_bet}
-        bet_amount={get_current_min_bet_needed(@room, @current_viewer_id)}
-      />
-
-      <div column-2>
-        <GameBoard.join_game
-          viewer_state={@viewer_state}
-          room_status={@room.room_status}
-          room_full={room_full(@room)}
+        <GameBoard.game_table
+          players={@room.players}
+          current_player_turn={@room.current_player_turn}
+          community_cards={@room.community_cards}
+          current_viewer_id={@current_viewer_id}
+          phase={@room.phase}
+          winning_player_id={@room.winning_player_id}
+          dealer_player_id={@room.dealer_player_id}
         />
-        <GameBoard.player_ready game_state={@room.room_status} viewer_state={@viewer_state} />
+
+        <GameBoard.player_actions
+          room_status={@room.room_status}
+          action_state={@viewer_state.action_state}
+          player_chips={@viewer_state.player_chips}
+          player_current_bet={@viewer_state.player_current_bet}
+          bet_amount={get_current_min_bet_needed(@room, @current_viewer_id)}
+        />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <GameBoard.join_game
+            viewer_state={@viewer_state}
+            room_status={@room.room_status}
+            room_full={room_full(@room)}
+          />
+
+          <GameBoard.player_ready game_state={@room.room_status} viewer_state={@viewer_state} />
+        </div>
       </div>
     <% end %>
     """

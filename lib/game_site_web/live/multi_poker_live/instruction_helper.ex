@@ -15,7 +15,7 @@ defmodule GameSiteWeb.MultiPokerLive.InstructionHelper do
 
       <div
         data-help-panel
-        class="absolute left-1/2 top-full z-50 mt-2 w-80 -translate-x-1/2 rounded-xl border border-gray-200 bg-white p-4 shadow-lg"
+        class="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-1rem)] rounded-xl border border-gray-200 bg-white p-3 shadow-lg text-xs sm:text-sm"
       >
         <h3 class="mb-2 text-sm font-semibold text-gray-900">Poker Rules</h3>
 
