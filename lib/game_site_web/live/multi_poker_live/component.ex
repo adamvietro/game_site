@@ -18,34 +18,52 @@ defmodule GameSiteWeb.MultiPokerLive.Component do
 
   def live_games(assigns) do
     ~H"""
-    <.table id="rooms" rows={@rooms}>
-      <:col :let={room} label="Room ID">
-        <span class="font-mono text-sm">{room.display_id}</span>
-      </:col>
+    <div class="space-y-3">
+      <h2 class="text-lg font-semibold text-zinc-100">Live Games</h2>
 
-      <:col :let={room} label="Players">
-        {room.player_count}
-      </:col>
+      <%= if Enum.empty?(@rooms) do %>
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900 p-4 text-sm text-zinc-400">
+          No live rooms right now.
+        </div>
+      <% else %>
+        <div class="grid grid-cols-1 gap-3">
+          <%= for room <- @rooms do %>
+            <div class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 shadow-sm">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <div class="text-xs uppercase tracking-wide text-zinc-500">Room</div>
+                  <div class="font-mono text-sm text-zinc-100 break-all">
+                    {room.display_id}
+                  </div>
+                </div>
 
-      <:col :let={room} label="Status">
-        <span class={[
-          "inline-flex rounded-full px-2 py-1 text-xs font-semibold",
-          room.room_status == :waiting && "bg-yellow-100 text-yellow-800",
-          room.room_status == :in_progress && "bg-green-100 text-green-800"
-        ]}>
-          {room.room_status}
-        </span>
-      </:col>
+                <span class={[
+                  "inline-flex shrink-0 rounded-full px-2 py-1 text-xs font-semibold",
+                  room.room_status == :waiting && "bg-amber-500/15 text-amber-400",
+                  room.room_status == :in_progress && "bg-emerald-500/15 text-emerald-400"
+                ]}>
+                  {room.room_status}
+                </span>
+              </div>
 
-      <:action :let={room}>
-        <.link
-          navigate={~p"/multi-poker/#{room.room_id}"}
-          class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-        >
-          Join
-        </.link>
-      </:action>
-    </.table>
+              <div class="mt-3 flex items-center justify-between text-sm">
+                <div>
+                  <span class="text-zinc-500">Players</span>
+                  <span class="ml-2 font-medium text-zinc-100">{room.player_count}</span>
+                </div>
+
+                <.link
+                  navigate={~p"/multi-poker/#{room.room_id}"}
+                  class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition"
+                >
+                  Join
+                </.link>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
     """
   end
 

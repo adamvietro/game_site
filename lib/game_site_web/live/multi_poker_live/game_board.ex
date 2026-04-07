@@ -11,20 +11,20 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
 
   def score_board(assigns) do
     ~H"""
-    <section class="bg-white/5 border border-gray-800 rounded-lg px-3 py-2">
+    <section class="rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-2">
       <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
         <div>
-          <span class="text-gray-400 text-xs">Phase</span>
+          <span class="text-zinc-500 text-xs">Phase</span>
           <span class="ml-1 font-medium text-white">{format_phase(@phase)}</span>
         </div>
 
         <div>
-          <span class="text-gray-400 text-xs">Pot</span>
+          <span class="text-zinc-500 text-xs">Pot</span>
           <span class="ml-1 font-medium text-white">{@pot}</span>
         </div>
 
         <div>
-          <span class="text-gray-400 text-xs">Max Bet</span>
+          <span class="text-zinc-500 text-xs">Max Bet</span>
           <span class="ml-1 font-medium text-white">{@current_round_max_bet}</span>
         </div>
       </div>
@@ -43,11 +43,11 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   def game_table(assigns) do
     ~H"""
     <div class="space-y-3 sm:space-y-4">
-      <div class="rounded-lg border border-gray-800 bg-black/40 p-2 sm:p-3 shadow-sm">
+      <div class="rounded-lg border border-zinc-800 bg-zinc-950/80 p-2 sm:p-3 shadow-sm">
         <.community_cards community_cards={@community_cards} />
       </div>
 
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
         <%= for {_id, player} <- @players do %>
           <.player_hand
             player_id={player.player_id}
@@ -102,7 +102,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
           <% end %>
 
           <%= if @player_id == @current_player_turn do %>
-            <span class="inline-flex items-center rounded-full bg-green-500/15 px-2 py-0.5 text-[11px] font-medium text-green-400">
+            <span class="inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-400">
               Turn
             </span>
           <% end %>
@@ -156,19 +156,19 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     ~H"""
     <div class="flex gap-2 sm:gap-3 overflow-x-auto">
       <%= for card <- fill_cards(@cards, @total_slots) do %>
-        <div class="flex flex-col items-center shrink-0">
+        <div class="flex items-center shrink-0">
           <%= cond do %>
             <% card && @reveal? -> %>
               <img
                 src={card_image_url(card)}
                 alt={card_to_string(card)}
-                class="w-12 h-16 sm:w-16 sm:h-24 md:w-20 md:h-28 border rounded shadow transition"
+                class="block w-12 h-16 sm:w-16 sm:h-24 md:w-20 md:h-28 border border-zinc-700 rounded shadow transition"
               />
             <% true -> %>
               <img
                 src={card_back()}
                 alt="Hidden card"
-                class="w-12 h-16 sm:w-16 sm:h-24 md:w-20 md:h-28 border rounded shadow transition"
+                class="block w-12 h-16 sm:w-16 sm:h-24 md:w-20 md:h-28 border border-zinc-700 rounded shadow transition"
               />
           <% end %>
         </div>
@@ -206,10 +206,10 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
     <section class={[
       "rounded-lg border bg-zinc-950/80 p-3 space-y-3 transition",
       @disabled && "border-zinc-800",
-      !@disabled && "border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]"
+      !@disabled && "border-emerald-500/70 shadow-[0_0_8px_rgba(16,185,129,0.35)]"
     ]}>
       <form phx-submit="player-bet" class="space-y-3">
-        <div class="flex items-end gap-2">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
           <div class="flex-1">
             <label for="bet_amount" class="mb-1 block text-xs font-medium text-zinc-400">
               Bet Amount
@@ -240,7 +240,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
           </button>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
+        <div class="grid grid-cols-3 gap-2">
           <button
             type="button"
             phx-click="player-fold"
@@ -264,12 +264,10 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
             type="button"
             phx-click="player-all-in"
             disabled={@disabled}
-            class={button_class("bg-yellow-600 hover:bg-yellow-700", @disabled)}
+            class={button_class("bg-amber-600 hover:bg-amber-700", @disabled)}
           >
             All In
           </button>
-
-          <div class="hidden sm:block"></div>
         </div>
       </form>
     </section>
@@ -326,20 +324,20 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoard do
   end
 
   defp player_border_class(assigns) do
-    base = "rounded-xl border bg-white p-3 sm:p-4 shadow-sm"
+    base = "rounded-xl border bg-zinc-900 p-3 sm:p-4 shadow-sm transition"
 
     cond do
       assigns.player_id == assigns.winning_player_id ->
-        "#{base} border-green-600 ring-2 ring-green-300"
+        "#{base} border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.7),0_0_40px_rgba(16,185,129,0.4)] animate-pulse"
 
       assigns.ready? ->
-        "#{base} border-red-500"
+        "#{base} border-amber-500/60"
 
       assigns.player_id == assigns.current_player_turn ->
-        "#{base} border-green-500 ring-2 ring-green-200"
+        "#{base} border-emerald-500/70 shadow-[0_0_8px_rgba(16,185,129,0.25)]"
 
       true ->
-        "#{base} border-gray-200"
+        "#{base} border-zinc-800"
     end
   end
 
