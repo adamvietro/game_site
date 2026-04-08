@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.Live.MathLive.Question do
+defmodule GameSite.Math.Question do
   def get_helper(variables) do
     helper(variables)
   end

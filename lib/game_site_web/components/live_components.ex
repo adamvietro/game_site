@@ -45,6 +45,7 @@ defmodule GameSiteWeb.Components.LiveComponents do
   attr(:current_bet, :integer, default: nil)
   attr(:instructions, :list, required: true)
   attr(:id, :string, required: true)
+  attr(:question, :string, default: nil)
 
   def game_header(assigns) do
     ~H"""
@@ -57,6 +58,7 @@ defmodule GameSiteWeb.Components.LiveComponents do
             attempt={@attempt}
             outcome={@outcome}
             current_bet={@current_bet}
+            question={@question}
           />
         </div>
 
@@ -73,6 +75,7 @@ defmodule GameSiteWeb.Components.LiveComponents do
   attr(:attempt, :integer, default: nil)
   attr(:outcome, :string, default: nil)
   attr(:current_bet, :integer, default: nil)
+  attr(:question, :string, default: nil)
 
   def score_board(assigns) do
     ~H"""
@@ -105,6 +108,13 @@ defmodule GameSiteWeb.Components.LiveComponents do
         <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3">
           <div class="text-xs text-gray-500 sm:text-sm">Current Bet</div>
           <div class="text-base font-semibold text-gray-800 sm:text-lg">{@current_bet}</div>
+        </div>
+      <% end %>
+
+      <%= if @question do %>
+        <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3">
+          <div class="text-xs text-gray-500 sm:text-sm">Question</div>
+          <div class="text-base font-semibold text-gray-800 sm:text-lg">{@question}</div>
         </div>
       <% end %>
     </div>

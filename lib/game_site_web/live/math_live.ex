@@ -1,9 +1,10 @@
 defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
-  alias GameSiteWeb.Live.MathLive.{Component, Question}
+  alias GameSiteWeb.MathLive.Component
   alias GameSiteWeb.Components.LiveComponents
   alias GameSiteWeb.WagerFunctions, as: Helper
+  alias GameSite.Math.Question
   alias GameSite.Scores.ScoreHandler
 
   @helper_start %{
@@ -16,44 +17,34 @@ defmodule GameSiteWeb.MathLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Component.instructions />
-    <LiveComponents.score_board highest_score={@highest_score} current_score={@score} />
-    <Component.question question={@question} />
+    <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
+      <LiveComponents.game_header
+        highest_score={@highest_score}
+        current_score={@score}
+        id="MathGame"
+        question={@question}
+        instructions={[
+          %{text: "Each round presents a basic math equation using numbers from 1 to 100."},
+          %{text: "Before answering, you choose how many points to wager."},
+          %{text: "If your answer is correct, you gain the wagered points."},
+          %{text: "If you're wrong, the wager is subtracted from your score."},
+          %{text: "When your score reaches 0, the game resets—but your highest score is saved."},
+          %{text: "The goal is to maintain a streak and beat your personal best!"}
+        ]}
+      />
 
-    <.simple_form
-      id="answer-form"
-      for={@form}
-      phx-submit="answer"
-      class="bg-white shadow-md rounded p-4 space-y-4"
-    >
-      <div class="flex gap-4">
-        <.input type="number" field={@form[:guess]} label="Your Guess" value="" class="flex-1" />
-        <.input
-          type="number"
-          field={@form[:wager]}
-          label="Wager"
-          min="1"
-          max={@score}
-          value={@wager}
-          class="flex-1"
-        />
+      <div class="grid grid-cols-1 lg:grid-cols-2">
+        <Component.answer_submit form={@form} score={@score} wager={@wager} />
+        <Component.helper_board helper={@helper} toggle={@toggle} />
       </div>
 
-      <:actions>
-        <.button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow">
-          Answer
-        </.button>
-      </:actions>
-    </.simple_form>
-
-    <Component.helper_board helper={@helper} toggle={@toggle} />
-
-    <LiveComponents.score_submit
-      form={@form}
-      game_id={2}
-      score={@highest_score}
-      current_user={@current_user}
-    />
+      <LiveComponents.score_submit
+        form={@form}
+        game_id={2}
+        score={@highest_score}
+        current_user={@current_user}
+      />
+    </div>
     """
   end
 
