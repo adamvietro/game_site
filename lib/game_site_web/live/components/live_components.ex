@@ -9,7 +9,7 @@ defmodule GameSiteWeb.Live.Component do
 
   def score_submit(assigns) do
     ~H"""
-    <div class="bg-white shadow-md rounded p-4">
+    <div class="rounded bg-white p-4 shadow-md">
       <%= if @current_user == nil do %>
         <p>
           If you want to submit your score please make an
@@ -23,12 +23,7 @@ defmodule GameSiteWeb.Live.Component do
           </a>
         </p>
       <% else %>
-        <.simple_form
-          id="exit-form"
-          for={@form}
-          phx-submit="exit"
-          class="bg-white shadow-md rounded p-4"
-        >
+        <.simple_form id="exit-form" for={@form} phx-submit="exit">
           <.input type="hidden" field={@form[:user_id]} value={@current_user.id} name="user" />
           <.input type="hidden" field={@form[:game_id]} value={@game_id} name="game" />
           <.input type="hidden" field={@form[:score]} value={@score} name="score" />

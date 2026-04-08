@@ -3,22 +3,29 @@ defmodule GameSiteWeb.Live.WordleLive.Component do
 
   def instructions(assigns) do
     ~H"""
-    <h2 class="text-xl font-semibold">Wordle Game Overview</h2>
-    <div class="max-w-prose text-gray-800 space-y-4">
-      <p>
-        Wordle game. For this game you will be asked to find a 5 letter word. Once you have submitted a 5 letter word, you will be given feedback on how close you are to the word.
-      </p>
-      <ul class="list-disc list-inside space-y-1 text-left">
-        <li>
-          <strong class="text-green-600">Green box:</strong> Right letter in the right position
-        </li>
-        <li>
-          <strong class="text-yellow-500">Yellow box:</strong> Letter in the word but wrong position
-        </li>
-        <li><strong class="text-gray-500">Grey box:</strong> Letter not in the word</li>
-        <li>The faster you guess (fewer attempts), the higher your score</li>
-        <li>You can use the on-screen keyboard or your own keyboard to enter a word</li>
-      </ul>
+    <div id="wordle-rules-help" phx-hook="HelpBubble" class="relative inline-block">
+      <button
+        type="button"
+        data-help-button
+        class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-sm font-bold text-white shadow hover:bg-blue-600"
+        aria-label="Show instructions"
+      >
+        ?
+      </button>
+
+      <div
+        data-help-panel
+        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-1rem)] rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 shadow-lg sm:text-sm"
+      >
+        <h3 class="mb-2 text-sm font-semibold text-gray-900">How to play</h3>
+
+        <div class="space-y-2 text-sm text-gray-700">
+          <p><span class="font-semibold text-green-600">Green</span>: right letter, right spot</p>
+          <p><span class="font-semibold text-yellow-500">Yellow</span>: right letter, wrong spot</p>
+          <p><span class="font-semibold text-gray-500">Gray</span>: not in the word</p>
+          <p>Guess the word in 6 tries.</p>
+        </div>
+      </div>
     </div>
     """
   end
@@ -32,29 +39,12 @@ defmodule GameSiteWeb.Live.WordleLive.Component do
 
   def score_board(assigns) do
     ~H"""
-    <div class="bg-white rounded p-4 shadow grid grid-cols-2 gap-6 text-center font-semibold text-gray-800">
-      <div>
-        <div class="text-sm text-gray-500">Highest Score</div>
-        <div>{@highest_score}</div>
-      </div>
-      <div>
-        <div class="text-sm text-gray-500">Highest Streak</div>
-        <div>{@highest_streak}</div>
-      </div>
-      <div>
-        <div class="text-sm text-gray-500">Current Score</div>
-        <div>{@current_score}</div>
-      </div>
-      <div>
-        <div class="text-sm text-gray-500">Current Streak</div>
-        <div>{@current_streak}</div>
-      </div>
-      <%= if @reset do %>
-        <div class="col-span-2 mt-4">
-          <div class="text-sm text-gray-500">Word</div>
-          <div class="uppercase tracking-wider font-medium">{@word}</div>
-        </div>
-      <% end %>
+    <div class="flex items-center justify-between rounded bg-white px-3 py-2 text-xs text-gray-700 shadow sm:text-sm">
+      <div>High: <span class="font-semibold">{@highest_score}</span></div>
+      <div>Streak: <span class="font-semibold">{@highest_streak}</span></div>
+      <div>Score: <span class="font-semibold">{@current_score}</span></div>
+      <div>Run: <span class="font-semibold">{@current_streak}</span></div>
+      <.instructions />
     </div>
     """
   end
@@ -65,28 +55,30 @@ defmodule GameSiteWeb.Live.WordleLive.Component do
 
   def user_input(assigns) do
     ~H"""
-    <%= if @reset == true do %>
-      <br />
-      <div class="reset-input border-gray-300 rounded bg-gray-100 p-4 text-center">
-        <.simple_form id="input-form" for={@form} phx-submit="reset">
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Reset</.button>
-          </:actions>
-        </.simple_form>
+    <%= if @reset do %>
+      <div class="rounded bg-gray-100 p-2 text-center">
+        <form id="input-form" phx-submit="reset">
+          <button type="submit" class="w-full rounded-md bg-zinc-800 px-4 py-2 text-sm text-white">
+            Reset
+          </button>
+        </form>
       </div>
-      <br />
-    <% end %>
-    <%= if @reset == false do %>
-      <div class="user-input ">
-        <.simple_form id="input-form" for={@form} phx-submit="guess">
-          <.input type="text" field={@form[:guess]} value={@guess_string} label="Guess" />
+    <% else %>
+      <div class="p-1">
+        <form id="input-form" phx-submit="guess">
+          <div class="flex items-center gap-2">
+            <div class="flex min-h-10 flex-1 items-center rounded-md border border-gray-300 bg-white px-3 text-sm uppercase tracking-wide text-gray-900">
+              {@guess_string}
+            </div>
 
-          <:actions>
-            <.button class="px-6 py-2 text-lg">Submit</.button>
-          </:actions>
-        </.simple_form>
+            <input type="hidden" name="guess" value={@guess_string} />
+
+            <button type="submit" class="shrink-0 rounded-md bg-zinc-800 px-4 py-2 text-sm text-white">
+              Submit
+            </button>
+          </div>
+        </form>
       </div>
-      <br />
     <% end %>
     """
   end

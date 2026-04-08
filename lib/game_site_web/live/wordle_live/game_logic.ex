@@ -66,7 +66,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
          } =
            game_state
        ) do
-    letters_colors = letter_feedback(guess, word)
+    letters_colors = letter_feedback(word, guess)
 
     entries = set_entries(entries, guess, round)
     board_state = set_board_colors(letters_colors, round, board_state)
@@ -78,51 +78,6 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
       | board_state: board_state,
         keyboard_state: keyboard_state,
         entries: entries
-    }
-  end
-
-  defp determine_win(%__MODULE__{errors: "Not a valid word"} = game_state), do: game_state
-
-  defp determine_win(%__MODULE__{guess_string: guess, word: word} = game_state) do
-    if guess == word do
-      %{game_state | win?: true}
-    else
-      game_state
-    end
-  end
-
-  defp determine_final_state(%__MODULE__{errors: "Not a valid word"} = game_state), do: game_state
-
-  defp determine_final_state(%__MODULE__{win?: false, round: round} = game_state) when round < 5,
-    do: %{game_state | round: round + 1, guess_string: ""}
-
-  defp determine_final_state(%__MODULE__{win?: false, round: round} = game_state)
-       when round == 5,
-       do: %{game_state | reset: true, current_streak: 0, score: 0, round: 0, guess_string: ""}
-
-  defp determine_final_state(
-         %__MODULE__{
-           win?: true,
-           round: round,
-           score: score,
-           highest_streak: highest_streak,
-           current_streak: current_streak,
-           highest_score: highest_score
-         } = game_state
-       ) do
-    score = (6 - round) * 10 + score
-    current_streak = current_streak + 1
-    highest_streak = max(current_streak, highest_streak)
-
-    %{
-      game_state
-      | score: score,
-        highest_score: max(highest_score, score),
-        current_streak: current_streak,
-        highest_streak: highest_streak,
-        reset: true,
-        win?: false,
-        guess_string: ""
     }
   end
 
@@ -188,8 +143,15 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
   end
 
   defp set_keyboard_colors(letters_colors, keyboard) do
-    Enum.reduce(letters_colors, keyboard, fn [letter, color], acc ->
-      Map.replace(acc, String.to_atom(letter), color)
+    Enum.reduce(letters_colors, keyboard, fn [letter, new_color], acc ->
+      key = String.to_atom(letter)
+      current_color = Map.get(acc, key)
+
+      if color_priority(new_color) > color_priority(current_color) do
+        Map.put(acc, key, new_color)
+      else
+        acc
+      end
     end)
   end
 
@@ -207,4 +169,55 @@ defmodule GameSiteWeb.Live.WordleLive.GameLogic do
 
     put_in(entries[line_key], updated_line)
   end
+
+  defp determine_win(%__MODULE__{errors: "Not a valid word"} = game_state), do: game_state
+
+  defp determine_win(%__MODULE__{guess_string: guess, word: word} = game_state) do
+    if guess == word do
+      %{game_state | win?: true}
+    else
+      game_state
+    end
+  end
+
+  defp determine_final_state(%__MODULE__{errors: "Not a valid word"} = game_state), do: game_state
+
+  defp determine_final_state(%__MODULE__{win?: false, round: round} = game_state) when round < 5,
+    do: %{game_state | round: round + 1, guess_string: ""}
+
+  defp determine_final_state(%__MODULE__{win?: false, round: round} = game_state)
+       when round == 5,
+       do: %{game_state | reset: true, current_streak: 0, score: 0, round: 0, guess_string: ""}
+
+  defp determine_final_state(
+         %__MODULE__{
+           win?: true,
+           round: round,
+           score: score,
+           highest_streak: highest_streak,
+           current_streak: current_streak,
+           highest_score: highest_score
+         } = game_state
+       ) do
+    score = (6 - round) * 10 + score
+    current_streak = current_streak + 1
+    highest_streak = max(current_streak, highest_streak)
+
+    %{
+      game_state
+      | score: score,
+        highest_score: max(highest_score, score),
+        current_streak: current_streak,
+        highest_streak: highest_streak,
+        reset: true,
+        win?: false,
+        guess_string: ""
+    }
+  end
+
+  defp color_priority("bg-gray-100"), do: 0
+  defp color_priority("bg-gray-300"), do: 1
+  defp color_priority("bg-yellow-300"), do: 2
+  defp color_priority("bg-green-400"), do: 3
+  defp color_priority(_), do: 0
 end

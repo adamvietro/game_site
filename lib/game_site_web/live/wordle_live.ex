@@ -4,32 +4,40 @@ defmodule GameSiteWeb.WordleLive do
   alias GameSiteWeb.Live.WordleLive.{Component, GameBoard, GameLogic}
   alias GameSiteWeb.Live.Component, as: LiveComponent
   alias GameSite.Scores.ScoreHandler
-
   @impl true
   def render(assigns) do
     ~H"""
-    <section class="bg-gray-50 rounded p-6 shadow mx-auto space-y-6">
-      <Component.instructions />
-      <Component.score_board
-        highest_score={@highest_score}
-        highest_streak={@highest_streak}
-        current_score={@score}
-        current_streak={@current_streak}
-        reset={@reset}
-        word={@word}
-      />
-    </section>
-    <GameBoard.game_board board_state={@board_state} entries={@entries} />
+    <div class="min-h-screen px-2 py-3 sm:px-4 select-none">
+      <div class="mx-auto flex w-full max-w-lg flex-col gap-4 lg:max-w-3xl">
+        <section class="p-2 sm:p-4">
+          <div class="mt-4">
+            <Component.score_board
+              highest_score={@highest_score}
+              highest_streak={@highest_streak}
+              current_score={@score}
+              current_streak={@current_streak}
+              reset={@reset}
+              word={@word}
+            />
+          </div>
+        </section>
 
-    <Component.user_input form={@form} reset={@reset} guess_string={@guess_string} />
-    <GameBoard.keyboard keyboard={@keyboard_state} />
+        <div class="rounded-xl bg-gray-100 p-3 sm:p-4 shadow-inner">
+          <GameBoard.game_board board_state={@board_state} entries={@entries} />
+        </div>
 
-    <LiveComponent.score_submit
-      form={@form}
-      game_id={4}
-      score={@highest_score}
-      current_user={@current_user}
-    />
+        <Component.user_input form={@form} reset={@reset} guess_string={@guess_string} />
+
+        <GameBoard.keyboard keyboard={@keyboard_state} />
+
+        <LiveComponent.score_submit
+          form={@form}
+          game_id={4}
+          score={@highest_score}
+          current_user={@current_user}
+        />
+      </div>
+    </div>
     """
   end
 
