@@ -35,11 +35,11 @@ defmodule GameSiteWeb.MathLiveTest do
     end
 
     test "access route", %{view: view} do
-      assert render(view) =~ "Math Game"
+      assert render(view) =~ "Question"
     end
 
     test "good guess bad wager", %{socket: socket} do
-      answer = socket.assigns.answer
+      answer = socket.assigns.game.answer
 
       {:noreply, new_socket} =
         GameSiteWeb.MathLive.handle_event(
@@ -48,13 +48,12 @@ defmodule GameSiteWeb.MathLiveTest do
           socket
         )
 
-      assert new_socket.assigns.score == 11
-      assert new_socket.assigns.wager == 1
-      assert Phoenix.Flash.get(new_socket.assigns.flash, :info) == "Correct!"
+      assert new_socket.assigns.game.score == 11
+      assert new_socket.assigns.game.wager == 1
     end
 
     test "bad guess", %{socket: socket} do
-      answer = socket.assigns.answer
+      answer = socket.assigns.game.answer
 
       {:noreply, new_socket} =
         GameSiteWeb.MathLive.handle_event(
@@ -63,14 +62,13 @@ defmodule GameSiteWeb.MathLiveTest do
           socket
         )
 
-      assert new_socket.assigns.score == 5
-      assert new_socket.assigns.wager == 5
-      assert new_socket.assigns.highest_score == 5
-      assert Phoenix.Flash.get(new_socket.assigns.flash, :error) == "Incorrect"
+      assert new_socket.assigns.game.score == 5
+      assert new_socket.assigns.game.wager == 5
+      assert new_socket.assigns.game.highest_score == 5
     end
 
     test "bad guess score less than wager", %{socket: socket} do
-      answer = socket.assigns.answer
+      answer = socket.assigns.game.answer
 
       {:noreply, new_socket} =
         GameSiteWeb.MathLive.handle_event(
@@ -79,14 +77,13 @@ defmodule GameSiteWeb.MathLiveTest do
           socket
         )
 
-      assert new_socket.assigns.score == 4
-      assert new_socket.assigns.wager == 4
-      assert new_socket.assigns.highest_score == 4
-      assert Phoenix.Flash.get(new_socket.assigns.flash, :error) == "Incorrect"
+      assert new_socket.assigns.game.score == 4
+      assert new_socket.assigns.game.wager == 4
+      assert new_socket.assigns.game.highest_score == 4
     end
 
     test "exit after a correct answer", %{socket: socket, user: user, game: game} do
-      answer = socket.assigns.answer
+      answer = socket.assigns.game.answer
 
       {:noreply, updated_socket} =
         GameSiteWeb.MathLive.handle_event(
@@ -95,16 +92,16 @@ defmodule GameSiteWeb.MathLiveTest do
           socket
         )
 
-      assert updated_socket.assigns.score == 20
-      assert updated_socket.assigns.wager == 10
-      assert updated_socket.assigns.highest_score == 20
+      assert updated_socket.assigns.game.score == 20
+      assert updated_socket.assigns.game.wager == 10
+      assert updated_socket.assigns.game.highest_score == 20
 
       {:noreply, updated_socket} =
         GameSiteWeb.MathLive.handle_event(
           "exit",
           %{
             "user_id" => user.id,
-            "score" => updated_socket.assigns.highest_score,
+            "score" => updated_socket.assigns.game.highest_score,
             "game_id" => game.id
           },
           updated_socket

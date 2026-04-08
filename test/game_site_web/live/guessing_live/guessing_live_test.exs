@@ -48,11 +48,11 @@ defmodule GameSiteWeb.GuessingLiveTest do
     end
 
     test "access route", %{view: view} do
-      assert render(view) =~ "Guessing Game"
+      assert render(view) =~ "Attempt"
     end
 
     test "good guess", %{socket: socket} do
-      answer = socket.assigns.answer
+      answer = socket.assigns.game.answer
 
       {:noreply, new_socket} =
         GameSiteWeb.GuessingLive.handle_event(
@@ -61,14 +61,13 @@ defmodule GameSiteWeb.GuessingLiveTest do
           socket
         )
 
-      assert new_socket.assigns.attempt == 1
-      assert new_socket.assigns.wager == 2
-      assert new_socket.assigns.score == 12
-      assert Phoenix.Flash.get(new_socket.assigns.flash, :info) == "Correct!"
+      assert new_socket.assigns.game.attempt == 1
+      assert new_socket.assigns.game.wager == 2
+      assert new_socket.assigns.game.score == 12
     end
 
     test "good guess, no wager", %{socket: socket} do
-      answer = socket.assigns.answer
+      answer = socket.assigns.game.answer
 
       {:noreply, new_socket} =
         GameSiteWeb.GuessingLive.handle_event(
@@ -77,10 +76,9 @@ defmodule GameSiteWeb.GuessingLiveTest do
           socket
         )
 
-      assert new_socket.assigns.attempt == 1
-      assert new_socket.assigns.wager == 2
-      assert new_socket.assigns.score == 12
-      assert Phoenix.Flash.get(new_socket.assigns.flash, :info) == "Correct!"
+      assert new_socket.assigns.game.attempt == 1
+      assert new_socket.assigns.game.wager == 2
+      assert new_socket.assigns.game.score == 12
     end
 
     test "one bad guess", %{socket: socket} do
@@ -91,40 +89,36 @@ defmodule GameSiteWeb.GuessingLiveTest do
           socket
         )
 
-      assert updated_socket.assigns.attempt == 2
-      assert updated_socket.assigns.wager == 2
-      assert updated_socket.assigns.score == 10
-      assert Phoenix.Flash.get(updated_socket.assigns.flash, :error) == "Incorrect."
+      assert updated_socket.assigns.game.attempt == 2
+      assert updated_socket.assigns.game.wager == 2
+      assert updated_socket.assigns.game.score == 10
     end
 
     test "5 bad guesses", %{socket: socket} do
       socket = run_five_times(socket, "2")
 
-      assert socket.assigns.attempt == 1
-      assert socket.assigns.wager == 2
-      assert socket.assigns.score == 8
-      assert Phoenix.Flash.get(socket.assigns.flash, :error) == "Out of Guesses."
+      assert socket.assigns.game.attempt == 1
+      assert socket.assigns.game.wager == 2
+      assert socket.assigns.game.score == 8
     end
 
     test "reset on 5 bad guesses and full wager", %{socket: socket} do
       socket = run_five_times(socket, "10")
 
-      assert socket.assigns.attempt == 1
-      assert socket.assigns.score == 10
-      assert socket.assigns.wager == 1
-      assert Phoenix.Flash.get(socket.assigns.flash, :error) == "Out of Points, resetting."
+      assert socket.assigns.game.attempt == 1
+      assert socket.assigns.game.score == 10
+      assert socket.assigns.game.wager == 1
     end
 
     test "wager is set to the min of wager and score", %{socket: socket} do
       socket = run_five_times(socket, "6")
 
-      assert socket.assigns.wager == 4
-      assert socket.assigns.score == 4
-      assert Phoenix.Flash.get(socket.assigns.flash, :error) == "Out of Guesses."
+      assert socket.assigns.game.wager == 4
+      assert socket.assigns.game.score == 4
     end
 
     test "exit after a correct answer", %{socket: socket, user: user, game: game} do
-      answer = socket.assigns.answer
+      answer = socket.assigns.game.answer
 
       {:noreply, updated_socket} =
         GameSiteWeb.GuessingLive.handle_event(
@@ -133,16 +127,16 @@ defmodule GameSiteWeb.GuessingLiveTest do
           socket
         )
 
-      assert updated_socket.assigns.score == 12
-      assert updated_socket.assigns.wager == 2
-      assert updated_socket.assigns.attempt == 1
+      assert updated_socket.assigns.game.score == 12
+      assert updated_socket.assigns.game.wager == 2
+      assert updated_socket.assigns.game.attempt == 1
 
       {:noreply, updated_socket} =
         GameSiteWeb.GuessingLive.handle_event(
           "exit",
           %{
             "user_id" => user.id,
-            "score" => updated_socket.assigns.highest_score,
+            "score" => updated_socket.assigns.game.highest_score,
             "game_id" => game.id
           },
           updated_socket

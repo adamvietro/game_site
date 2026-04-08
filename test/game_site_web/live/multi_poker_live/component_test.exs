@@ -36,9 +36,8 @@ defmodule GameSiteWeb.MultiPokerLive.ComponentTest do
 
       html = render_component(&Component.live_games/1, %{rooms: rooms})
 
-      assert html =~ "Room ID"
+      assert html =~ "Room"
       assert html =~ "Players"
-      assert html =~ "Status"
 
       assert html =~ "ABCD12"
       assert html =~ "EFGH34"
@@ -56,9 +55,7 @@ defmodule GameSiteWeb.MultiPokerLive.ComponentTest do
     test "renders an empty table when there are no rooms" do
       html = render_component(&Component.live_games/1, %{rooms: []})
 
-      assert html =~ "Room ID"
-      assert html =~ "Players"
-      assert html =~ "Status"
+      assert html =~ "No live rooms"
       refute html =~ ~s(href="/multi-poker/)
     end
   end

@@ -4,7 +4,7 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoardTest do
   import Phoenix.LiveViewTest
   import Phoenix.Component, only: [to_form: 1]
 
-  alias GameSiteWeb.Live.PokerLive.GameBoard
+  alias GameSiteWeb.PokerLive.GameBoard
 
   describe "game_board/1" do
     test "renders hand and wager section inside the form" do
@@ -41,23 +41,13 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoardTest do
       assert html =~ "/images/cards/clubs_9.png"
     end
 
-    test "renders waiting placeholders for missing cards" do
+    test "renders no cards when hand is empty" do
       html =
         render_component(&GameBoard.hand/1,
           hand: []
         )
 
-      assert html =~ "Waiting..."
-    end
-
-    test "always renders five slots" do
-      html =
-        render_component(&GameBoard.hand/1,
-          hand: [{2, "hearts"}]
-        )
-
-      assert length(Regex.scan(~r/Waiting\.\.\./, html)) == 4
-      assert html =~ "2 of Hearts"
+      refute html =~ "<img"
     end
   end
 

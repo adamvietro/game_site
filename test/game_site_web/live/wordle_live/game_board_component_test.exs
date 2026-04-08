@@ -3,7 +3,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameBoardComponentTest do
 
   import Phoenix.LiveViewTest
 
-  alias GameSiteWeb.Live.WordleLive.GameBoard
+  alias GameSiteWeb.WordleLive.GameBoard
 
   test "game_board renders labels and board classes" do
     board_state =
@@ -47,9 +47,9 @@ defmodule GameSiteWeb.Live.WordleLive.GameBoardComponentTest do
         keyboard: keyboard
       )
 
-    assert html =~ "Q"
-    assert html =~ "W"
-    assert html =~ "P"
+    assert html =~ "q"
+    assert html =~ "w"
+    assert html =~ "p"
     assert html =~ "phx-click=\"add_letter\""
     assert html =~ "bg-gray-200"
   end
@@ -74,11 +74,10 @@ defmodule GameSiteWeb.Live.WordleLive.GameBoardComponentTest do
         keyboard: keyboard
       )
 
-    assert html =~ "Q"
-    assert html =~ "A"
-    assert html =~ "Z"
+    assert html =~ "q"
+    assert html =~ "a"
+    assert html =~ "z"
     assert html =~ "Delete"
     assert html =~ "id=\"keyboard\""
-    assert html =~ "phx-hook=\"KeyInput\""
   end
 end

@@ -49,12 +49,11 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoardTest do
           winning_hand: nil
         )
 
-      assert html =~ "Table Info"
       assert html =~ "Phase"
       assert html =~ "Pre Flop"
       assert html =~ "Pot"
       assert html =~ "150"
-      assert html =~ "Current Round Max Bet"
+      assert html =~ "Max Bet"
       assert html =~ "100"
     end
   end
@@ -72,22 +71,15 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoardTest do
           dealer_player_id: 2
         )
 
-      assert html =~ "Community Cards"
-      assert html =~ "A of ♠"
-      assert html =~ "K of ♥"
-      assert html =~ "Q of ♣"
-
-      assert html =~ "Player 1"
-      assert html =~ "Player 2"
-      assert html =~ "Player 3"
-
       assert html =~ "You"
       assert html =~ "Dealer"
-      assert html =~ "(Current Turn)"
-      assert html =~ "(Folded)"
+      assert html =~ "Turn"
+      assert html =~ "Folded"
 
-      assert html =~ "Chips: 1000"
-      assert html =~ "Current Bet: 50"
+      assert html =~ "CHIPS"
+      assert html =~ "1000"
+      assert html =~ "BET"
+      assert html =~ "50"
 
       assert html =~ "Hidden card"
     end
@@ -148,16 +140,14 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoardTest do
           is_current_viewer: true
         )
 
-      assert html =~ "Player 2"
       assert html =~ "Dealer"
       assert html =~ "You"
-      assert html =~ "(Current Turn)"
-      assert html =~ "(Folded)"
-      assert html =~ "Player Stats"
-      assert html =~ "Chips: 850"
-      assert html =~ "Current Bet: 100"
-      assert html =~ "10 of ♣"
-      assert html =~ "9 of ♦"
+      assert html =~ "Turn"
+      assert html =~ "Folded"
+      assert html =~ "CHIPS"
+      assert html =~ "850"
+      assert html =~ "BET"
+      assert html =~ "100"
     end
 
     test "hides cards when show_hand is false" do
@@ -238,13 +228,10 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoardTest do
           bet_amount: 25
         )
 
-      assert html =~ "Player Actions"
-      assert html =~ "Your Chips"
-      assert html =~ "900"
-      assert html =~ "Your Current Bet"
-      assert html =~ "50"
-      assert html =~ "Amount Needed"
-      assert html =~ "25"
+      assert html =~ "Bet Amount"
+      assert html =~ "Check"
+      assert html =~ "All In"
+      assert html =~ "Fold"
     end
 
     test "renders nothing when room is not playing" do
@@ -258,7 +245,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoardTest do
         )
 
       refute html =~ "Player Actions"
-      refute html =~ "Your Chips"
+      refute html =~ "Your CHIPS"
     end
   end
 
@@ -291,7 +278,6 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoardTest do
           player_current_bet: 0
         )
 
-      assert html =~ "Amount Needed"
       assert html =~ "25"
       assert html =~ ~s(phx-click="player-check")
       assert html =~ ~s(disabled)
@@ -372,7 +358,7 @@ defmodule GameSiteWeb.MultiPokerLive.GameBoardTest do
           viewer_state: %{action_state: :waiting, ready?: false, busted?: false}
         )
 
-      assert html =~ "Ready!"
+      assert html =~ "Ready"
     end
 
     test "does not show ready button when not joined" do

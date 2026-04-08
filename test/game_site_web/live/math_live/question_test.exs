@@ -1,6 +1,6 @@
 defmodule GameSiteWeb.MathLive.QuestionTest do
   use ExUnit.Case, async: true
-  alias GameSiteWeb.Live.MathLive.Question
+  alias GameSite.Math.Question
 
   describe "get_new_question/0" do
     test "returns a map with variables, question, and answer" do

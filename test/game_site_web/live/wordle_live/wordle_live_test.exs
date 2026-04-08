@@ -37,7 +37,7 @@ defmodule WordleLiveTest do
     end
 
     test "access route", %{view: view} do
-      assert render(view) =~ "Wordle"
+      assert render(view) =~ "Streak"
     end
 
     test "good guess", %{socket: socket} do

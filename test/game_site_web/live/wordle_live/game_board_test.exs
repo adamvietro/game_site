@@ -1,26 +1,26 @@
 defmodule GameSiteWeb.Live.WordleLive.GameBoardTest do
   use ExUnit.Case, async: true
 
-  alias GameSiteWeb.Live.WordleLive.GameBoard
+  alias GameSiteWeb.WordleLive.GameBoard
 
   test "get_keyboard_row_attr for top row" do
     assert GameBoard.get_keyboard_row_attr(:top) == %{
              letters: [:q, :w, :e, :r, :t, :y, :u, :i, :o, :p],
-             class: "grid grid-cols-10 gap-1 sm:gap-2"
+             class: "flex gap-1"
            }
   end
 
   test "get_keyboard_row_attr for middle row" do
     assert GameBoard.get_keyboard_row_attr(:middle) == %{
              letters: [:a, :s, :d, :f, :g, :h, :j, :k, :l],
-             class: "grid grid-cols-9 gap-1 sm:gap-2"
+             class: "flex gap-1 px-4"
            }
   end
 
   test "get_keyboard_row_attr for bottom row" do
     assert GameBoard.get_keyboard_row_attr(:bottom) == %{
              letters: [:z, :x, :c, :v, :b, :n, :m],
-             class: "grid grid-cols-7 gap-1 sm:gap-2"
+             class: "flex flex-1 gap-1 sm:gap-2"
            }
   end
 

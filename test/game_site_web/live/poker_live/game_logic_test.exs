@@ -1,7 +1,7 @@
-defmodule GameSitePoker.GameLogicTest do
+defmodule GameSite.Poker.GameLogicTest do
   use ExUnit.Case, async: true
 
-  alias GameSitePoker.GameLogic
+  alias GameSite.Poker.GameLogic
 
   describe "new_game/0" do
     test "returns the default game state" do
