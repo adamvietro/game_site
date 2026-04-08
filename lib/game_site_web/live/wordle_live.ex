@@ -2,7 +2,7 @@ defmodule GameSiteWeb.WordleLive do
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.Live.WordleLive.{Component, GameBoard, GameLogic}
-  alias GameSiteWeb.Live.Component, as: LiveComponent
+  alias GameSiteWeb.Components.LiveComponents, as: LiveComponent
   alias GameSite.Scores.ScoreHandler
   @impl true
   def render(assigns) do

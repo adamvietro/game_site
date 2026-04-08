@@ -1,5 +1,5 @@
 defmodule GameSiteWeb.Live.WordleLive.GameLogic do
-  alias GameSiteWeb.Words
+  alias GameSite.Wordle.Words
   alias GameSiteWeb.Live.WordleLive.Defaults
 
   defstruct score: 0,

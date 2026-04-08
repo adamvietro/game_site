@@ -2,7 +2,7 @@ defmodule GameSiteWeb.GuessingLive do
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.Live.GuessingLive.{Component, Question}
-  alias GameSiteWeb.Live.Component, as: LiveComponent
+  alias GameSiteWeb.Components.LiveComponents, as: LiveComponent
   alias GameSite.Scores.ScoreHandler
 
   @impl true

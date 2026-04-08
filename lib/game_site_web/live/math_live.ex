@@ -2,7 +2,7 @@ defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.Live.MathLive.{Component, Question}
-  alias GameSiteWeb.Live.Component, as: LiveComponent
+  alias GameSiteWeb.Components.LiveComponents, as: LiveComponent
   alias GameSiteWeb.WagerFunctions, as: Helper
   alias GameSite.Scores.ScoreHandler
 

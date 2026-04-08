@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.Words do
+defmodule GameSite.Wordle.Words do
   @words [
     "docty",
     "aahed",

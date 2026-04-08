@@ -1,7 +1,7 @@
 defmodule GameSiteWeb.PokerLive do
   use GameSiteWeb, :live_view
 
-  alias GameSiteWeb.Live.Component, as: LiveComponent
+  alias GameSiteWeb.Components.LiveComponents, as: LiveComponent
   alias GameSiteWeb.Live.PokerLive.{Component, GameBoard, GameLogic}
   alias GameSite.Scores.ScoreHandler
 

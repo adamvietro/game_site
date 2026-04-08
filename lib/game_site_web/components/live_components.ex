@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.Live.Component do
+defmodule GameSiteWeb.Components.LiveComponents do
   use GameSiteWeb, :live_view
   use Phoenix.Component
 
@@ -73,6 +73,43 @@ defmodule GameSiteWeb.Live.Component do
           <div>{@current_bet}</div>
         </div>
       <% end %>
+    </div>
+    """
+  end
+
+  attr(:instructions, :map, required: true)
+  attr(:id, :string, required: true)
+
+  def instructions(assigns) do
+    ~H"""
+    <div id={@id} phx-hook="HelpBubble" class="relative inline-block">
+      <button
+        type="button"
+        data-help-button
+        class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-sm font-bold text-white shadow hover:bg-blue-600"
+        aria-label="Show instructions"
+      >
+        ?
+      </button>
+
+      <div
+        data-help-panel
+        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-1rem)] rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 shadow-lg sm:text-sm"
+      >
+        <h3 class="mb-2 text-sm font-semibold text-gray-900">How to play</h3>
+
+        <div class="space-y-2 text-sm text-gray-700">
+          <%= for item <- @instructions do %>
+            <p>
+              <%= if is_map(item) do %>
+                <span class={item[:class]}>{item[:label]}</span>: {item[:text]}
+              <% else %>
+                {item}
+              <% end %>
+            </p>
+          <% end %>
+        </div>
+      </div>
     </div>
     """
   end
