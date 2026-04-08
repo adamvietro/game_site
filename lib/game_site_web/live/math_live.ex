@@ -3,8 +3,7 @@ defmodule GameSiteWeb.MathLive do
 
   alias GameSiteWeb.MathLive.Component
   alias GameSiteWeb.Components.LiveComponents
-  alias GameSiteWeb.WagerFunctions, as: Helper
-  alias GameSite.Math.Question
+  alias GameSite.Math.{Question, GameLogic, Game}
   alias GameSite.Scores.ScoreHandler
 
   @helper_start %{
@@ -19,10 +18,10 @@ defmodule GameSiteWeb.MathLive do
     ~H"""
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
       <LiveComponents.game_header
-        highest_score={@highest_score}
-        current_score={@score}
+        highest_score={@game.highest_score}
+        current_score={@game.score}
         id="MathGame"
-        question={@question}
+        question={@game.question}
         instructions={[
           %{text: "Each round presents a basic math equation using numbers from 1 to 100."},
           %{text: "Before answering, you choose how many points to wager."},
@@ -34,14 +33,14 @@ defmodule GameSiteWeb.MathLive do
       />
 
       <div class="grid grid-cols-1 lg:grid-cols-2">
-        <Component.answer_submit form={@form} score={@score} wager={@wager} />
-        <Component.helper_board helper={@helper} toggle={@toggle} />
+        <Component.answer_submit form={@form} score={@game.score} wager={@game.wager} />
+        <Component.helper_board helper={@game.helper} toggle={@game.toggle} />
       </div>
 
       <LiveComponents.score_submit
         form={@form}
         game_id={2}
-        score={@highest_score}
+        score={@game.highest_score}
         current_user={@current_user}
       />
     </div>
@@ -50,84 +49,73 @@ defmodule GameSiteWeb.MathLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    if connected?(socket) do
-      question = Question.get_new_question()
+    game =
+      if connected?(socket) do
+        GameLogic.new_game(:connected)
+      else
+        GameLogic.new_game(:disconnected)
+      end
 
-      socket =
-        socket
-        |> assign(:question, question.question)
-        |> assign(:answer, question.answer)
-        |> assign(:variables, question.variables)
-        |> assign(:score, 10)
-        |> assign(:highest_score, 0)
-        |> assign(:wager, 1)
-        |> assign(:form, to_form(%{"guess" => "", "wager" => 1}))
-        |> assign(:helper, Question.get_helper(question.variables))
-        |> assign(:toggle, true)
-        |> push_event("focus-guess", %{})
+    socket =
+      socket
+      |> assign(:game, game)
+      |> assign(:form, build_form(game))
+      |> push_event("focus-guess", %{})
 
-      {:ok, socket}
-    else
-      {:ok,
-       socket
-       |> assign(:question, "Loading...")
-       |> assign(:answer, nil)
-       |> assign(:variables, nil)
-       |> assign(:score, 10)
-       |> assign(:highest_score, 0)
-       |> assign(:wager, 1)
-       |> assign(:helper, @helper_start)
-       |> assign(:toggle, false)
-       |> assign(:form, to_form(%{"guess" => ""}))
-       |> push_event("focus-guess", %{})}
-    end
+    {:ok, socket}
   end
 
   @impl true
   def handle_event("toggle", _params, socket) do
-    {:noreply, assign(socket, toggle: !socket.assigns.toggle)}
+    game = GameLogic.toggle_helper(socket.assigns.game)
+
+    {:noreply, assign(socket, :game, game)}
   end
 
   @impl true
-  def handle_event("answer", %{"guess" => guess, "wager" => wager}, socket) do
-    correct = Helper.correct?(guess, socket.assigns.answer)
-    wager = Helper.wager_parse(wager)
-
-    new_score =
-      if correct,
-        do: socket.assigns.score + wager,
-        else: socket.assigns.score - wager
-
-    question = Question.get_new_question()
-
-    flash_type = if correct, do: :info, else: :error
-    flash_message = if correct, do: "Correct!", else: "Incorrect"
-
-    put_flash(socket, flash_type, flash_message)
+  def handle_event("answer", %{"guess" => _guess, "wager" => _wager} = params, socket) do
+    game = GameLogic.submit_answer(socket.assigns.game, params)
 
     socket =
       socket
-      |> assign(:score, max(new_score, 0))
-      |> assign(:highest_score, max(socket.assigns.highest_score, new_score))
-      |> assign(:question, question.question)
-      |> assign(:answer, question.answer)
-      |> assign(:variables, question.variables)
-      |> assign(:helper, Question.get_helper(question.variables))
-      |> assign(:wager, min(wager, new_score))
-      |> assign(:form, to_form(%{"guess" => "", "wager" => wager}))
+      |> clear_flash()
+      |> assign(:game, game)
+      |> assign(:form, build_form(game))
+      |> maybe_put_flash(game)
       |> push_event("focus-guess", %{})
-
-    socket =
-      if new_score <= 0 do
-        put_flash(socket, :error, "Score is 0 Resetting") |> assign(:score, 10)
-      else
-        put_flash(socket, flash_type, flash_message)
-      end
 
     {:noreply, socket}
   end
 
   def handle_event("exit", params, socket) do
     ScoreHandler.save_score(socket, params)
+  end
+
+  defp build_form(%Game{} = game) do
+    params = %{
+      "guess" => "",
+      "wager" => game.wager
+    }
+
+    case game.message do
+      nil ->
+        to_form(params)
+
+      "" ->
+        to_form(params)
+
+      msg ->
+        to_form(
+          params,
+          errors: [guess: {msg, [type: game.message_type]}]
+        )
+    end
+  end
+
+  defp maybe_put_flash(socket, %Game{flash_type: nil}), do: socket
+  defp maybe_put_flash(socket, %Game{flash_msg: ""}), do: socket
+
+  defp maybe_put_flash(socket, %Game{} = game) do
+    put_flash(socket, game.flash_type, game.flash_msg)
   end
 end

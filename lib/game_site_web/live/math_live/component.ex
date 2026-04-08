@@ -63,6 +63,8 @@ defmodule GameSiteWeb.MathLive.Component do
     ~H"""
     <div class="w-full">
       <form id="answer-form" phx-submit="answer" class="rounded-xl bg-white p-4 shadow-md">
+        <.error_message form={@form} />
+
         <div class="grid grid-cols-3 gap-3">
           <div>
             <label for="guess_input" class="mb-2 block text-sm font-medium text-gray-700">
@@ -104,6 +106,26 @@ defmodule GameSiteWeb.MathLive.Component do
           </div>
         </div>
       </form>
+    </div>
+    """
+  end
+
+  attr(:form, :map, required: true)
+
+  def error_message(assigns) do
+    ~H"""
+    <div class="min-h-[28px] flex items-center justify-center">
+      <%= for {_field, {msg, meta}} <- @form.errors do %>
+        <p class={
+          case meta[:type] do
+            :info -> "text-center text-sm font-medium text-green-600"
+            :error -> "text-center text-sm font-medium text-red-600"
+            _ -> "text-center text-sm font-medium text-gray-600"
+          end
+        }>
+          {msg}
+        </p>
+      <% end %>
     </div>
     """
   end
