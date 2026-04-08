@@ -3,20 +3,13 @@ defmodule GameSiteWeb.MathLive do
 
   alias GameSiteWeb.MathLive.Component
   alias GameSiteWeb.Components.LiveComponents
-  alias GameSite.Math.{Question, GameLogic, Game}
+  alias GameSite.Math.{GameLogic, Game}
   alias GameSite.Scores.ScoreHandler
-
-  @helper_start %{
-    first: "Loading...",
-    second: "Loading...",
-    third: "Loading...",
-    fourth: "Loading..."
-  }
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-none flex-col gap-6 px-4 sm:px-6 lg:px-8">
       <LiveComponents.game_header
         highest_score={@game.highest_score}
         current_score={@game.score}

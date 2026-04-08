@@ -1,7 +1,7 @@
 defmodule GameSiteWeb.RockPaperScissorsLive.GameLogicTest do
   use ExUnit.Case, async: true
 
-  alias GameSiteWeb.Live.RockPaperScissorsLive.GameLogic
+  alias GameSite.RockPaperScissors.GameLogic
 
   describe "parse_wager/1" do
     test "returns 1 for blank string" do

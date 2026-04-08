@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
+defmodule GameSite.RockPaperScissors.GameLogic do
   use GameSiteWeb, :live_view
 
   defstruct player: nil,
@@ -9,7 +9,7 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.GameLogic do
             form: %{"wager" => 1},
             score: 10,
             outcome: nil,
-            message: "",
+            message: "???",
             flash_message: nil
 
   def set_computer_choice() do

@@ -1,21 +1,32 @@
-defmodule GameSiteWeb.Live.RockPaperScissorsLive.Component do
+defmodule GameSiteWeb.RockPaperScissorsLive.Component do
   use GameSiteWeb, :live_component
 
   def instructions(assigns) do
     ~H"""
-    <div class="text-left mx-auto text-left">
-      <h2 class="text-xl font-semibold mb-2">How to Play</h2>
-      <p>
-        Rock Paper Scissors — simple but fun! Each win earns you the amount you wager
-        each loss deducts it. Choose your move and test your luck.
-      </p>
-      <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
-        <li>Rock beats Scissors</li>
-        <li>Scissors beats Paper</li>
-        <li>Paper beats Rock</li>
-        <li>If both choose the same move, it's a tie</li>
-        <li>Game resets if your score hits 0, but your high score is saved</li>
-      </ul>
+    <div id="help-bubble" phx-hook="HelpBubble" class="relative inline-flex justify-center">
+      <button
+        type="button"
+        data-help-button
+        class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-sm font-bold text-white shadow hover:bg-blue-600"
+        aria-label="Show instructions"
+      >
+        ?
+      </button>
+
+      <div
+        data-help-panel
+        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 shadow-lg sm:text-sm"
+      >
+        <h3 class="mb-2 text-sm font-semibold text-gray-900">How to play</h3>
+
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li>Rock beats Scissors</li>
+          <li>Scissors beats Paper</li>
+          <li>Paper beats Rock</li>
+          <li>If both choose the same move, it's a tie</li>
+          <li>Game resets if your score hits 0, but your high score is saved</li>
+        </ul>
+      </div>
     </div>
     """
   end
@@ -24,26 +35,71 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.Component do
   attr(:wager, :integer, required: true)
   attr(:score, :integer, required: true)
 
-  @spec input_buttons(map()) :: Phoenix.LiveView.Rendered.t()
   def input_buttons(assigns) do
     ~H"""
-    <div class="grid grid-cols-3 gap-x-3 gap-y-1 max-w-md mx-auto mt-4">
-      <%= for guess <- ["rock", "paper", "scissors"] do %>
-        <.simple_form for={@form} phx-submit="answer" class="text-center">
-          <.input
-            type="hidden"
-            field={@form[:player_choice]}
-            value={guess}
-            id={"guess_hidden_#{guess}"}
-          />
+    <div class="mt-4 w-full">
+      <form id="answer-form" phx-submit="answer" class="rounded-xl bg-white p-4 shadow-md">
+        <.error_message form={@form} />
 
-          <input type="hidden" name="wager" id={"wager_hidden_#{guess}"} />
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 sm:gap-3">
+          <div class="sm:col-span-3">
+            <label class="mb-2 block text-sm font-medium text-gray-700">
+              Choice
+            </label>
 
-          <.button type="submit" class="w-full" phx-hook="CopyBonus">
-            {guess}
-          </.button>
-        </.simple_form>
-      <% end %>
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                id="rps-rock"
+                type="submit"
+                name="player_choice"
+                value="rock"
+                phx-hook="CopyBonus"
+                class="w-full rounded-lg bg-blue-500 px-3 py-2 text-white shadow hover:bg-blue-600"
+              >
+                Rock
+              </button>
+
+              <button
+                id="rps-paper"
+                type="submit"
+                name="player_choice"
+                value="paper"
+                phx-hook="CopyBonus"
+                class="w-full rounded-lg bg-blue-500 px-3 py-2 text-white shadow hover:bg-blue-600"
+              >
+                Paper
+              </button>
+
+              <button
+                id="rps-scissors"
+                type="submit"
+                name="player_choice"
+                value="scissors"
+                phx-hook="CopyBonus"
+                class="w-full rounded-lg bg-blue-500 px-3 py-2 text-white shadow hover:bg-blue-600"
+              >
+                Scissors
+              </button>
+            </div>
+          </div>
+
+          <div class="sm:col-span-1">
+            <label for="wager_input" class="mb-2 block text-sm font-medium text-gray-700">
+              Wager
+            </label>
+
+            <input
+              id="wager_input"
+              name="wager"
+              type="number"
+              min="1"
+              max={@score}
+              value={@wager}
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      </form>
     </div>
     """
   end
@@ -77,6 +133,26 @@ defmodule GameSiteWeb.Live.RockPaperScissorsLive.Component do
     </div>
 
     <br /> <br />
+    """
+  end
+
+  attr(:form, :map, required: true)
+
+  def error_message(assigns) do
+    ~H"""
+    <div class="min-h-[28px] flex items-center justify-center">
+      <%= for {_field, {msg, meta}} <- @form.errors do %>
+        <p class={
+          case meta[:type] do
+            :info -> "text-center text-sm font-medium text-green-600"
+            :error -> "text-center text-sm font-medium text-red-600"
+            _ -> "text-center text-sm font-medium text-gray-600"
+          end
+        }>
+          {msg}
+        </p>
+      <% end %>
+    </div>
     """
   end
 end
