@@ -1,8 +1,9 @@
 defmodule GameSiteWeb.WordleLive do
   use GameSiteWeb, :live_view
 
-  alias GameSiteWeb.Live.WordleLive.{Component, GameBoard, GameLogic}
-  alias GameSiteWeb.Components.LiveComponents, as: LiveComponent
+  alias GameSite.Wordle.GameLogic
+  alias GameSiteWeb.WordleLive.{Component, GameBoard}
+  alias GameSiteWeb.Components.LiveComponents
   alias GameSite.Scores.ScoreHandler
   @impl true
   def render(assigns) do
@@ -30,7 +31,7 @@ defmodule GameSiteWeb.WordleLive do
 
         <GameBoard.keyboard keyboard={@keyboard_state} />
 
-        <LiveComponent.score_submit
+        <LiveComponents.score_submit
           form={@form}
           game_id={4}
           score={@highest_score}

@@ -2,14 +2,14 @@ defmodule GameSiteWeb.GuessingLive do
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.Live.GuessingLive.{Component, Question}
-  alias GameSiteWeb.Components.LiveComponents, as: LiveComponent
+  alias GameSiteWeb.Components.LiveComponents
   alias GameSite.Scores.ScoreHandler
 
   @impl true
   def render(assigns) do
     ~H"""
     <Component.instructions />
-    <LiveComponent.score_board
+    <LiveComponents.score_board
       highest_score={@highest_score}
       current_score={@score}
       attempt={@attempt}
@@ -19,7 +19,7 @@ defmodule GameSiteWeb.GuessingLive do
 
     <Component.wager wager={@wager} score={@score} />
 
-    <LiveComponent.score_submit
+    <LiveComponents.score_submit
       form={@form}
       game_id={1}
       score={@highest_score}

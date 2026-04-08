@@ -1,6 +1,6 @@
-defmodule GameSiteWeb.Live.WordleLive.GameLogic do
+defmodule GameSite.Wordle.GameLogic do
   alias GameSite.Wordle.Words
-  alias GameSiteWeb.Live.WordleLive.Defaults
+  alias GameSite.Wordle.Defaults
 
   defstruct score: 0,
             current_streak: 0,

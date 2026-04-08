@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.Live.WordleLive.Component do
+defmodule GameSiteWeb.WordleLive.Component do
   use GameSiteWeb, :live_view
 
   def instructions(assigns) do

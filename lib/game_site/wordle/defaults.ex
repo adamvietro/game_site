@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.Live.WordleLive.Defaults do
+defmodule GameSite.Wordle.Defaults do
   @letters ~w(q w e r t y u i o p a s d f g h j k l z x c v b n m)
   @rows 6
   @cells 30

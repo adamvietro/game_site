@@ -1,7 +1,7 @@
-defmodule GameSiteWeb.Live.WordleLive.GameLogicTest do
+defmodule GameSite.Wordle.GameLogicTest do
   use ExUnit.Case, async: true
 
-  alias GameSiteWeb.Live.WordleLive.GameLogic
+  alias GameSite.Wordle.GameLogic
 
   describe "new/1" do
     test "creates default game state" do

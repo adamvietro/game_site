@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.Live.WordleLive.GameBoard do
+defmodule GameSiteWeb.WordleLive.GameBoard do
   use GameSiteWeb, :live_view
 
   attr(:board_state, :map, required: true)

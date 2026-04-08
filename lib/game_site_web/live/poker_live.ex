@@ -1,7 +1,7 @@
 defmodule GameSiteWeb.PokerLive do
   use GameSiteWeb, :live_view
 
-  alias GameSiteWeb.Components.LiveComponents, as: LiveComponent
+  alias GameSiteWeb.Components.LiveComponents
   alias GameSiteWeb.Live.PokerLive.{Component, GameBoard, GameLogic}
   alias GameSite.Scores.ScoreHandler
 
@@ -10,7 +10,7 @@ defmodule GameSiteWeb.PokerLive do
     ~H"""
     <div class="max-w-4xl mx-auto p-4 space-y-8">
       <Component.instructions />
-      <LiveComponent.score_board
+      <LiveComponents.score_board
         highest_score={@highest_score}
         current_score={@game.score}
         current_bet={@game.wager}
@@ -26,7 +26,7 @@ defmodule GameSiteWeb.PokerLive do
       />
       <Component.rules />
 
-      <LiveComponent.score_submit
+      <LiveComponents.score_submit
         form={@form}
         game_id={5}
         score={@highest_score}
