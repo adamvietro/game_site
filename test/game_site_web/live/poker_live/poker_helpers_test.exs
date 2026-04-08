@@ -1,7 +1,7 @@
 defmodule GameSiteWeb.PokerHelpersTest do
   use ExUnit.Case, async: true
 
-  alias GameSiteWeb.PokerLive.PokerHelpers
+  alias GameSite.Poker.PokerHelpers
 
   describe "helper functions" do
     test "cards/0" do

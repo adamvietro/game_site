@@ -1,17 +1,35 @@
-defmodule GameSiteWeb.Live.PokerLive.Component do
+defmodule GameSiteWeb.PokerLive.Component do
   use GameSiteWeb, :live_view
   use Phoenix.Component
 
   def instructions(assigns) do
     ~H"""
-    <h2 class="text-xl font-semibold mb-2">Poker Game Overview</h2>
-    <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
-      <li>Adjust your wager before drawing cards.</li>
-      <li>Draw 5 cards and choose which ones to keep.</li>
-      <li>Going "all-in" means you cannot reduce your wager afterwards.</li>
-      <li>Your goal is to achieve the highest score possible.</li>
-      <li>If your score reaches 0, the game resets but keeps track of your highest score.</li>
-    </ul>
+    <div id="help-bubble" phx-hook="HelpBubble" class="relative inline-flex justify-center">
+      <button
+        type="button"
+        data-help-button
+        class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-sm font-bold text-white shadow hover:bg-blue-600"
+        aria-label="Show instructions"
+      >
+        ?
+      </button>
+
+      <div
+        data-help-panel
+        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 shadow-lg sm:text-sm"
+      >
+        <h3 class="mb-2 text-sm font-semibold text-gray-900">How to play</h3>
+
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li>Adjust your wager before drawing cards.</li>
+          <li>Draw 5 cards and choose which ones to keep.</li>
+          <li>A pair of Jacks or higher will pay out.</li>
+          <li>Going "all-in" means you cannot reduce your wager afterwards.</li>
+          <li>Your goal is to achieve the highest score possible.</li>
+          <li>If your score reaches 0, the game resets but keeps track of your highest score.</li>
+        </ul>
+      </div>
+    </div>
     """
   end
 

@@ -2,19 +2,27 @@ defmodule GameSiteWeb.PokerLive do
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.Components.LiveComponents
-  alias GameSiteWeb.Live.PokerLive.{Component, GameBoard, GameLogic}
+  alias GameSiteWeb.PokerLive.{Component, GameBoard}
+  alias GameSite.Poker.GameLogic
   alias GameSite.Scores.ScoreHandler
 
   @impl true
   def render(assigns) do
     ~H"""
     <div class="max-w-4xl mx-auto p-4 space-y-8">
-      <Component.instructions />
-      <LiveComponents.score_board
-        highest_score={@highest_score}
-        current_score={@game.score}
-        current_bet={@game.wager}
-      />
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1 min-w-0">
+          <LiveComponents.score_board
+            highest_score={@highest_score}
+            current_score={@game.score}
+            current_bet={@game.wager}
+          />
+        </div>
+
+        <div class="shrink-0">
+          <Component.instructions />
+        </div>
+      </div>
 
       <GameBoard.game_board
         form={@form}
@@ -24,6 +32,7 @@ defmodule GameSiteWeb.PokerLive do
         state={@game.state}
         all_in={@game.all_in}
       />
+
       <Component.rules />
 
       <LiveComponents.score_submit
@@ -37,7 +46,6 @@ defmodule GameSiteWeb.PokerLive do
   end
 
   @impl true
-
   def mount(_params, _session, socket) do
     socket =
       socket

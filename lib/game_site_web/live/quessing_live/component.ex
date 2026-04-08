@@ -10,13 +10,14 @@ defmodule GameSiteWeb.GuessingLive.Component do
     <div class="mx-auto mt-4 w-full max-w-md px-4 sm:px-0">
       <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
         <%= for guess <- 1..10 do %>
+          {id = "GuessButton#{guess}"}
           <form phx-submit="answer" class="m-0">
             <input type="hidden" name="guess" value={guess} id={"guess_hidden_#{guess}"} />
             <input type="hidden" name="wager" id={"wager_hidden_#{guess}"} />
 
             <button
               type="submit"
-              id="GuessButtons"
+              id={id}
               phx-hook="CopyBonus"
               disabled={MapSet.member?(@guessed_numbers, guess)}
               class={guess_button_class(@guessed_numbers, guess)}

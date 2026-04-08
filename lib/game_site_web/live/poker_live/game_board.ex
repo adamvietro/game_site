@@ -1,4 +1,4 @@
-defmodule GameSiteWeb.Live.PokerLive.GameBoard do
+defmodule GameSiteWeb.PokerLive.GameBoard do
   use GameSiteWeb, :live_view
 
   attr(:form, :map, required: true)
@@ -10,10 +10,9 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
 
   def game_board(assigns) do
     ~H"""
-    <section class="bg-white rounded p-4 shadow space-y-6">
-      <.form for={@form} phx-submit="advance" class="space-y-6">
+    <section class="bg-white rounded p-3 shadow space-y-4 sm:p-4 sm:space-y-6">
+      <.form for={@form} phx-submit="advance" class="space-y-4 sm:space-y-6">
         <.hand hand={@hand} />
-
         <.wager wager={@wager} score={@score} state={@state} all_in={@all_in} form={@form} />
       </.form>
     </section>
@@ -24,28 +23,38 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
 
   def hand(assigns) do
     ~H"""
-    <div class="flex flex-wrap justify-center gap-4 min-h-[7rem] md:min-h-[8rem]">
+    <div class="grid grid-cols-5 gap-2 justify-items-center min-h-[6rem] sm:min-h-[8rem] sm:gap-4">
       <%= for card <- (@hand ++ List.duplicate(nil, 5 - length(@hand))) |> Enum.take(5) do %>
         <div class="flex flex-col items-center">
           <%= if card do %>
             <label class="cursor-pointer flex flex-col items-center">
-              <input type="checkbox" name="replace[]" value={card_to_param(card)} class="hidden peer" />
+              <input
+                type="checkbox"
+                name="replace[]"
+                value={card_to_param(card)}
+                class="hidden card-checkbox"
+              />
+
               <img
                 src={card_image_url(card)}
                 alt={card_to_string(card)}
-                class="w-20 h-28 border rounded shadow peer-checked:ring-4 peer-checked:ring-blue-500 transition"
+                class="card-img w-12 h-16 sm:w-20 sm:h-28 border-2 border-gray-300 rounded shadow transition"
               />
-              <div class="mt-1 text-sm text-center peer-checked:text-blue-600 transition-colors">
-                {card_to_string(card)}
-              </div>
             </label>
           <% else %>
-            <div class="w-20 h-28 border rounded bg-gray-100"></div>
-            <div class="mt-1 text-sm text-center text-gray-400">Waiting...</div>
+            <div class="w-12 h-16 border-2 border-gray-200 rounded bg-gray-100 sm:w-20 sm:h-28"></div>
           <% end %>
         </div>
       <% end %>
     </div>
+
+    <style>
+      .card-checkbox:checked + .card-img {
+        border-color: #3b82f6; /* blue */
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.5);
+        transform: scale(1.05);
+      }
+    </style>
     """
   end
 
@@ -57,14 +66,14 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
 
   def wager(assigns) do
     ~H"""
-    <div class={"flex items-center gap-2 justify-center flex-wrap #{invisible_class(@state)}"}>
+    <div class={"flex items-center gap-1 justify-center flex-wrap #{invisible_class(@state)} sm:gap-2"}>
       <%= if @state == "initial" and not @all_in do %>
-        <label for="wager" class="font-semibold mr-2">Wager</label>
+        <label for="wager" class="font-semibold mr-1 text-sm sm:mr-2 sm:text-base">Wager</label>
 
         <.action_button
           type="button"
           phx_click="decrease_wager"
-          class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+          class="text-sm px-2 py-1 bg-gray-300 rounded hover:bg-gray-400 transition sm:px-3"
         >
           -10
         </.action_button>
@@ -74,7 +83,7 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
         <.action_button
           type="button"
           phx_click="increase_wager"
-          class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+          class="text-sm px-2 py-1 bg-gray-300 rounded hover:bg-gray-400 transition sm:px-3"
         >
           +10
         </.action_button>
@@ -82,7 +91,7 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
         <.action_button
           type="button"
           phx_click="all-in"
-          class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 transition"
+          class="text-sm px-2 py-1 bg-gray-300 rounded hover:bg-gray-400 transition sm:px-3"
         >
           All-In
         </.action_button>
@@ -130,7 +139,7 @@ defmodule GameSiteWeb.Live.PokerLive.GameBoard do
       min={10}
       max={@score}
       readonly
-      class="w-20 text-center border rounded bg-white cursor-default"
+      class="w-16 text-center border rounded bg-white cursor-default text-sm sm:w-20"
     />
     <style>
       input[type=number]::-webkit-inner-spin-button,

@@ -1,5 +1,5 @@
-defmodule GameSiteWeb.Live.PokerLive.GameLogic do
-  alias GameSiteWeb.PokerLive.PokerHelpers, as: Helper
+defmodule GameSite.Poker.GameLogic do
+  alias GameSite.Poker.PokerHelpers, as: Helper
 
   defstruct hand: [],
             cards: [],
