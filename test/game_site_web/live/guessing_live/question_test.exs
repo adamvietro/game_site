@@ -1,7 +1,7 @@
 defmodule GameSiteWeb.GuessingLive.QuestionTest do
   use ExUnit.Case, async: true
 
-  alias GameSiteWeb.Live.GuessingLive.Question
+  alias GameSite.Guessing.Question
 
   describe "get_new_answer/0" do
     test "returns a string number between 1 and 10" do

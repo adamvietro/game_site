@@ -1,76 +1,80 @@
 defmodule GameSiteWeb.GuessingLive do
   use GameSiteWeb, :live_view
 
-  alias GameSiteWeb.Live.GuessingLive.{Component, Question}
+  alias GameSiteWeb.GuessingLive.Component
   alias GameSiteWeb.Components.LiveComponents
+  alias GameSite.Guessing.GameLogic
   alias GameSite.Scores.ScoreHandler
 
   @impl true
   def render(assigns) do
     ~H"""
-    <Component.instructions />
-    <LiveComponents.score_board
-      highest_score={@highest_score}
-      current_score={@score}
-      attempt={@attempt}
-    />
+    <div class="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 sm:px-6 ">
+      <LiveComponents.game_header
+        id="GuessingInstructions"
+        highest_score={@game.highest_score}
+        current_score={@game.score}
+        attempt={@game.attempt}
+        instructions={[
+          %{text: "The site picks a random number between 1 and 10."},
+          %{text: "You have 5 chances to guess the correct number."},
+          %{text: "Adjust your wager amount before each guess."},
+          %{text: "Correct guesses increase your score by the wager."},
+          %{text: "Incorrect guesses decrease your score by the wager."},
+          %{text: "If your score hits 0, your session resets but keeps your high score."}
+        ]}
+      />
 
-    <Component.input_buttons form={@form} />
+      <div class="w-full">
+        <Component.input_buttons form={@form} guessed_numbers={@game.guessed_numbers} />
+      </div>
 
-    <Component.wager wager={@wager} score={@score} />
+      <div class="w-full">
+        <Component.wager wager={@game.wager} score={@game.score} form={@form} />
+      </div>
 
-    <LiveComponents.score_submit
-      form={@form}
-      game_id={1}
-      score={@highest_score}
-      current_user={@current_user}
-    />
+      <div class="w-full">
+        <LiveComponents.score_submit
+          form={@form}
+          game_id={1}
+          score={@game.highest_score}
+          current_user={@current_user}
+        />
+      </div>
+    </div>
     """
   end
 
   @impl true
   def mount(_params, _session, socket) do
+    game = GameLogic.new_game()
+
     socket =
       socket
-      |> assign(answer: Question.get_new_answer())
-      |> assign(score: 10)
-      |> assign(attempt: 1)
-      |> assign(highest_score: 0)
-      |> assign(wager: 1)
-      |> assign(form: to_form(%{}))
+      |> assign(:game, game)
+      |> assign(:form, to_form(%{}))
 
     {:ok, socket}
   end
 
   @impl true
   def handle_event("answer", params, socket) do
-    event_info = Question.set_event_info(socket.assigns, params)
-    new_answer = Question.get_new_answer()
+    game = GameLogic.submit_guess(socket.assigns.game, params)
 
-    {flash_type, flash_msg, score, attempt, answer, wager} =
-      cond do
-        event_info.correct ->
-          highest_score = highest_score(event_info)
-          {:info, "Correct!", highest_score, 1, new_answer, event_info.wager}
-
-        event_info.attempt < 5 ->
-          {:error, "Incorrect.", socket.assigns.score, event_info.attempt + 1,
-           socket.assigns.answer, event_info.wager}
-
-        event_info.attempt >= 5 and event_info.current_score <= 0 ->
-          {:error, "Out of Points, resetting.", 10, 1, new_answer, 1}
-
-        event_info.attempt >= 5 ->
-          {:error, "Out of Guesses.", event_info.current_score, 1, new_answer,
-           min(event_info.wager, event_info.current_score)}
+    form =
+      case game.message do
+        nil -> to_form(%{})
+        "" -> to_form(%{})
+        "Correct!" -> to_form(%{}, errors: [guess: {"Correct!", [type: :info]}])
+        msg -> to_form(%{}, errors: [guess: {msg, [type: :error]}])
       end
 
     socket =
       socket
       |> clear_flash()
-      |> assign(score: score, attempt: attempt, answer: answer, wager: wager)
-      |> assign(form: to_form(%{}))
-      |> put_flash(flash_type, flash_msg)
+      |> assign(:game, game)
+      |> assign(:form, form)
+      |> put_flash(game.flash_type, game.flash_msg)
 
     {:noreply, socket}
   end
@@ -82,8 +86,7 @@ defmodule GameSiteWeb.GuessingLive do
 
   @impl true
   def handle_event("set_max_wager", _params, socket) do
-    {:noreply, assign(socket, :wager, socket.assigns.score)}
+    game = GameLogic.update_to_max_bet(socket.assigns.game)
+    {:noreply, assign(socket, game: game)}
   end
-
-  def highest_score(event_info), do: max(event_info.current_score, event_info.highest_score)
 end
