@@ -35,7 +35,7 @@ defmodule GameSiteWeb.PentoLive.Component do
 
   def canvas(assigns) do
     ~H"""
-    <svg viewBox={@view_box}>
+    <svg viewBox={@view_box} class="w-full max-w-none">
       <defs>
         <rect id="pento-point" width="10" height="10" />
       </defs>
@@ -61,8 +61,8 @@ defmodule GameSiteWeb.PentoLive.Component do
 
   def palette(assigns) do
     ~H"""
-    <div id="pento-palette">
-      <svg viewBox="0 0 500 125">
+    <div id="pento-palette" class="w-full">
+      <svg viewBox="0 0 300 125" class="w-full h-auto">
         <defs>
           <rect id="palette-point" width="10" height="10" />
         </defs>

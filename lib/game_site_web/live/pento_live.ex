@@ -2,7 +2,7 @@ defmodule GameSiteWeb.PentoLive do
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.PentoLive.Board
-  alias GameSiteWeb.GameInstructions
+  # alias GameSiteWeb.GameInstructions
   alias GameSite.Scores.ScoreHandler
 
   @impl true
@@ -13,17 +13,25 @@ defmodule GameSiteWeb.PentoLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <section class="mx-auto max-w-4xl px-4 py-8">
-      <h1 class="font-heavy text-3xl mb-6">Welcome to Pento!</h1>
-      <GameInstructions.show />
-      <div class="flex justify-between items-center">
-        <.help /> <.give_up />
+    <section class="mx-auto flex min-h-[100dvh] max-w-4xl flex-col px-2 py-2 sm:px-4 sm:py-4">
+      <h1 class="mb-2 text-2xl font-heavy">Welcome to Pento!</h1>
+
+      <div class="mb-2 flex items-center justify-between">
+        <.help />
+        <.give_up />
       </div>
+
       <%= if @complete do %>
         <.complete_modal puzzle={@puzzle} current_user={@current_user} />
       <% end %>
+
       <div id="game-container" phx-hook="Fireworks" />
-      <.live_component module={Board} puzzle={@puzzle} id="board-component" key={@complete} />
+
+      <div class="flex-1 overflow-hidden">
+        <div class="h-full rounded-lg bg-white p-2">
+          <.live_component module={Board} puzzle={@puzzle} id="board-component" key={@complete} />
+        </div>
+      </div>
     </section>
     """
   end
@@ -127,7 +135,7 @@ defmodule GameSiteWeb.PentoLive do
     ~H"""
     <div
       id="info"
-      class="absolute left-0 bottom-10 bg-base-100 border-2 border-base-300 text-base-content
+      class="absolute left-0 bottom-10 bg-base-100 border-2 border-base-300 text-base-content bg-gray-200
     p-4 z-10 w-80 shadow-lg rounded hidden"
     >
       <ul class="list-disc list-inside">

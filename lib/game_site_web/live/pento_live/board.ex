@@ -6,10 +6,15 @@ defmodule GameSiteWeb.PentoLive.Board do
 
   @impl true
   def render(assigns) do
+    board = Map.get(assigns, :board)
+    view_box = if board, do: calculate_viewbox(board.points), else: "0 0 200 100"
+
+    assigns = assign(assigns, :view_box, view_box)
+
     ~H"""
     <div id={@id} phx-window-keydown="key" phx-target={@myself}>
       <.score_board score={score(@board)} moves={@board.moves} />
-      <.canvas view_box="0 0 200 100">
+      <.canvas view_box={@view_box}>
         <%= for shape <- @shapes do %>
           <.shape
             points={shape.points}
@@ -23,17 +28,16 @@ defmodule GameSiteWeb.PentoLive.Board do
         shape_names={@board.palette}
         completed_shape_names={Enum.map(@board.completed_pentos, & &1.name)}
       />
-      <.control_panel viewBox="0 0 200 40">
-        <.triangle x={20} y={0} rotate={0} fill={color(:orange, true, true)} on_click="up" />
-        <.triangle x={30} y={10} rotate={90} fill={color(:orange, true, false)} on_click="right" />
-        <.triangle x={20} y={20} rotate={180} fill={color(:orange, true, false)} on_click="down" />
-        <.triangle x={10} y={10} rotate={270} fill={color(:orange, true, false)} on_click="left" />
+      <.control_panel viewBox="0 0 180 70">
+        <.triangle x={28} y={4} rotate={0} fill={color(:orange, true, true)} on_click="up" />
+        <.triangle x={48} y={24} rotate={90} fill={color(:orange, true, false)} on_click="right" />
+        <.triangle x={28} y={44} rotate={180} fill={color(:orange, true, false)} on_click="down" />
+        <.triangle x={8} y={24} rotate={270} fill={color(:orange, true, false)} on_click="left" />
 
-        <.rotate_symbol x={50} y={5} size={30} fill={color(:orange, true, false)} on_click="rotate" />
-        <.flip_symbol x={80} y={5} size={30} fill={color(:orange, true, false)} on_click="flip" />
-        <.drop_symbol x={105} y={5} size={30} fill={color(:orange, true, false)} on_click="drop" />
+        <.rotate_symbol x={78} y={20} size={30} fill={color(:orange, true, false)} on_click="rotate" />
+        <.flip_symbol x={112} y={20} size={30} fill={color(:orange, true, false)} on_click="flip" />
+        <.drop_symbol x={146} y={20} size={30} fill={color(:orange, true, false)} on_click="drop" />
       </.control_panel>
-      <hr />
     </div>
     """
   end
@@ -169,5 +173,21 @@ defmodule GameSiteWeb.PentoLive.Board do
     shapes = Game.to_shapes(board)
     # |> IO.inspect(label: "shapes")
     assign(socket, shapes: shapes)
+  end
+
+  defp calculate_viewbox(points) do
+    if Enum.empty?(points) do
+      "0 0 200 100"
+    else
+      {xs, ys} = Enum.unzip(points)
+      max_x = Enum.max(xs)
+      max_y = Enum.max(ys)
+
+      # Each point is 10 units, with 20 units padding at start (from convert function)
+      width = max_x * 10 + 30
+      height = max_y * 10 + 30
+
+      "0 0 #{width} #{height}"
+    end
   end
 end
