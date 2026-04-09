@@ -15,7 +15,7 @@ defmodule GameSite.Pento.Board do
 
   def new(:tiny), do: new(:small, rect(5, 3))
   def new(:small), do: new(:medium, rect(7, 5))
-  def new(:widest), do: new(:all, rect(20, 4))
+  def new(:widest), do: new(:widest, rect(20, 4))
   def new(:wide), do: new(:all, rect(15, 5))
   def new(:medium), do: new(:medium, rect(12, 5))
   def new(:default), do: new(:all, rect(10, 6))
@@ -63,6 +63,7 @@ defmodule GameSite.Pento.Board do
   def active?(_board, _shape_name), do: false
 
   defp palette(:all), do: [:i, :l, :y, :n, :p, :w, :u, :v, :s, :f, :x, :t]
+  defp palette(:widest), do: [:y, :n, :p, :w, :u, :v, :s, :f, :x, :t, :l]
   defp palette(:medium), do: [:t, :y, :l, :p, :n, :v, :u]
   defp palette(:small), do: [:u, :v, :p]
 
