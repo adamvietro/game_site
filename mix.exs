@@ -19,7 +19,7 @@ defmodule GameSite.MixProject do
   def application do
     [
       mod: {GameSite.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :os_mon]
     ]
   end
 
@@ -53,6 +53,7 @@ defmodule GameSite.MixProject do
        depth: 1},
       {:swoosh, "~> 1.5"},
       {:finch, "~> 0.13"},
+      {:resend, "~> 0.4"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
@@ -79,8 +80,13 @@ defmodule GameSite.MixProject do
       "assets.deploy": [
         "tailwind game_site --minify",
         "esbuild game_site --minify",
+        &copy_static/1,
         "phx.digest"
       ]
     ]
+  end
+
+  defp copy_static(_) do
+    File.cp_r!("assets/static", "priv/static")
   end
 end

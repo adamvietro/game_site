@@ -8,7 +8,7 @@ defmodule GameSite.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"GameSite", "contact@example.com"})
+      |> from({"GameSite", "no-reply@adamsites.com"})
       |> subject(subject)
       |> text_body(body)
 

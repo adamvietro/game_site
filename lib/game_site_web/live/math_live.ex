@@ -1,114 +1,114 @@
 defmodule GameSiteWeb.MathLive do
   use GameSiteWeb, :live_view
 
-  alias GameSite.Scores
+  alias GameSiteWeb.MathLive.Component
+  alias GameSiteWeb.Components.LiveComponents
+  alias GameSite.Math.{GameLogic, Game}
+  alias GameSite.Scores.ScoreHandler
 
+  @impl true
   def render(assigns) do
     ~H"""
-    <p>Score: {@score}</p>
-    <p>Question: {@question}</p>
-    <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <.input type="number" field={@form[:answer]} label="Answer" />
-      <.input type="hidden" field={@form[:first]} value={@first} />
-      <.input type="hidden" field={@form[:second]} value={@second} />
-      <.input type="hidden" field={@form[:notation]} value={@notation} />
-      <:actions>
-        <.button>Answer</.button>
-      </:actions>
-    </.simple_form>
+    <div class="mx-auto flex w-full max-w-none flex-col gap-6 px-4 sm:px-6 lg:px-8">
+      <LiveComponents.game_header
+        highest_score={@game.highest_score}
+        current_score={@game.score}
+        id="MathGame"
+        question={@game.question}
+        instructions={[
+          %{text: "Each round presents a basic math equation using numbers from 1 to 100."},
+          %{text: "Before answering, you choose how many points to wager."},
+          %{text: "If your answer is correct, you gain the wagered points."},
+          %{text: "If you're wrong, the wager is subtracted from your score."},
+          %{text: "When your score reaches 0, the game resets—but your highest score is saved."},
+          %{text: "The goal is to maintain a streak and beat your personal best!"}
+        ]}
+      />
 
-    <body>
-      <div>
-        This is a simple Math game that will ask you to solve a simple Math question. It will involve 2
-        digits that are between 1 and 100 and a operand. You will continue to acquire a single point for every
-        correct answer that you give. You can at any point exit and save your high score, however 1 incorrect answer
-        will reduce your score to 0.
-        <br>#todo:
-        <br>add a wager button (for more points)
-        <br>add a param for highest score for the session
-        <br>keep only the highest 5 scores for each player
-        <br>change it to any size of questions
+      <div class="grid grid-cols-1 lg:grid-cols-2">
+        <Component.answer_submit form={@form} score={@game.score} wager={@game.wager} />
+        <Component.helper_board helper={@game.helper} toggle={@game.toggle} />
       </div>
-    </body>
-    <.simple_form id="exit-form" for={@form} phx-submit="exit">
-      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={2} />
-      <.input type="hidden" field={@form[:score]} value={@score} />
-      <:actions>
-        <.button>Exit and Save Score</.button>
-      </:actions>
-    </.simple_form>
+
+      <LiveComponents.score_submit
+        form={@form}
+        game_id={2}
+        score={@game.highest_score}
+        current_user={@current_user}
+      />
+    </div>
     """
   end
 
+  @impl true
   def mount(_params, _session, socket) do
-    first = Enum.random(1..100)
-    second = Enum.random(1..100)
-    notation = Enum.random(["+", "-", "*"])
-
-    {:ok,
-     assign(socket,
-       question: "#{first} #{notation} #{second}",
-       score: 0,
-       form: to_form(%{"answer" => ""}),
-       first: first,
-       second: second,
-       notation: notation
-     )}
-  end
-
-  def handle_event("answer", params, socket) do
-    answer =
-      case params["notation"] do
-        "*" -> String.to_integer(params["first"]) * String.to_integer(params["second"])
-        "+" -> String.to_integer(params["first"]) + String.to_integer(params["second"])
-        "-" -> String.to_integer(params["first"]) - String.to_integer(params["second"])
+    game =
+      if connected?(socket) do
+        GameLogic.new_game(:connected)
+      else
+        GameLogic.new_game(:disconnected)
       end
 
-    if params["answer"] == to_string(answer) do
-      first = Enum.random(1..100)
-      second = Enum.random(1..100)
-      notation = Enum.random(["+", "-", "*"])
+    socket =
+      socket
+      |> assign(:game, game)
+      |> assign(:form, build_form(game))
+      |> push_event("focus-guess", %{})
 
-      {:noreply,
-       assign(socket,
-         question: "#{first} #{notation} #{second}",
-         score: socket.assigns.score + 1,
-         form: to_form(%{"answer" => ""}),
-         first: first,
-         second: second,
-         notation: notation
-       )}
-    else
-      {:noreply,
-       assign(socket, score: 0, form: to_form(params, errors: [answer: {"incorrect", []}]))}
-    end
+    {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("toggle", _params, socket) do
+    game = GameLogic.toggle_helper(socket.assigns.game)
+
+    {:noreply, assign(socket, :game, game)}
+  end
+
+  @impl true
+  def handle_event("answer", %{"guess" => _guess, "wager" => _wager} = params, socket) do
+    game = GameLogic.submit_answer(socket.assigns.game, params)
+
+    socket =
+      socket
+      |> clear_flash()
+      |> assign(:game, game)
+      |> assign(:form, build_form(game))
+      |> maybe_put_flash(game)
+      |> push_event("focus-guess", %{})
+
+    {:noreply, socket}
   end
 
   def handle_event("exit", params, socket) do
-    save_score(socket, :new, params)
+    ScoreHandler.save_score(socket, params)
   end
 
-  defp save_score(socket, :new, score_params) do
-    case Scores.create_score(score_params) do
-      {:ok, score} ->
-        notify_parent({:new, score})
+  defp build_form(%Game{} = game) do
+    params = %{
+      "guess" => "",
+      "wager" => game.wager
+    }
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Score created successfully")
-         |> push_navigate(to: "/scores")}
+    case game.message do
+      nil ->
+        to_form(params)
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+      "" ->
+        to_form(params)
 
-      {:duplicate, :already_exists} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "No new High Score")
-         |> push_navigate(to: "/scores")}
+      msg ->
+        to_form(
+          params,
+          errors: [guess: {msg, [type: game.message_type]}]
+        )
     end
   end
 
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+  defp maybe_put_flash(socket, %Game{flash_type: nil}), do: socket
+  defp maybe_put_flash(socket, %Game{flash_msg: ""}), do: socket
+
+  defp maybe_put_flash(socket, %Game{} = game) do
+    put_flash(socket, game.flash_type, game.flash_msg)
+  end
 end

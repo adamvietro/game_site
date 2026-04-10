@@ -1,122 +1,92 @@
 defmodule GameSiteWeb.GuessingLive do
   use GameSiteWeb, :live_view
 
-  alias GameSite.Scores
+  alias GameSiteWeb.GuessingLive.Component
+  alias GameSiteWeb.Components.LiveComponents
+  alias GameSite.Guessing.GameLogic
+  alias GameSite.Scores.ScoreHandler
 
+  @impl true
   def render(assigns) do
     ~H"""
-    <p>Score: {@score}</p>
-    <p>Attempt: {@attempt}</p>
-    <%!-- <p>Answer: {@answer}</p> --%>
-    <.simple_form id="answer-form" for={@form} phx-submit="answer">
-      <.input
-        type="text"
-        field={@form[:guess]}
-        label="Guess"
-        value={@form[:guess].value}
-        key={@attempt}
+    <div class="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 sm:px-6 ">
+      <LiveComponents.game_header
+        id="GuessingInstructions"
+        highest_score={@game.highest_score}
+        current_score={@game.score}
+        attempt={@game.attempt}
+        instructions={[
+          %{text: "The site picks a random number between 1 and 10."},
+          %{text: "You have 5 chances to guess the correct number."},
+          %{text: "Adjust your wager amount before each guess."},
+          %{text: "Correct guesses increase your score by the wager."},
+          %{text: "Incorrect guesses decrease your score by the wager."},
+          %{text: "If your score hits 0, your session resets but keeps your high score."}
+        ]}
       />
-      <:actions>
-        <.button>Answer</.button>
-      </:actions>
-    </.simple_form>
 
-    <body>
-      <div>
-        This is a simple Guessing Game. The site will pick a random number between 1 and 10 and
-        you will have 5 guesses to get the correct answer. At any point you can exit and save your high score,
-        you will not be able to come back to your streak. You also will lose out on your high score if you get
-        run out of guesses. <br />#TODO: <br />Fix the CSS
-        <br />Add in a param to keep track of a current session high score
-        <br />Add in a betting button to wager your score for more points
+      <div class="w-full">
+        <Component.input_buttons form={@form} guessed_numbers={@game.guessed_numbers} />
       </div>
-    </body>
-    <.simple_form id="exit-form" for={@form} phx-submit="exit">
-      <.input type="hidden" field={@form[:user_id]} value={@current_user.id} />
-      <.input type="hidden" field={@form[:game_id]} value={1} />
-      <.input type="hidden" field={@form[:score]} value={@score} />
-      <:actions>
-        <.button>Exit and Save Score</.button>
-      </:actions>
-    </.simple_form>
+
+      <div class="w-full">
+        <Component.wager wager={@game.wager} score={@game.score} form={@form} />
+      </div>
+
+      <div class="w-full">
+        <LiveComponents.score_submit
+          form={@form}
+          game_id={1}
+          score={@game.highest_score}
+          current_user={@current_user}
+        />
+      </div>
+    </div>
     """
   end
 
+  @impl true
   def mount(_params, _session, socket) do
-    answer = Enum.random(1..10)
+    game = GameLogic.new_game()
 
-    {:ok, assign(
-      socket,
-      answer: answer,
-      score: 0,
-      attempt: 1,
-      form: to_form(%{"guess" => ""}))}
+    socket =
+      socket
+      |> assign(:game, game)
+      |> assign(:form, to_form(%{}))
+
+    {:ok, socket}
   end
 
+  @impl true
   def handle_event("answer", params, socket) do
-    cond do
-      to_string(socket.assigns.answer) == params["guess"] ->
-        {:noreply,
-         assign(
-           socket
-           |> put_flash(:info, "Correct!"),
-           answer: Enum.random(1..10),
-           score: socket.assigns.score + 1,
-           attempt: 0,
-           form: to_form(%{"guess" => ""})
-         )}
+    game = GameLogic.submit_guess(socket.assigns.game, params)
 
-      socket.assigns.attempt < 5 ->
-        form_data = %{"guess" => ""}
-        new_form = to_form(form_data, errors: [guess: {"incorrect", []}])
+    form =
+      case game.message do
+        nil -> to_form(%{})
+        "" -> to_form(%{})
+        "Correct!" -> to_form(%{}, errors: [guess: {"Correct!", [type: :info]}])
+        msg -> to_form(%{}, errors: [guess: {msg, [type: :error]}])
+      end
 
-        {:noreply,
-         assign(socket,
-           attempt: socket.assigns.attempt + 1,
-           form: new_form
-         )}
+    socket =
+      socket
+      |> clear_flash()
+      |> assign(:game, game)
+      |> assign(:form, form)
+      |> put_flash(game.flash_type, game.flash_msg)
 
-      socket.assigns.attempt >= 5 ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Out of Guesses.")
-         |> assign(
-           attempt: 0,
-           score: 0,
-           answer: Enum.random(1..10),
-           form: to_form(%{"guess" => ""})
-         )}
-    end
+    {:noreply, socket}
   end
 
-  @doc """
-  These functions below are used to set the scores for a player. You will have to have unique scores
-  for each game and player.
-  """
+  @impl true
   def handle_event("exit", params, socket) do
-    save_score(socket, :new, params)
+    ScoreHandler.save_score(socket, params)
   end
 
-  defp save_score(socket, :new, score_params) do
-    case Scores.create_score(score_params) do
-      {:ok, score} ->
-        notify_parent({:new, score})
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "Score created successfully")
-         |> push_navigate(to: "/scores")}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
-
-      {:duplicate, :already_exists} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "No new High Score")
-         |> push_navigate(to: "/scores")}
-    end
+  @impl true
+  def handle_event("set_max_wager", _params, socket) do
+    game = GameLogic.update_to_max_bet(socket.assigns.game)
+    {:noreply, assign(socket, game: game)}
   end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

@@ -1,17 +1,18 @@
 <.header>
   Listing Games
-  <:actions>
+  <%!-- <:actions>
     <.link patch={~p"/games/new"}>
       <.button>New Game</.button>
     </.link>
-  </:actions>
+  </:actions> --%>
 </.header>
 
-<.table
+<%!-- <.table
   id="games"
   rows={@streams.games}
   row_click={fn {_id, game} -> JS.navigate(~p"/#{game}") end}
->
+> --%>
+<.table id="games" rows={@streams.games}>
   <:col :let={{_id, game}} label="Name">{game.name}</:col>
   <%!-- <:action :let={{_id, game}}>
     <div class="sr-only">
