@@ -83,3 +83,7 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+config :game_site, GameSite.Mailer,
+  adapter: Resend.Swoosh.Adapter,
+  api_key: System.get_env("RESEND_API_KEY")
