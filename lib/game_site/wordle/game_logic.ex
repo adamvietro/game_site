@@ -31,6 +31,26 @@ defmodule GameSite.Wordle.GameLogic do
     Map.from_struct(game_state)
   end
 
+  def restore_saved_guesses(game_state, saved_guesses) do
+    saved_guesses
+    |> Enum.with_index()
+    |> Enum.reduce(game_state, fn {guess, index}, state ->
+      state
+      |> Map.put(:guess_string, guess)
+      |> Map.put(:round, index)
+      |> determine_feedback()
+    end)
+  end
+
+  def load_saved_game(word, saved_guesses, attempts, status) do
+    new()
+    |> Map.put(:word, word)
+    |> restore_saved_guesses(saved_guesses || [])
+    |> Map.put(:round, attempts || 0)
+    |> Map.put(:guess_string, "")
+    |> Map.put(:reset, reset_from_status(status))
+  end
+
   def get_starting_entries, do: Defaults.starting_entries()
   def get_starting_board, do: Defaults.starting_board()
   def get_starting_keyboard, do: Defaults.starting_keyboard()
@@ -220,4 +240,10 @@ defmodule GameSite.Wordle.GameLogic do
   defp color_priority("bg-yellow-300"), do: 2
   defp color_priority("bg-green-400"), do: 3
   defp color_priority(_), do: 0
+
+  defp reset_from_status("playing") do
+    false
+  end
+
+  defp reset_from_status(_), do: true
 end

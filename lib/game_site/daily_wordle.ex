@@ -8,6 +8,7 @@ defmodule GameSite.DailyWordle do
 
   alias GameSite.Wordle.MultiWordle
   alias GameSite.Wordle.UserWordle
+  alias GameSite.Wordle.Words
 
   def get_multi_wordle!(id), do: Repo.get!(MultiWordle, id)
 
@@ -90,7 +91,16 @@ defmodule GameSite.DailyWordle do
     end
   end
 
+  # def add_user_guess(%UserWordle{} = user_wordle, guess) do
+  #   updated_guesses = user_wordle.entered_words ++ [guess]
+
+  #   update_user_wordle(user_wordle, %{
+  #     entered_words: updated_guesses,
+  #     attempts: user_wordle.attempts + 1
+  #   })
+  # end
+
   defp pick_word do
-    Enum.random(["crane", "slate", "brick", "flame", "grape"])
+    Words.get_word()
   end
 end
