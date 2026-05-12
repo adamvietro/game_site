@@ -36,6 +36,7 @@ defmodule GameSiteWeb.Router do
       live "/pento_choice", PentoLive.Picker
       live "/multi-poker", MultiPokerLive.Lobby
       live "/multi-poker/:room", MultiPokerLive
+      live "/daily-wordle", DailyWordleLive.Landing
     end
   end
 
@@ -43,6 +44,7 @@ defmodule GameSiteWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :scores, on_mount: [{GameSiteWeb.UserAuth, :mount_current_user}] do
+      live "/daily-wordle/play", DailyWordleLive.Play
       live "/games", GameLive.Index, :index
       live "/games/new", GameLive.Index, :new
       live "/games/:id/edit", GameLive.Index, :edit
