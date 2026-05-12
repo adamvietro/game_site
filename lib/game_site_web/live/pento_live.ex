@@ -2,7 +2,6 @@ defmodule GameSiteWeb.PentoLive do
   use GameSiteWeb, :live_view
 
   alias GameSiteWeb.PentoLive.Board
-  # alias GameSiteWeb.GameInstructions
   alias GameSite.Scores.ScoreHandler
   alias GameSite.Pento.Scoring
 

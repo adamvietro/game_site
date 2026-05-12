@@ -1,4 +1,4 @@
-defmodule GameSite.Game do
+defmodule GameSite.PentoGame do
   alias GameSite.Pento.{Board, Pentomino}
 
   @messages %{

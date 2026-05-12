@@ -1,8 +1,9 @@
 defmodule GameSiteWeb.PentoLive.Board do
+  # alias GameSiteWeb.PentoLive
   use GameSiteWeb, :live_component
   import GameSiteWeb.PentoLive.Component
   import GameSiteWeb.PentoLive.{Colors, Component}
-  alias GameSite.Game
+  alias GameSite.PentoGame
   alias GameSite.Pento.Scoring
 
   @impl true
@@ -19,7 +20,7 @@ defmodule GameSiteWeb.PentoLive.Board do
         <%= for shape <- @shapes do %>
           <.shape
             points={shape.points}
-            fill={color(shape.color, Game.active?(@board, shape.name), false)}
+            fill={color(shape.color, PentoGame.active?(@board, shape.name), false)}
             name={shape.name}
           />
         <% end %>
@@ -112,7 +113,7 @@ defmodule GameSiteWeb.PentoLive.Board do
   end
 
   def move(socket, move) do
-    case Game.maybe_move(socket.assigns.board, move) do
+    case PentoGame.maybe_move(socket.assigns.board, move) do
       {:error, message} ->
         send(self(), {:flash, message})
         socket
@@ -123,7 +124,7 @@ defmodule GameSiteWeb.PentoLive.Board do
   end
 
   defp drop(socket) do
-    case Game.maybe_drop(socket.assigns.board) do
+    case PentoGame.maybe_drop(socket.assigns.board) do
       {:error, message} ->
         send(self(), {:flash, message})
         socket
@@ -141,12 +142,12 @@ defmodule GameSiteWeb.PentoLive.Board do
   end
 
   defp pick(socket, :clear) do
-    %{socket | assigns: %{socket.assigns | board: Game.pick(socket.assigns.board, :clear)}}
+    %{socket | assigns: %{socket.assigns | board: PentoGame.pick(socket.assigns.board, :clear)}}
   end
 
   defp pick(socket, name) do
     shape_name = String.to_existing_atom(name)
-    update(socket, :board, &Game.pick(&1, shape_name))
+    update(socket, :board, &PentoGame.pick(&1, shape_name))
   end
 
   def all_pieces_placed?(board) do
@@ -161,13 +162,13 @@ defmodule GameSiteWeb.PentoLive.Board do
     board =
       puzzle
       |> String.to_existing_atom()
-      |> Game.new()
+      |> PentoGame.new()
 
     assign(socket, board: board)
   end
 
   def assign_shapes(%{assigns: %{board: board}} = socket) do
-    shapes = Game.to_shapes(board)
+    shapes = PentoGame.to_shapes(board)
     # |> IO.inspect(label: "shapes")
     assign(socket, shapes: shapes)
   end
