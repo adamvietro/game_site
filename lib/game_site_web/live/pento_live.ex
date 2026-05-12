@@ -4,6 +4,7 @@ defmodule GameSiteWeb.PentoLive do
   alias GameSiteWeb.PentoLive.Board
   # alias GameSiteWeb.GameInstructions
   alias GameSite.Scores.ScoreHandler
+  alias GameSite.Pento.Scoring
 
   @impl true
   def mount(%{"puzzle" => puzzle}, _session, socket) do
@@ -42,10 +43,11 @@ defmodule GameSiteWeb.PentoLive do
   end
 
   @impl true
-  def handle_info(:board_complete, socket) do
+  def handle_info({:board_complete, board}, socket) do
     {:noreply,
      socket
      |> assign(complete: true)
+     |> assign(score: Scoring.score(board))
      |> push_event("fireworks", %{})
      |> put_flash(:info, "Congratulations! You've completed the board!")}
   end
@@ -61,7 +63,7 @@ defmodule GameSiteWeb.PentoLive do
   @impl true
   def handle_event("exit", _params, socket) do
     attrs = %{
-      "score" => 1,
+      "score" => socket.assigns.score,
       "game_id" => 6,
       "user_id" => socket.assigns.current_user.id
     }

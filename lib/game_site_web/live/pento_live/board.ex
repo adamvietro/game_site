@@ -3,6 +3,7 @@ defmodule GameSiteWeb.PentoLive.Board do
   import GameSiteWeb.PentoLive.Component
   import GameSiteWeb.PentoLive.{Colors, Component}
   alias GameSite.Game
+  alias GameSite.Pento.Scoring
 
   @impl true
   def render(assigns) do
@@ -13,7 +14,7 @@ defmodule GameSiteWeb.PentoLive.Board do
 
     ~H"""
     <div id={@id} phx-window-keydown="key" phx-target={@myself}>
-      <.score_board score={score(@board)} moves={@board.moves} />
+      <.score_board score={Scoring.score(@board)} moves={@board.moves} />
       <.canvas view_box={@view_box}>
         <%= for shape <- @shapes do %>
           <.shape
@@ -129,7 +130,7 @@ defmodule GameSiteWeb.PentoLive.Board do
 
       {:ok, board} ->
         if all_pieces_placed?(board) do
-          send(self(), :board_complete)
+          send(self(), {:board_complete, board})
           socket
         else
           socket
@@ -146,10 +147,6 @@ defmodule GameSiteWeb.PentoLive.Board do
   defp pick(socket, name) do
     shape_name = String.to_existing_atom(name)
     update(socket, :board, &Game.pick(&1, shape_name))
-  end
-
-  defp score(board) do
-    500 * length(board.completed_pentos) - board.moves
   end
 
   def all_pieces_placed?(board) do

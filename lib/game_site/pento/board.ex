@@ -1,7 +1,8 @@
 defmodule GameSite.Pento.Board do
   alias GameSite.Pento.{Pentomino, Shape}
 
-  defstruct active_pento: nil,
+  defstruct board_type: nil,
+            active_pento: nil,
             completed_pentos: [],
             palette: [],
             points: [],
@@ -9,24 +10,24 @@ defmodule GameSite.Pento.Board do
 
   def puzzles(), do: ~w[tiny small ball donut default wide widest medium skew]a
 
-  def new(palette, points, hole \\ []) do
-    %__MODULE__{palette: palette(palette), points: points -- hole}
+  def new(board_type, palette, points, hole \\ []) do
+    %__MODULE__{palette: palette(palette), points: points -- hole, board_type: board_type}
   end
 
-  def new(:tiny), do: new(:small, rect(5, 3))
-  def new(:small), do: new(:medium, rect(7, 5))
-  def new(:widest), do: new(:widest, rect(20, 4))
-  def new(:wide), do: new(:all, rect(15, 5))
-  def new(:medium), do: new(:medium, rect(12, 5))
-  def new(:default), do: new(:all, rect(10, 6))
-  def new(:skew), do: new(:medium, skewed_rect())
+  def new(:tiny), do: new(:tiny, :small, rect(5, 3))
+  def new(:small), do: new(:small, :medium, rect(7, 5))
+  def new(:widest), do: new(:widest, :widest, rect(20, 4))
+  def new(:wide), do: new(:wide, :all, rect(15, 5))
+  def new(:medium), do: new(:medium, :medium, rect(12, 5))
+  def new(:default), do: new(:default, :all, rect(10, 6))
+  def new(:skew), do: new(:skew, :medium, skewed_rect())
 
   def new(:donut) do
-    new(:all, rect(8, 8), for(x <- 4..5, y <- 4..5, do: {x, y}))
+    new(:donut, :all, rect(8, 8), for(x <- 4..5, y <- 4..5, do: {x, y}))
   end
 
   def new(:ball) do
-    new(:all, rect(8, 8), for(x <- [1, 8], y <- [1, 8], do: {x, y}))
+    new(:ball, :all, rect(8, 8), for(x <- [1, 8], y <- [1, 8], do: {x, y}))
   end
 
   def new(_), do: new(:default)
