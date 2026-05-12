@@ -3,33 +3,29 @@ defmodule GameSiteWeb.ScoreLive.Index do
 
   alias GameSite.Scores
   alias GameSite.Scores.Score
+  alias GameSite.Games
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :scores, Scores.list_top_scores_per_user_per_game())}
+    {:ok,
+     socket
+     |> assign(:filters, %{})
+     |> assign(:games, Games.list_games())
+     |> assign(:score, nil)
+     |> stream(:scores, [])}
   end
 
   @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
+  def handle_params(params, _uri, socket) do
+    scores = Scores.list_scores_filtered(params)
 
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Score")
-    |> assign(:score, Scores.get_score!(id))
-  end
+    socket =
+      socket
+      |> assign(:filters, params)
+      |> stream(:scores, scores, reset: true)
+      |> apply_action(socket.assigns.live_action, params)
 
-  defp apply_action(socket, :new, _params) do
-    socket
-    |> assign(:page_title, "New Score")
-    |> assign(:score, %Score{})
-  end
-
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Listing Scores")
-    |> assign(:score, nil)
+    {:noreply, socket}
   end
 
   @impl true
@@ -53,5 +49,36 @@ defmodule GameSiteWeb.ScoreLive.Index do
     {:ok, _} = Scores.delete_score(score)
 
     {:noreply, stream_delete(socket, :scores, score)}
+  end
+
+  @impl true
+  def handle_event("filter", params, socket) do
+    clean_params =
+      params
+      |> Enum.reject(fn {_key, value} -> value in ["", nil] end)
+      |> Map.new()
+
+    {:noreply,
+     push_patch(socket,
+       to: ~p"/scores?#{clean_params}"
+     )}
+  end
+
+  defp apply_action(socket, :edit, %{"id" => id}) do
+    socket
+    |> assign(:page_title, "Edit Score")
+    |> assign(:score, Scores.get_score!(id))
+  end
+
+  defp apply_action(socket, :new, _params) do
+    socket
+    |> assign(:page_title, "New Score")
+    |> assign(:score, %Score{})
+  end
+
+  defp apply_action(socket, :index, _params) do
+    socket
+    |> assign(:page_title, "Listing Scores")
+    |> assign(:score, nil)
   end
 end

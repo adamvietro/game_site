@@ -190,9 +190,11 @@ defmodule GameSiteWeb.PentoLive.Component do
       style={"color: #{@fill}"}
       phx-click={@on_click}
       phx-target="#board-component"
+      style="cursor: pointer"
     >
-      <use href="#drop_axis" style="cursor: pointer" />
-      <use href="#drop_arrow" style="cursor: pointer" />
+      <rect width="24" height="24" fill="transparent" pointer-events="all" />
+      <use href="#drop_axis" />
+      <use href="#drop_arrow" />
     </g>
     """
   end
@@ -210,9 +212,11 @@ defmodule GameSiteWeb.PentoLive.Component do
       style={"color: #{@fill}"}
       phx-click={@on_click}
       phx-target="#board-component"
+      style="cursor: pointer"
     >
-      <use href="#rotate_symbol" style="cursor: pointer" />
-      <use href="#rotate_arrow" style="cursor: pointer" />
+      <rect width="24" height="24" fill="transparent" pointer-events="all" />
+      <use href="#rotate_symbol" />
+      <use href="#rotate_arrow" />
     </g>
     """
   end
@@ -229,12 +233,13 @@ defmodule GameSiteWeb.PentoLive.Component do
       transform={"translate(#{@x}, #{@y}) scale(#{@size / 24})"}
       style={"color: #{@fill}"}
       phx-click={@on_click}
-      style="cursor: pointer"
       phx-target="#board-component"
+      style="cursor: pointer"
     >
-      <use href="#flip_left" style="cursor: pointer" />
-      <use href="#flip_right" style="cursor: pointer" />
-      <use href="#flip_axis" style="cursor: pointer" />
+      <rect width="24" height="24" fill="transparent" pointer-events="all" />
+      <use href="#flip_left" />
+      <use href="#flip_right" />
+      <use href="#flip_axis" />
     </g>
     """
   end

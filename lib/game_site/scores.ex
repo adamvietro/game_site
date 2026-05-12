@@ -148,4 +148,65 @@ defmodule GameSite.Scores do
   def change_score(%Score{} = score, attrs \\ %{}) do
     Score.changeset(score, attrs)
   end
+
+  @doc """
+  Returns a list of scores filtered by the given options.
+
+  ## Examples
+
+      iex> list_scores_filtered(%{"game_id" => 1, "sort" => "asc", "limit" => "5"})
+      [%Score{}, ...]
+  """
+  def list_scores_filtered(opts \\ %{}) do
+    game_id = Map.get(opts, "game_id")
+    sort = Map.get(opts, "sort", "desc")
+    limit = Map.get(opts, "limit", "10")
+    user_id = Map.get(opts, "user_id")
+
+    Score
+    |> maybe_filter_game(game_id)
+    |> maybe_filter_user(user_id)
+    |> order_scores(sort)
+    |> limit_scores(limit)
+    |> preload([:user, :game])
+    |> Repo.all()
+  end
+
+  defp maybe_filter_game(query, nil), do: query
+  defp maybe_filter_game(query, ""), do: query
+
+  defp maybe_filter_game(query, game_id) do
+    from s in query,
+      where: s.game_id == ^game_id
+  end
+
+  defp maybe_filter_user(query, nil), do: query
+  defp maybe_filter_user(query, ""), do: query
+
+  defp maybe_filter_user(query, user_id) do
+    from s in query,
+      where: s.user_id == ^user_id
+  end
+
+  defp order_scores(query, "asc") do
+    from s in query,
+      order_by: [asc: s.score]
+  end
+
+  defp order_scores(query, _desc) do
+    from s in query,
+      order_by: [desc: s.score]
+  end
+
+  defp limit_scores(query, nil), do: query
+  defp limit_scores(query, ""), do: query
+
+  defp limit_scores(query, limit) when is_binary(limit) do
+    limit_scores(query, String.to_integer(limit))
+  end
+
+  defp limit_scores(query, limit) when is_integer(limit) do
+    from s in query,
+      limit: ^limit
+  end
 end

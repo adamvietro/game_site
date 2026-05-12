@@ -1,35 +1,57 @@
 <.header>
   Listing Scores
-  <%!-- <:actions>
-    <.link patch={~p"/scores/new"}>
-      <.button>New Score</.button>
-    </.link>
-  </:actions> --%>
 </.header>
 
-<%!-- <.table
-  id="scores"
-  rows={@streams.scores}
-  row_click={fn {_id, score} -> JS.navigate(~p"/#{score.game}") end}
-> --%>
+<form phx-change="filter" class="mb-6 flex flex-wrap gap-4 items-end">
+  <div>
+    <label class="block text-sm font-medium text-gray-700">Game</label>
+    <select name="game_id" class="rounded border-gray-300">
+      <option value="">All Games</option>
+      <%= for game <- @games do %>
+        <option value={game.id} selected={@filters["game_id"] == to_string(game.id)}>
+          {game.name}
+        </option>
+      <% end %>
+    </select>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-gray-700">Sort</label>
+    <select name="sort" class="rounded border-gray-300">
+      <option value="desc" selected={@filters["sort"] == "desc"}>Highest First</option>
+      <option value="asc" selected={@filters["sort"] == "asc"}>Lowest First</option>
+    </select>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-gray-700">Number of Scores</label>
+    <select name="limit" class="rounded border-gray-300">
+      <option value="">All</option>
+      <option value="10" selected={@filters["limit"] == "10"}>10</option>
+      <option value="25" selected={@filters["limit"] == "25"}>25</option>
+      <option value="50" selected={@filters["limit"] == "50"}>50</option>
+    </select>
+  </div>
+
+  <%= if @current_user do %>
+    <div>
+      <label class="block text-sm font-medium text-gray-700">User</label>
+      <select name="user_id" class="rounded border-gray-300">
+        <option value="">All Users</option>
+        <option
+          value={@current_user.id}
+          selected={@filters["user_id"] == to_string(@current_user.id)}
+        >
+          My Scores
+        </option>
+      </select>
+    </div>
+  <% end %>
+</form>
 <.table id="scores" rows={@streams.scores}>
   <:col :let={{_id, score}} label="Score">{score.score}</:col>
   <:col :let={{_id, score}} label="Game">{score.game.name}</:col>
   <:col :let={{_id, score}} label="User">{score.user.user_name}</:col>
-  <%!-- <:action :let={{_id, score}}>
-    <div class="sr-only">
-      <.link navigate={~p"/scores/#{score}"}>Show</.link>
-    </div>
-    <.link patch={~p"/scores/#{score}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, score}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: score.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action> --%>
 </.table>
 
 <.modal
