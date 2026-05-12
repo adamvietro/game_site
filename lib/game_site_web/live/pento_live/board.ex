@@ -1,6 +1,6 @@
 defmodule GameSiteWeb.PentoLive.Board do
-  # alias GameSiteWeb.PentoLive
   use GameSiteWeb, :live_component
+
   import GameSiteWeb.PentoLive.Component
   import GameSiteWeb.PentoLive.{Colors, Component}
   alias GameSite.PentoGame
