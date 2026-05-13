@@ -25,7 +25,10 @@ defmodule GameSiteWeb.DailyWordleLive.Archive do
       <% else %>
         <div class="space-y-3">
           <%= for user_wordle <- @user_wordles do %>
-            <div class="rounded-lg bg-white p-4 shadow">
+            <.link
+              navigate={~p"/daily-wordle/archive/#{user_wordle.id}"}
+              class="block rounded-lg bg-white p-4 shadow transition hover:bg-gray-50 hover:shadow-md"
+            >
               <div class="flex items-center justify-between">
                 <div>
                   <p class="font-semibold">
@@ -47,14 +50,7 @@ defmodule GameSiteWeb.DailyWordleLive.Archive do
               <div class="mt-3 text-sm text-gray-700">
                 Guesses: {Enum.join(user_wordle.entered_words || [], ", ")}
               </div>
-
-              <.link
-                navigate={~p"/daily-wordle/archive/#{user_wordle.id}"}
-                class="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline"
-              >
-                View board
-              </.link>
-            </div>
+            </.link>
           <% end %>
         </div>
       <% end %>
