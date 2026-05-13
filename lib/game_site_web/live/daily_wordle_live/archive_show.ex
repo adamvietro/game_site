@@ -47,6 +47,19 @@ defmodule GameSiteWeb.DailyWordleLive.ArchiveShow do
           <p class="text-sm text-gray-600">
             Status: {@user_wordle.status} · Attempts: {@user_wordle.attempts}
           </p>
+
+          <%= if @user_wordle.completed_at do %>
+            <div class="rounded-lg bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-800 shadow">
+              Completed at:
+              <span
+                id="completed-at"
+                phx-hook="LocalTime"
+                data-time={DateTime.to_iso8601(@user_wordle.completed_at)}
+              >
+                loading...
+              </span>
+            </div>
+          <% end %>
         </div>
 
         <div class="rounded-xl bg-gray-100 p-3 sm:p-4 shadow-inner">

@@ -4,7 +4,6 @@ defmodule GameSiteWeb.DailyWordleLive.Play do
   alias GameSite.DailyWordle
   alias GameSite.Wordle.GameLogic
   alias GameSiteWeb.WordleLive.{Component, GameBoard}
-  alias GameSiteWeb.Components.LiveComponents
 
   @impl true
   def render(assigns) do

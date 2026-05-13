@@ -12,6 +12,7 @@ defmodule GameSiteWeb.Router do
     plug :put_secure_browser_headers
     plug GameSiteWeb.Plugs.EnsureGuestId
     plug :fetch_current_user
+    plug GameSiteWeb.Plugs.StoreCurrentPath, :store_current_path
   end
 
   pipeline :api do
