@@ -45,6 +45,8 @@ defmodule GameSiteWeb.Router do
 
     live_session :scores, on_mount: [{GameSiteWeb.UserAuth, :mount_current_user}] do
       live "/daily-wordle/play", DailyWordleLive.Play
+      live "/daily-wordle/archive", DailyWordleLive.Archive, :archive
+      live "/daily-wordle/archive/:id", DailyWordleLive.ArchiveShow, :show
       live "/games", GameLive.Index, :index
       live "/games/new", GameLive.Index, :new
       live "/games/:id/edit", GameLive.Index, :edit

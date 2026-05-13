@@ -82,4 +82,31 @@ defmodule GameSiteWeb.WordleLive.Component do
     <% end %>
     """
   end
+
+  attr(:form, :map, required: true)
+  attr(:reset, :boolean, required: true)
+  attr(:guess_string, :string, required: true)
+
+  def user_input_daily(assigns) do
+    ~H"""
+    <%= if @reset do %>
+    <% else %>
+      <div class="p-1">
+        <form id="input-form" phx-submit="guess">
+          <div class="flex items-center gap-2">
+            <div class="flex min-h-10 flex-1 items-center rounded-md border border-gray-300 bg-white px-3 text-sm uppercase tracking-wide text-gray-900">
+              {@guess_string}
+            </div>
+
+            <input type="hidden" name="guess" value={@guess_string} />
+
+            <button type="submit" class="shrink-0 rounded-md bg-zinc-800 px-4 py-2 text-sm text-white">
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
+    <% end %>
+    """
+  end
 end

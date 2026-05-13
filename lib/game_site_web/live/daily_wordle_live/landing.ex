@@ -31,6 +31,12 @@ defmodule GameSiteWeb.DailyWordleLive.Landing do
           >
             Start today's Wordle
           </.link>
+          <.link
+            navigate={~p"/daily-wordle/archive"}
+            class="inline-block rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700"
+          >
+            View your archive
+          </.link>
         <% else %>
           <div class="space-y-3">
             <p class="text-gray-700">

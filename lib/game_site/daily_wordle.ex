@@ -91,14 +91,21 @@ defmodule GameSite.DailyWordle do
     end
   end
 
-  # def add_user_guess(%UserWordle{} = user_wordle, guess) do
-  #   updated_guesses = user_wordle.entered_words ++ [guess]
+  def list_user_wordles(user_id) do
+    UserWordle
+    |> where([uw], uw.user_id == ^user_id)
+    |> join(:inner, [uw], mw in assoc(uw, :multi_wordle))
+    |> preload([uw, mw], multi_wordle: mw)
+    |> order_by([uw, mw], desc: mw.date)
+    |> Repo.all()
+  end
 
-  #   update_user_wordle(user_wordle, %{
-  #     entered_words: updated_guesses,
-  #     attempts: user_wordle.attempts + 1
-  #   })
-  # end
+  def get_user_wordle_for_user!(id, user_id) do
+    UserWordle
+    |> where([uw], uw.id == ^id and uw.user_id == ^user_id)
+    |> preload(:multi_wordle)
+    |> Repo.one!()
+  end
 
   defp pick_word do
     Words.get_word()

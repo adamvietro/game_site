@@ -11,20 +11,25 @@ defmodule GameSiteWeb.DailyWordleLive.Play do
     ~H"""
     <div class="min-h-screen px-2 py-3 sm:px-4 select-none">
       <div class="mx-auto flex w-full max-w-lg flex-col gap-4 lg:max-w-3xl">
+        <%= if @user_wordle.completed_at do %>
+          <div class="rounded-lg bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-800 shadow">
+            Completed at:
+            <span
+              id="completed-at"
+              phx-hook="LocalTime"
+              data-time={DateTime.to_iso8601(@user_wordle.completed_at)}
+            >
+              loading...
+            </span>
+          </div>
+        <% end %>
         <div class="rounded-xl bg-gray-100 p-3 sm:p-4 shadow-inner">
           <GameBoard.game_board board_state={@board_state} entries={@entries} />
         </div>
 
-        <Component.user_input form={@form} reset={@reset} guess_string={@guess_string} />
+        <Component.user_input_daily form={@form} reset={@reset} guess_string={@guess_string} />
 
         <GameBoard.keyboard keyboard={@keyboard_state} />
-
-        <LiveComponents.score_submit
-          form={@form}
-          game_id={4}
-          score={@highest_score}
-          current_user={@current_user}
-        />
       </div>
     </div>
     """
@@ -71,12 +76,20 @@ defmodule GameSiteWeb.DailyWordleLive.Play do
     if game_state.errors do
       assign_game_state(game_state, socket)
     else
-      status = status_from_game_state(game_state)
+      entered_words = (user_wordle.entered_words || []) ++ [guess]
+      attempts = length(entered_words)
+
+      status =
+        cond do
+          guess == socket.assigns.word -> "won"
+          attempts >= 6 -> "lost"
+          true -> "playing"
+        end
 
       {:ok, user_wordle} =
         DailyWordle.update_user_wordle(user_wordle, %{
-          entered_words: (user_wordle.entered_words || []) ++ [guess],
-          attempts: game_state.round,
+          entered_words: entered_words,
+          attempts: attempts,
           status: status,
           completed_at: completed_at(status)
         })
@@ -126,6 +139,7 @@ defmodule GameSiteWeb.DailyWordleLive.Play do
     socket
     |> assign(form: to_form(%{"guess" => ""}))
     |> assign(GameLogic.to_map(GameLogic.new()))
+    |> assign(:user_wordle, %{completed_at: nil})
   end
 
   defp assign_game_state(%GameLogic{errors: errors} = game_state, socket) do
@@ -142,10 +156,6 @@ defmodule GameSiteWeb.DailyWordleLive.Play do
 
     {:noreply, socket}
   end
-
-  defp status_from_game_state(%{win?: true}), do: "won"
-  defp status_from_game_state(%{reset: true}), do: "lost"
-  defp status_from_game_state(_game_state), do: "playing"
 
   defp completed_at("playing"), do: nil
 

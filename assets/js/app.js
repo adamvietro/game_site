@@ -98,6 +98,17 @@ Hooks.CopyBonus = {
   }
 }
 
+Hooks.LocalTime = {
+  mounted() {
+    const time = this.el.dataset.time
+
+    this.el.textContent = new Date(time).toLocaleString([], {
+      dateStyle: "medium",
+      timeStyle: "short"
+    })
+  }
+}
+
 Hooks.AutofillSync = {
   mounted() {
     setTimeout(() => {
