@@ -213,7 +213,15 @@ defmodule GameSite.Wordle.GameLogic do
 
   defp determine_final_state(%__MODULE__{win?: false, round: round} = game_state)
        when round == 5,
-       do: %{game_state | reset: true, current_streak: 0, score: 0, round: 0, guess_string: ""}
+       do: %{
+         game_state
+         | reset: true,
+           current_streak: 0,
+           score: 0,
+           round: 0,
+           guess_string: "",
+           entered_words: []
+       }
 
   defp determine_final_state(
          %__MODULE__{
@@ -237,7 +245,8 @@ defmodule GameSite.Wordle.GameLogic do
         highest_streak: highest_streak,
         reset: true,
         win?: false,
-        guess_string: ""
+        guess_string: "",
+        entered_words: []
     }
   end
 
