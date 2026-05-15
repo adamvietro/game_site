@@ -20,6 +20,7 @@ defmodule GameSiteWeb.DailyWordleLive.Play do
             >
               loading...
             </span>
+            <br /> Today's Word: {@word}
           </div>
         <% end %>
         <div class="rounded-xl bg-gray-100 p-3 sm:p-4 shadow-inner">

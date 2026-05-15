@@ -14,7 +14,8 @@ defmodule GameSite.Wordle.GameLogic do
             errors: nil,
             entries: Defaults.starting_entries(),
             board_state: Defaults.starting_board(),
-            keyboard_state: Defaults.starting_keyboard()
+            keyboard_state: Defaults.starting_keyboard(),
+            entered_words: []
 
   def new(attr \\ %{}) do
     struct(__MODULE__, Map.merge(Map.from_struct(%__MODULE__{}), attr))
@@ -48,6 +49,7 @@ defmodule GameSite.Wordle.GameLogic do
     |> restore_saved_guesses(saved_guesses || [])
     |> Map.put(:round, attempts || 0)
     |> Map.put(:guess_string, "")
+    |> Map.put(:entered_words, saved_guesses)
     |> Map.put(:reset, reset_from_status(status))
   end
 
@@ -65,8 +67,10 @@ defmodule GameSite.Wordle.GameLogic do
     |> determine_final_state()
   end
 
-  defp determine_is_word(%__MODULE__{guess_string: guess} = game_state) do
-    if Words.is_word?(String.downcase(guess)) do
+  defp determine_is_word(
+         %__MODULE__{guess_string: guess, entered_words: entered_words} = game_state
+       ) do
+    if Words.is_word?(String.downcase(guess)) and String.downcase(guess) not in entered_words do
       %{game_state | errors: nil}
     else
       %{game_state | errors: "Not a valid word"}
@@ -82,7 +86,8 @@ defmodule GameSite.Wordle.GameLogic do
            round: round,
            word: word,
            board_state: board_state,
-           keyboard_state: keyboard_state
+           keyboard_state: keyboard_state,
+           entered_words: entered_words
          } =
            game_state
        ) do
@@ -97,7 +102,8 @@ defmodule GameSite.Wordle.GameLogic do
       game_state
       | board_state: board_state,
         keyboard_state: keyboard_state,
-        entries: entries
+        entries: entries,
+        entered_words: entered_words ++ [guess]
     }
   end
 
