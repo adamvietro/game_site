@@ -42,7 +42,8 @@ defmodule GameSiteWeb.PokerLive.GameBoard do
               />
             </label>
           <% else %>
-            <div class="w-12 h-16 border-2 border-zinc-200 rounded bg-zinc-100 sm:w-20 sm:h-28 dark:bg-zinc-900 dark:border-zinc-800"></div>
+            <div class="w-12 h-16 border-2 border-zinc-200 rounded bg-zinc-100 sm:w-20 sm:h-28 dark:bg-zinc-900 dark:border-zinc-800">
+            </div>
           <% end %>
         </div>
       <% end %>
@@ -166,7 +167,12 @@ defmodule GameSiteWeb.PokerLive.GameBoard do
 
   attr(:phx_click, :string, default: nil)
   attr(:type, :string, default: "button")
-  attr(:class, :string, default: "bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-800 dark:hover:bg-zinc-600 text-white font-semibold")
+
+  attr(:class, :string,
+    default:
+      "bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-800 dark:hover:bg-zinc-600 text-white font-semibold"
+  )
+
   slot(:inner_block, required: true)
 
   defp action_button(assigns) do

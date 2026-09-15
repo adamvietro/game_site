@@ -49,7 +49,9 @@ defmodule GameSiteWeb.MathLive.Component do
     <section class="rounded-xl bg-zinc-50 p-4 text-center shadow dark:bg-zinc-950">
       <div class="space-y-1">
         <div class="text-sm font-medium text-zinc-500">Question</div>
-        <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@question}</div>
+        <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">
+          {@question}
+        </div>
       </div>
     </section>
     """
@@ -62,12 +64,19 @@ defmodule GameSiteWeb.MathLive.Component do
   def answer_submit(assigns) do
     ~H"""
     <div class="w-full">
-      <form id="answer-form" phx-submit="answer" class="rounded-xl bg-white p-4 shadow-md dark:bg-zinc-900">
+      <form
+        id="answer-form"
+        phx-submit="answer"
+        class="rounded-xl bg-white p-4 shadow-md dark:bg-zinc-900"
+      >
         <.error_message form={@form} />
 
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label for="guess_input" class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              for="guess_input"
+              class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               Guess
             </label>
             <input
@@ -79,7 +88,10 @@ defmodule GameSiteWeb.MathLive.Component do
           </div>
 
           <div>
-            <label for="wager_input" class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              for="wager_input"
+              class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               Wager
             </label>
             <input

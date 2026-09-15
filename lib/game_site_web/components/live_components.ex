@@ -82,18 +82,24 @@ defmodule GameSiteWeb.Components.LiveComponents do
     <div class="mt-4 flex flex-wrap justify-center gap-2 text-center sm:gap-3">
       <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
         <div class="text-xs text-zinc-500 sm:text-sm">Highest Score</div>
-        <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@highest_score}</div>
+        <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">
+          {@highest_score}
+        </div>
       </div>
 
       <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
         <div class="text-xs text-zinc-500 sm:text-sm">Current Score</div>
-        <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@current_score}</div>
+        <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">
+          {@current_score}
+        </div>
       </div>
 
       <%= if @attempt do %>
         <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
           <div class="text-xs text-zinc-500 sm:text-sm">Attempt</div>
-          <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@attempt}</div>
+          <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">
+            {@attempt}
+          </div>
         </div>
       <% end %>
 
@@ -107,14 +113,18 @@ defmodule GameSiteWeb.Components.LiveComponents do
       <%= if @current_bet do %>
         <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
           <div class="text-xs text-zinc-500 sm:text-sm">Current Bet</div>
-          <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@current_bet}</div>
+          <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">
+            {@current_bet}
+          </div>
         </div>
       <% end %>
 
       <%= if @question do %>
         <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
           <div class="text-xs text-zinc-500 sm:text-sm">Question</div>
-          <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@question}</div>
+          <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">
+            {@question}
+          </div>
         </div>
       <% end %>
     </div>

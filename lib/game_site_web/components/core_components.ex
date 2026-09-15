@@ -674,12 +674,7 @@ defmodule GameSiteWeb.CoreComponents do
       >
         <.icon name="hero-computer-desktop-mini" class="h-4 w-4" />
       </button>
-      <button
-        type="button"
-        data-theme-choice="dark"
-        class="theme-toggle-btn"
-        aria-label="Dark theme"
-      >
+      <button type="button" data-theme-choice="dark" class="theme-toggle-btn" aria-label="Dark theme">
         <.icon name="hero-moon-mini" class="h-4 w-4" />
       </button>
     </div>

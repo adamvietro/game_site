@@ -1,7 +1,6 @@
 defmodule GameSiteWeb.PentoLive.BoardTest do
   use ExUnit.Case, async: true
 
-  alias GameSite
   alias GameSiteWeb.PentoLive.Board, as: BoardComponent
   alias GameSite.Pento.Board, as: PentoBoard
 
@@ -38,7 +37,7 @@ defmodule GameSiteWeb.PentoLive.BoardTest do
         |> BoardComponent.assign_params("board-1", puzzle)
         |> BoardComponent.assign_board()
 
-      assert socket.assigns.board == GameSite.Game.new(String.to_existing_atom(puzzle))
+      assert socket.assigns.board == PentoBoard.new(String.to_existing_atom(puzzle))
     end
   end
 
@@ -52,7 +51,7 @@ defmodule GameSiteWeb.PentoLive.BoardTest do
         |> BoardComponent.assign_board()
         |> BoardComponent.assign_shapes()
 
-      assert socket.assigns.shapes == GameSite.Game.to_shapes(socket.assigns.board)
+      assert socket.assigns.shapes == PentoBoard.to_shapes(socket.assigns.board)
       assert is_list(socket.assigns.shapes)
     end
   end
@@ -66,8 +65,8 @@ defmodule GameSiteWeb.PentoLive.BoardTest do
 
       assert socket.assigns.id == "board-1"
       assert socket.assigns.puzzle == puzzle
-      assert socket.assigns.board == GameSite.Game.new(String.to_existing_atom(puzzle))
-      assert socket.assigns.shapes == GameSite.Game.to_shapes(socket.assigns.board)
+      assert socket.assigns.board == PentoBoard.new(String.to_existing_atom(puzzle))
+      assert socket.assigns.shapes == PentoBoard.to_shapes(socket.assigns.board)
     end
   end
 
@@ -105,7 +104,7 @@ defmodule GameSiteWeb.PentoLive.BoardTest do
         socket
         |> update_in(
           [Access.key!(:assigns), Access.key!(:board)],
-          &GameSite.Game.pick(&1, :clear)
+          &PentoBoard.pick(&1, :clear)
         )
 
       result = BoardComponent.do_key(socket, "Escape")

@@ -76,8 +76,6 @@ defmodule GameSiteWeb.WordleLive do
 
   @impl true
   def handle_event("guess", %{"guess" => guess} = _params, socket) do
-    IO.inspect(%{answer: socket.assigns.word, guess: guess}, label: "Guess Event")
-
     GameLogic.new(socket.assigns, guess)
     |> GameLogic.determine_round()
     |> assign_game_state(socket)

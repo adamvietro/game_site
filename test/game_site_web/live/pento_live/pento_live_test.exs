@@ -5,6 +5,7 @@ defmodule GameSiteWeb.PentoLiveTest do
 
   alias GameSite.Pento.Board, as: PentoBoard
   alias GameSiteWeb.PentoLive
+  alias GameSiteWeb.PentoLive.Component
 
   defp valid_puzzle_string do
     PentoBoard.puzzles()
@@ -48,7 +49,7 @@ defmodule GameSiteWeb.PentoLiveTest do
   describe "complete_modal/1" do
     test "renders try again and pick a puzzle" do
       html =
-        render_component(&PentoLive.complete_modal/1,
+        render_component(&Component.complete_modal/1,
           puzzle: valid_puzzle_string(),
           current_user: nil
         )
@@ -61,7 +62,7 @@ defmodule GameSiteWeb.PentoLiveTest do
 
     test "renders exit button when current_user exists" do
       html =
-        render_component(&PentoLive.complete_modal/1,
+        render_component(&Component.complete_modal/1,
           puzzle: valid_puzzle_string(),
           current_user: %{id: 1}
         )
@@ -73,7 +74,7 @@ defmodule GameSiteWeb.PentoLiveTest do
 
   describe "help/1" do
     test "renders help button and help page" do
-      html = render_component(&PentoLive.help/1, %{})
+      html = render_component(&Component.help/1, %{})
 
       assert html =~ "hero-question-mark-circle-solid"
       assert html =~ "Click on a pento to pick it up"
@@ -83,7 +84,7 @@ defmodule GameSiteWeb.PentoLiveTest do
 
   describe "help_button/1" do
     test "renders help toggle button" do
-      html = render_component(&PentoLive.help_button/1, %{})
+      html = render_component(&Component.help_button/1, %{})
 
       assert html =~ "hero-question-mark-circle-solid"
       assert html =~ "phx-click"
@@ -92,7 +93,7 @@ defmodule GameSiteWeb.PentoLiveTest do
 
   describe "help_page/1" do
     test "renders instructions list" do
-      html = render_component(&PentoLive.help_page/1, %{})
+      html = render_component(&Component.help_page/1, %{})
 
       assert html =~ "id=\"info\""
       assert html =~ "Click on a pento to pick it up"
@@ -105,7 +106,7 @@ defmodule GameSiteWeb.PentoLiveTest do
 
   describe "give_up/1" do
     test "renders give up link" do
-      html = render_component(&PentoLive.give_up/1, %{})
+      html = render_component(&Component.give_up/1, %{})
 
       assert html =~ "Give Up?"
       assert html =~ "/pento_choice"

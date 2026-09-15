@@ -38,7 +38,11 @@ defmodule GameSiteWeb.RockPaperScissorsLive.Component do
   def input_buttons(assigns) do
     ~H"""
     <div class="mt-4 w-full">
-      <form id="answer-form" phx-submit="answer" class="rounded-xl bg-white p-4 shadow-md dark:bg-zinc-900">
+      <form
+        id="answer-form"
+        phx-submit="answer"
+        class="rounded-xl bg-white p-4 shadow-md dark:bg-zinc-900"
+      >
         <.error_message form={@form} />
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 sm:gap-3">
@@ -84,7 +88,10 @@ defmodule GameSiteWeb.RockPaperScissorsLive.Component do
           </div>
 
           <div class="sm:col-span-1">
-            <label for="wager_input" class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              for="wager_input"
+              class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               Wager
             </label>
 

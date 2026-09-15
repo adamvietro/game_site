@@ -37,7 +37,10 @@
     <meta property="og:url" content={Map.get(assigns, :meta_url, "https://game.adamsites.com/")} />
     <meta :if={assigns[:meta_image]} property="og:image" content={@meta_image} />
 
-    <meta name="twitter:card" content={if assigns[:meta_image], do: "summary_large_image", else: "summary"} />
+    <meta
+      name="twitter:card"
+      content={if assigns[:meta_image], do: "summary_large_image", else: "summary"}
+    />
     <meta name="twitter:title" content={Map.get(assigns, :page_title, "GameSite")} />
     <meta
       name="twitter:description"
@@ -93,14 +96,14 @@
           <% end %>
         </ul>
       </div>
-
-      <!-- Navigation bar -->
+      
+<!-- Navigation bar -->
       <nav class="border-t border-zinc-200/80 dark:border-zinc-800/80">
         <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-1 px-4 py-2">
           <.link navigate={~p"/"} class="nav-link">Home</.link>
           <.link navigate={~p"/scores"} class="nav-link">Scores</.link>
-
-          <!-- Single Player -->
+          
+<!-- Single Player -->
           <div x-data="{ open: false }" x-on:click.outside="open = false" class="relative">
             <button type="button" class="nav-link" x-on:click="open = !open">
               Single Player
@@ -124,8 +127,8 @@
               </div>
             </div>
           </div>
-
-          <!-- Multiplayer -->
+          
+<!-- Multiplayer -->
           <div x-data="{ open: false }" x-on:click.outside="open = false" class="relative">
             <button type="button" class="nav-link" x-on:click="open = !open">
               Multiplayer
@@ -146,8 +149,8 @@
         </div>
       </nav>
     </header>
-
-    <!-- Main content -->
+    
+<!-- Main content -->
     <main class="mx-auto w-full max-w-6xl flex-grow px-4 py-6 sm:px-6">
       {@inner_content}
     </main>
@@ -165,7 +168,12 @@
             github.com/adamvietro
           </a>
           <span aria-hidden="true">&middot;</span>
-          <a href="https://blog.adamsites.com/" target="_blank" rel="noopener" class="hover:text-brand">
+          <a
+            href="https://blog.adamsites.com/"
+            target="_blank"
+            rel="noopener"
+            class="hover:text-brand"
+          >
             blog
           </a>
         </div>

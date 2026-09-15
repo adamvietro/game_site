@@ -7,7 +7,7 @@ defmodule GameSiteWeb.GuessingLive.QuestionTest do
     test "returns a string number between 1 and 10" do
       answer = Question.get_new_answer()
 
-      assert answer in Enum.map(1..10, &(&1))
+      assert answer in Enum.map(1..10, & &1)
     end
   end
 end
