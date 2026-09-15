@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" class="[scrollbar-gutter:stable]">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>500 · Something went wrong</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var isDark =
+            stored === "dark" ||
+            (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", isDark);
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="stylesheet" href={~p"/assets/app.css"} />
+  </head>
+  <body class="bg-white antialiased dark:bg-zinc-950">
+    <section class="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 text-center">
+      <p class="font-mono text-sm text-brand">$ mix phx.server</p>
+      <h1 class="mt-3 font-mono text-6xl font-bold text-zinc-900 dark:text-zinc-100">500</h1>
+      <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-300">** (RuntimeError) internal server error</p>
+      <p class="mt-2 text-sm text-zinc-500">
+        Something broke on our end. It's been logged — try again in a moment.
+      </p>
+      <a
+        href={~p"/"}
+        class="mt-8 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-zinc-950 transition-colors hover:bg-brand/90"
+      >
+        Back home
+      </a>
+    </section>
+  </body>
+</html>

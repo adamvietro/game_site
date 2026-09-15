@@ -5,10 +5,16 @@ defmodule GameSiteWeb.ErrorHTMLTest do
   import Phoenix.Template
 
   test "renders 404.html" do
-    assert render_to_string(GameSiteWeb.ErrorHTML, "404", "html", []) == "Not Found"
+    html = render_to_string(GameSiteWeb.ErrorHTML, "404", "html", [])
+    assert html =~ "404"
+    assert html =~ "page not found"
+    assert html =~ ~s(href="/")
   end
 
   test "renders 500.html" do
-    assert render_to_string(GameSiteWeb.ErrorHTML, "500", "html", []) == "Internal Server Error"
+    html = render_to_string(GameSiteWeb.ErrorHTML, "500", "html", [])
+    assert html =~ "500"
+    assert html =~ "internal server error"
+    assert html =~ ~s(href="/")
   end
 end
