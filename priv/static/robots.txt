@@ -1,5 +1,13 @@
 # See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
-#
-# To ban all spiders from the entire site uncomment the next two lines:
-# User-agent: *
-# Disallow: /
+
+User-agent: *
+Allow: /
+
+# Auth-gated sections (crawlers would just hit a login redirect) and dev-only tooling
+Disallow: /users/
+Disallow: /games
+Disallow: /daily-wordle/play
+Disallow: /daily-wordle/archive
+Disallow: /dev/
+
+Sitemap: https://game.adamsites.com/sitemap.xml

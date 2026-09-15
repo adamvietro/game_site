@@ -22,6 +22,8 @@ defmodule GameSiteWeb.Router do
   scope "/", GameSiteWeb do
     pipe_through :browser
 
+    get "/sitemap.xml", SitemapController, :index
+
     live_session :games,
       on_mount: [{GameSiteWeb.UserAuth, :mount_current_user}] do
       get "/", PageController, :home

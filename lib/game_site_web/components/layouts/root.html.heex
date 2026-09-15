@@ -9,6 +9,49 @@
       {assigns[:page_title]}
     </.live_title>
     <.theme_init_script />
+
+    <meta
+      name="description"
+      content={
+        Map.get(
+          assigns,
+          :meta_description,
+          "A collection of real-time games built with Elixir and Phoenix LiveView — play multiplayer Poker, a daily Wordle, Pentomino puzzles, and more."
+        )
+      }
+    />
+    <meta name="author" content="Adam Vietro" />
+
+    <meta property="og:title" content={Map.get(assigns, :page_title, "GameSite")} />
+    <meta
+      property="og:description"
+      content={
+        Map.get(
+          assigns,
+          :meta_description,
+          "A collection of real-time games built with Elixir and Phoenix LiveView — play multiplayer Poker, a daily Wordle, Pentomino puzzles, and more."
+        )
+      }
+    />
+    <meta property="og:type" content={Map.get(assigns, :meta_type, "website")} />
+    <meta property="og:url" content={Map.get(assigns, :meta_url, "https://game.adamsites.com/")} />
+    <meta :if={assigns[:meta_image]} property="og:image" content={@meta_image} />
+
+    <meta name="twitter:card" content={if assigns[:meta_image], do: "summary_large_image", else: "summary"} />
+    <meta name="twitter:title" content={Map.get(assigns, :page_title, "GameSite")} />
+    <meta
+      name="twitter:description"
+      content={
+        Map.get(
+          assigns,
+          :meta_description,
+          "A collection of real-time games built with Elixir and Phoenix LiveView — play multiplayer Poker, a daily Wordle, Pentomino puzzles, and more."
+        )
+      }
+    />
+    <meta :if={assigns[:meta_image]} name="twitter:image" content={@meta_image} />
+
+    <link rel="icon" href={~p"/favicon.ico"} />
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
     </script>
