@@ -16,10 +16,10 @@ defmodule GameSiteWeb.DailyWordleLive.Landing do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-xl rounded-lg bg-white p-6 shadow">
-      <h1 class="text-3xl font-bold text-gray-900">Daily Wordle</h1>
+    <div class="mx-auto max-w-xl rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Daily Wordle</h1>
 
-      <p class="mt-3 text-gray-700">
+      <p class="mt-3 text-gray-700 dark:text-gray-300">
         Play today's shared Wordle. Everyone gets the same word each day.
       </p>
 
@@ -39,7 +39,7 @@ defmodule GameSiteWeb.DailyWordleLive.Landing do
           </.link>
         <% else %>
           <div class="space-y-3">
-            <p class="text-gray-700">
+            <p class="text-gray-700 dark:text-gray-300">
               Please log in to play today's Wordle and save your progress.
             </p>
 
@@ -52,7 +52,7 @@ defmodule GameSiteWeb.DailyWordleLive.Landing do
 
             <.link
               navigate={~p"/users/register"}
-              class="ml-2 inline-block rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 hover:bg-gray-300"
+              class="ml-2 inline-block rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
             >
               Create account
             </.link>

@@ -29,7 +29,7 @@ defmodule GameSiteWeb.PentoLive do
       <div id="game-container" phx-hook="Fireworks" />
 
       <div class="flex-1 overflow-hidden">
-        <div class="h-full rounded-lg bg-white p-2">
+        <div class="h-full rounded-lg bg-white p-2 dark:bg-gray-800">
           <.live_component module={Board} puzzle={@puzzle} id="board-component" key={@complete} />
         </div>
       </div>

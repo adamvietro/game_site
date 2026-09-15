@@ -16,11 +16,11 @@ defmodule GameSiteWeb.PokerLive.Component do
 
       <div
         data-help-panel
-        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 shadow-lg sm:text-sm"
+        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 shadow-lg sm:text-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
       >
-        <h3 class="mb-2 text-sm font-semibold text-gray-900">How to play</h3>
+        <h3 class="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-100">How to play</h3>
 
-        <ul class="space-y-2 text-sm text-gray-700">
+        <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
           <li>Adjust your wager before drawing cards.</li>
           <li>Draw 5 cards and choose which ones to keep.</li>
           <li>A pair of Jacks or higher will pay out.</li>
@@ -35,9 +35,9 @@ defmodule GameSiteWeb.PokerLive.Component do
 
   def rules(assigns) do
     ~H"""
-    <section class="bg-white rounded p-4 shadow max-w-md mx-auto">
+    <section class="bg-white rounded p-4 shadow max-w-md mx-auto dark:bg-gray-800">
       <h3 class="text-lg font-semibold mb-2">Rules</h3>
-      <ul class="list-disc list-inside space-y-1 text-gray-700">
+      <ul class="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
         <li>Minimum wager is 10.</li>
         <li>Maximum wager is your current score.</li>
         <li>You can reset the game only if your score reaches 0.</li>

@@ -40,7 +40,7 @@ defmodule GameSiteWeb.PentoLive.Picker do
             shadow-sm hover:shadow-lg
             hover:bg-gray-200
             transform hover:-translate-y-0.5
-            transition-all duration-200 cursor-pointer">
+            transition-all duration-200 cursor-pointer dark:bg-gray-800 dark:hover:bg-gray-700">
         <div class="pr-4 space-y-2">
           <h3 class="text-xl sm:text-2xl">Pieces</h3>
           <.palette shape_names={@board.palette} />

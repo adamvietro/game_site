@@ -2,7 +2,7 @@
 
 A multi-game web platform built with **Elixir**, **Phoenix**, and **LiveView**. Features real-time multiplayer games, persistent daily challenges, and a puzzle game with multiple board configurations — all running on a single LiveView-driven frontend with no client-side JS frameworks.
 
-Live: [game-site.fly.dev](https://game-site.fly.dev)
+Live: [game.adamsites.com](https://game.adamsites.com)
 
 ---
 
@@ -148,4 +148,4 @@ The suite includes tests for game logic, Ecto contexts, LiveView integration, an
 - [Phoenix Framework](https://www.phoenixframework.org/)
 - [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view)
 - [Elixir Forum](https://elixirforum.com)
-- [My technical blog](https://blog-wild-leaf-1554.fly.dev)
+- [My technical blog](https://blog.adamsites.com)

@@ -52,7 +52,7 @@ defmodule GameSiteWeb.GuessingLive.Component do
             value={@wager}
             max={@score}
             step="1"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600"
           />
         </div>
 

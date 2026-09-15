@@ -9,7 +9,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <section class="bg-gray-50 rounded p-4 shadow">
+    <section class="bg-gray-50 rounded p-4 shadow dark:bg-gray-900">
       <div class="flex items-start justify-between gap-4">
         <div class="flex-1 min-w-0">
           <LiveComponents.score_board

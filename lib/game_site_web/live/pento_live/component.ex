@@ -286,8 +286,8 @@ defmodule GameSiteWeb.PentoLive.Component do
   def complete_modal(assigns) do
     ~H"""
     <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div class="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6 max-w-sm w-full">
-        <h2 class="text-2xl font-bold text-gray-800">🎉 Puzzle Complete!</h2>
+      <div class="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6 max-w-sm w-full dark:bg-gray-800">
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">🎉 Puzzle Complete!</h2>
         <p class="text-gray-500 text-center">Amazing work! What would you like to do next?</p>
         <div class="flex gap-4 w-full">
           <button
@@ -306,7 +306,7 @@ defmodule GameSiteWeb.PentoLive.Component do
           <% end %>
           <.link
             navigate={~p"/pento_choice"}
-            class="flex-1 py-3 rounded-xl bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition text-center"
+            class="flex-1 py-3 rounded-xl bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition text-center dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           >
             Pick a Puzzle
           </.link>
@@ -343,7 +343,7 @@ defmodule GameSiteWeb.PentoLive.Component do
     <div
       id="info"
       class="absolute left-0 top-full mt-2 bg-base-100 border-2 border-base-300
-    text-base-content bg-gray-200 p-4 z-10 w-80 shadow-lg rounded hidden"
+    text-base-content bg-gray-200 p-4 z-10 w-80 shadow-lg rounded hidden dark:bg-gray-700"
     >
       <ul class="list-disc list-inside">
         <li>Click on a pento to pick it up</li>

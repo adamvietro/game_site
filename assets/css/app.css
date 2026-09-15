@@ -29,3 +29,13 @@ a:hover {
 [x-cloak] {
   display: none !important;
 }
+
+:root.dark {
+  color-scheme: dark;
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  @apply bg-gray-800 text-gray-100 border-gray-600;
+}

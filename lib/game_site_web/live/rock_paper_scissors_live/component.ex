@@ -15,11 +15,11 @@ defmodule GameSiteWeb.RockPaperScissorsLive.Component do
 
       <div
         data-help-panel
-        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 shadow-lg sm:text-sm"
+        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 shadow-lg sm:text-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
       >
-        <h3 class="mb-2 text-sm font-semibold text-gray-900">How to play</h3>
+        <h3 class="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-100">How to play</h3>
 
-        <ul class="space-y-2 text-sm text-gray-700">
+        <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
           <li>Rock beats Scissors</li>
           <li>Scissors beats Paper</li>
           <li>Paper beats Rock</li>
@@ -38,12 +38,12 @@ defmodule GameSiteWeb.RockPaperScissorsLive.Component do
   def input_buttons(assigns) do
     ~H"""
     <div class="mt-4 w-full">
-      <form id="answer-form" phx-submit="answer" class="rounded-xl bg-white p-4 shadow-md">
+      <form id="answer-form" phx-submit="answer" class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
         <.error_message form={@form} />
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 sm:gap-3">
           <div class="sm:col-span-3">
-            <label class="mb-2 block text-sm font-medium text-gray-700">
+            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Choice
             </label>
 
@@ -84,7 +84,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive.Component do
           </div>
 
           <div class="sm:col-span-1">
-            <label for="wager_input" class="mb-2 block text-sm font-medium text-gray-700">
+            <label for="wager_input" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
               Wager
             </label>
 
@@ -95,7 +95,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive.Component do
               min="1"
               max={@score}
               value={@wager}
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600"
             />
           </div>
         </div>
@@ -110,7 +110,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive.Component do
   def wager(assigns) do
     ~H"""
     <div class="grid grid-cols-1 gap-y-2 max-w-md mx-auto">
-      <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1">
+      <label for="wager_input" class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">
         Wager
       </label>
       <input
@@ -121,7 +121,7 @@ defmodule GameSiteWeb.RockPaperScissorsLive.Component do
         value={@wager}
         max={@score}
         step="1"
-        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+        class="w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600"
       />
       <button
         type="button"
