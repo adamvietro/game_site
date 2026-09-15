@@ -23,7 +23,7 @@ defmodule GameSiteWeb.WordleLive do
           </div>
         </section>
 
-        <div class="rounded-xl bg-gray-100 p-3 sm:p-4 shadow-inner dark:bg-gray-800">
+        <div class="rounded-xl bg-zinc-100 p-3 sm:p-4 shadow-inner dark:bg-zinc-900">
           <GameBoard.game_board board_state={@board_state} entries={@entries} />
         </div>
 

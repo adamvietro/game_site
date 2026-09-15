@@ -250,29 +250,23 @@ defmodule GameSiteWeb.PentoLive.Component do
 
   def score_board(assigns) do
     ~H"""
-    <div class="flex justify-between items-center px-4 py-2
-                bg-gray-100 dark:bg-gray-800
-                rounded-lg shadow-sm">
+    <div class="flex justify-between items-center px-4 py-2 bg-zinc-100 dark:bg-zinc-900 rounded-lg shadow-sm">
       <div>
-        <div class="text-xs uppercase tracking-wide
-                    text-gray-500 dark:text-gray-400">
+        <div class="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
           Score
         </div>
 
-        <div class="text-2xl font-semibold tabular-nums
-                    text-gray-900 dark:text-gray-100">
+        <div class="text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
           {@score}
         </div>
       </div>
 
       <div class="text-right">
-        <div class="text-xs uppercase tracking-wide
-                    text-gray-500 dark:text-gray-400">
+        <div class="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
           Moves
         </div>
 
-        <div class="text-lg tabular-nums
-                    text-gray-900 dark:text-gray-100">
+        <div class="text-lg tabular-nums text-zinc-900 dark:text-zinc-100">
           {@moves}
         </div>
       </div>
@@ -286,9 +280,9 @@ defmodule GameSiteWeb.PentoLive.Component do
   def complete_modal(assigns) do
     ~H"""
     <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div class="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6 max-w-sm w-full dark:bg-gray-800">
-        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200">🎉 Puzzle Complete!</h2>
-        <p class="text-gray-500 text-center">Amazing work! What would you like to do next?</p>
+      <div class="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6 max-w-sm w-full dark:bg-zinc-900">
+        <h2 class="text-2xl font-bold text-zinc-800 dark:text-zinc-200">🎉 Puzzle Complete!</h2>
+        <p class="text-zinc-500 text-center">Amazing work! What would you like to do next?</p>
         <div class="flex gap-4 w-full">
           <button
             phx-click="try_again"
@@ -306,7 +300,7 @@ defmodule GameSiteWeb.PentoLive.Component do
           <% end %>
           <.link
             navigate={~p"/pento_choice"}
-            class="flex-1 py-3 rounded-xl bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition text-center dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            class="flex-1 py-3 rounded-xl bg-zinc-200 text-zinc-800 font-semibold hover:bg-zinc-300 transition text-center dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
           >
             Pick a Puzzle
           </.link>
@@ -342,8 +336,7 @@ defmodule GameSiteWeb.PentoLive.Component do
     ~H"""
     <div
       id="info"
-      class="absolute left-0 top-full mt-2 bg-base-100 border-2 border-base-300
-    text-base-content bg-gray-200 p-4 z-10 w-80 shadow-lg rounded hidden dark:bg-gray-700"
+      class="absolute left-0 top-full mt-2 bg-base-100 border-2 border-base-300 text-base-content bg-zinc-200 p-4 z-10 w-80 shadow-lg rounded hidden dark:bg-zinc-800"
     >
       <ul class="list-disc list-inside">
         <li>Click on a pento to pick it up</li>

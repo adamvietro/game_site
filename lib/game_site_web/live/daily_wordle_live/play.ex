@@ -23,7 +23,7 @@ defmodule GameSiteWeb.DailyWordleLive.Play do
             <br /> Today's Word: {@word}
           </div>
         <% end %>
-        <div class="rounded-xl bg-gray-100 p-3 sm:p-4 shadow-inner dark:bg-gray-800">
+        <div class="rounded-xl bg-zinc-100 p-3 sm:p-4 shadow-inner dark:bg-zinc-900">
           <GameBoard.game_board board_state={@board_state} entries={@entries} />
         </div>
 

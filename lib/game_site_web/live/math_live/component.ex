@@ -7,18 +7,18 @@ defmodule GameSiteWeb.MathLive.Component do
 
   def helper_board(assigns) do
     ~H"""
-    <section class="w-full rounded-xl border border-gray-300 bg-white p-4 shadow-md dark:bg-gray-800 dark:border-gray-600">
+    <section class="w-full rounded-xl border border-zinc-300 bg-white p-4 shadow-md dark:bg-zinc-900 dark:border-zinc-700">
       <div class="flex flex-col gap-4">
-        <p class="text-sm text-gray-700 dark:text-gray-300">
+        <p class="text-sm text-zinc-700 dark:text-zinc-300">
           Toggle the helper if you want a hint or want to hide it.
         </p>
 
         <label class="flex items-center justify-between gap-3 cursor-pointer" phx-click="toggle">
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Show Helper</span>
+          <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Show Helper</span>
 
           <div class="relative">
             <input type="checkbox" class="sr-only" checked={@toggle} readonly />
-            <div class="h-6 w-11 rounded-full bg-gray-300 transition-colors dark:bg-gray-700">
+            <div class="h-6 w-11 rounded-full bg-zinc-300 transition-colors dark:bg-zinc-800">
               <div class={[
                 "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
                 if(@toggle, do: "translate-x-5", else: "translate-x-0")
@@ -29,7 +29,7 @@ defmodule GameSiteWeb.MathLive.Component do
         </label>
 
         <div class={[
-          "space-y-2 text-sm text-gray-700",
+          "space-y-2 text-sm text-zinc-700 dark:text-zinc-300",
           if(@toggle, do: "block", else: "hidden")
         ]}>
           <p>{@helper.first}</p>
@@ -46,10 +46,10 @@ defmodule GameSiteWeb.MathLive.Component do
 
   def question(assigns) do
     ~H"""
-    <section class="rounded-xl bg-gray-50 p-4 text-center shadow dark:bg-gray-900">
+    <section class="rounded-xl bg-zinc-50 p-4 text-center shadow dark:bg-zinc-950">
       <div class="space-y-1">
-        <div class="text-sm font-medium text-gray-500">Question</div>
-        <div class="text-base font-semibold text-gray-800 sm:text-lg dark:text-gray-200">{@question}</div>
+        <div class="text-sm font-medium text-zinc-500">Question</div>
+        <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@question}</div>
       </div>
     </section>
     """
@@ -62,24 +62,24 @@ defmodule GameSiteWeb.MathLive.Component do
   def answer_submit(assigns) do
     ~H"""
     <div class="w-full">
-      <form id="answer-form" phx-submit="answer" class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+      <form id="answer-form" phx-submit="answer" class="rounded-xl bg-white p-4 shadow-md dark:bg-zinc-900">
         <.error_message form={@form} />
 
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label for="guess_input" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label for="guess_input" class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Guess
             </label>
             <input
               id="guess_input"
               name="guess"
               type="number"
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600"
+              class="w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700"
             />
           </div>
 
           <div>
-            <label for="wager_input" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label for="wager_input" class="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Wager
             </label>
             <input
@@ -89,7 +89,7 @@ defmodule GameSiteWeb.MathLive.Component do
               min="1"
               max={@score}
               value={@wager}
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600"
+              class="w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700"
             />
           </div>
 
@@ -120,7 +120,7 @@ defmodule GameSiteWeb.MathLive.Component do
           case meta[:type] do
             :info -> "text-center text-sm font-medium text-green-600"
             :error -> "text-center text-sm font-medium text-red-600"
-            _ -> "text-center text-sm font-medium text-gray-600"
+            _ -> "text-center text-sm font-medium text-zinc-600"
           end
         }>
           {msg}

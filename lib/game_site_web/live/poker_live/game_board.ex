@@ -10,7 +10,7 @@ defmodule GameSiteWeb.PokerLive.GameBoard do
 
   def game_board(assigns) do
     ~H"""
-    <section class="bg-white rounded p-3 shadow space-y-4 sm:p-4 sm:space-y-6 dark:bg-gray-800">
+    <section class="bg-white rounded p-3 shadow space-y-4 sm:p-4 sm:space-y-6 dark:bg-zinc-900">
       <.form for={@form} phx-submit="advance" class="space-y-4 sm:space-y-6">
         <.hand hand={@hand} />
         <.wager wager={@wager} score={@score} state={@state} all_in={@all_in} form={@form} />
@@ -38,11 +38,11 @@ defmodule GameSiteWeb.PokerLive.GameBoard do
               <img
                 src={card_image_url(card)}
                 alt={card_to_string(card)}
-                class="card-img w-12 h-16 sm:w-20 sm:h-28 border-2 border-gray-300 rounded shadow transition dark:border-gray-600"
+                class="card-img w-12 h-16 sm:w-20 sm:h-28 border-2 border-zinc-300 rounded shadow transition dark:border-zinc-700"
               />
             </label>
           <% else %>
-            <div class="w-12 h-16 border-2 border-gray-200 rounded bg-gray-100 sm:w-20 sm:h-28 dark:bg-gray-800 dark:border-gray-700"></div>
+            <div class="w-12 h-16 border-2 border-zinc-200 rounded bg-zinc-100 sm:w-20 sm:h-28 dark:bg-zinc-900 dark:border-zinc-800"></div>
           <% end %>
         </div>
       <% end %>
@@ -73,7 +73,7 @@ defmodule GameSiteWeb.PokerLive.GameBoard do
         <.action_button
           type="button"
           phx_click="decrease_wager"
-          class="text-sm px-2 py-1 bg-gray-300 rounded hover:bg-gray-400 transition sm:px-3 dark:bg-gray-700 dark:hover:bg-gray-500"
+          class="text-sm px-2 py-1 bg-zinc-300 rounded hover:bg-zinc-400 transition sm:px-3 dark:bg-zinc-800 dark:hover:bg-zinc-600"
         >
           -10
         </.action_button>
@@ -83,7 +83,7 @@ defmodule GameSiteWeb.PokerLive.GameBoard do
         <.action_button
           type="button"
           phx_click="increase_wager"
-          class="text-sm px-2 py-1 bg-gray-300 rounded hover:bg-gray-400 transition sm:px-3 dark:bg-gray-700 dark:hover:bg-gray-500"
+          class="text-sm px-2 py-1 bg-zinc-300 rounded hover:bg-zinc-400 transition sm:px-3 dark:bg-zinc-800 dark:hover:bg-zinc-600"
         >
           +10
         </.action_button>
@@ -91,7 +91,7 @@ defmodule GameSiteWeb.PokerLive.GameBoard do
         <.action_button
           type="button"
           phx_click="all-in"
-          class="text-sm px-2 py-1 bg-gray-300 rounded hover:bg-gray-400 transition sm:px-3 dark:bg-gray-700 dark:hover:bg-gray-500"
+          class="text-sm px-2 py-1 bg-zinc-300 rounded hover:bg-zinc-400 transition sm:px-3 dark:bg-zinc-800 dark:hover:bg-zinc-600"
         >
           All-In
         </.action_button>
@@ -139,7 +139,7 @@ defmodule GameSiteWeb.PokerLive.GameBoard do
       min={10}
       max={@score}
       readonly
-      class="w-16 text-center border rounded bg-white cursor-default text-sm sm:w-20 dark:bg-gray-800"
+      class="w-16 text-center border rounded bg-white cursor-default text-sm sm:w-20 dark:bg-zinc-900"
     />
     <style>
       input[type=number]::-webkit-inner-spin-button,
@@ -166,7 +166,7 @@ defmodule GameSiteWeb.PokerLive.GameBoard do
 
   attr(:phx_click, :string, default: nil)
   attr(:type, :string, default: "button")
-  attr(:class, :string, default: "bg-gray-300 hover:bg-gray-400 text-white font-semibold")
+  attr(:class, :string, default: "bg-zinc-300 hover:bg-zinc-400 dark:bg-zinc-800 dark:hover:bg-zinc-600 text-white font-semibold")
   slot(:inner_block, required: true)
 
   defp action_button(assigns) do

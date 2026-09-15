@@ -21,13 +21,13 @@ defmodule GameSiteWeb.DailyWordleLive.Archive do
       <h1 class="mb-4 text-3xl font-bold">Daily Wordle Archive</h1>
 
       <%= if Enum.empty?(@user_wordles) do %>
-        <p class="text-gray-600">You have not played any daily Wordles yet.</p>
+        <p class="text-zinc-600">You have not played any daily Wordles yet.</p>
       <% else %>
         <div class="space-y-3">
           <%= for user_wordle <- @user_wordles do %>
             <.link
               navigate={~p"/daily-wordle/archive/#{user_wordle.id}"}
-              class="block rounded-lg bg-white p-4 shadow transition hover:bg-gray-50 hover:shadow-md dark:bg-gray-800"
+              class="block rounded-lg bg-white p-4 shadow transition hover:bg-zinc-50 hover:shadow-md dark:bg-zinc-900"
             >
               <div class="flex items-center justify-between">
                 <div>
@@ -35,19 +35,19 @@ defmodule GameSiteWeb.DailyWordleLive.Archive do
                     {user_wordle.multi_wordle.date}
                   </p>
 
-                  <p class="text-sm text-gray-600">
+                  <p class="text-sm text-zinc-600">
                     Status: {user_wordle.status} · Attempts: {user_wordle.attempts}
                   </p>
                 </div>
 
                 <%= if user_wordle.status in ["won", "lost"] do %>
-                  <span class="rounded bg-gray-100 px-3 py-1 text-sm font-mono dark:bg-gray-800">
+                  <span class="rounded bg-zinc-100 px-3 py-1 text-sm font-mono dark:bg-zinc-900">
                     {String.upcase(user_wordle.multi_wordle.word)}
                   </span>
                 <% end %>
               </div>
 
-              <div class="mt-3 text-sm text-gray-700 dark:text-gray-300">
+              <div class="mt-3 text-sm text-zinc-700 dark:text-zinc-300">
                 Guesses: {Enum.join(user_wordle.entered_words || [], ", ")}
               </div>
             </.link>

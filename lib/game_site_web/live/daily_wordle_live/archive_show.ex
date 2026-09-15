@@ -39,12 +39,12 @@ defmodule GameSiteWeb.DailyWordleLive.ArchiveShow do
           Back to archive
         </.link>
 
-        <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+        <div class="rounded-lg bg-white p-4 shadow dark:bg-zinc-900">
           <h1 class="text-xl font-bold">
             Daily Wordle - {@multi_wordle.date}
           </h1>
 
-          <p class="text-sm text-gray-600">
+          <p class="text-sm text-zinc-600">
             Status: {@user_wordle.status} · Attempts: {@user_wordle.attempts}
           </p>
 
@@ -62,7 +62,7 @@ defmodule GameSiteWeb.DailyWordleLive.ArchiveShow do
           <% end %>
         </div>
 
-        <div class="rounded-xl bg-gray-100 p-3 sm:p-4 shadow-inner dark:bg-gray-800">
+        <div class="rounded-xl bg-zinc-100 p-3 sm:p-4 shadow-inner dark:bg-zinc-900">
           <GameBoard.game_board board_state={@board_state} entries={@entries} />
         </div>
 

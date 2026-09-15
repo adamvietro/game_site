@@ -37,5 +37,29 @@ a:hover {
 .dark input:not([type="checkbox"]):not([type="radio"]),
 .dark select,
 .dark textarea {
-  @apply bg-gray-800 text-gray-100 border-gray-600;
+  @apply bg-zinc-950 text-zinc-100 border-zinc-700;
+}
+
+/* Nav links + theme toggle (root.html.heex). These live here, not in a <style> block in
+   the .heex file, because Tailwind's CLI only processes this file -- @apply in an inline
+   <style> tag in a template is never compiled and silently does nothing in the browser. */
+.nav-link {
+  @apply rounded-md px-3 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100;
+}
+
+.nav-link[aria-current="page"] {
+  @apply bg-brand/10 text-brand hover:bg-brand/10 hover:text-brand;
+}
+
+.dropdown-link {
+  @apply block px-3 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
+  white-space: nowrap;
+}
+
+.theme-toggle-btn {
+  @apply rounded p-1 text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-100;
+}
+
+.theme-toggle-btn[data-active="true"] {
+  @apply bg-brand text-zinc-950 hover:text-zinc-950 dark:hover:text-zinc-950;
 }

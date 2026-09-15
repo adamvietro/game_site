@@ -9,7 +9,7 @@ defmodule GameSiteWeb.Components.LiveComponents do
 
   def score_submit(assigns) do
     ~H"""
-    <div class="rounded bg-white p-4 shadow-md dark:bg-gray-800">
+    <div class="rounded bg-white p-4 shadow-md dark:bg-zinc-900">
       <%= if @current_user == nil do %>
         <p>
           If you want to submit your score please make an
@@ -80,41 +80,41 @@ defmodule GameSiteWeb.Components.LiveComponents do
   def score_board(assigns) do
     ~H"""
     <div class="mt-4 flex flex-wrap justify-center gap-2 text-center sm:gap-3">
-      <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-gray-800">
-        <div class="text-xs text-gray-500 sm:text-sm">Highest Score</div>
-        <div class="text-base font-semibold text-gray-800 sm:text-lg dark:text-gray-200">{@highest_score}</div>
+      <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
+        <div class="text-xs text-zinc-500 sm:text-sm">Highest Score</div>
+        <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@highest_score}</div>
       </div>
 
-      <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-gray-800">
-        <div class="text-xs text-gray-500 sm:text-sm">Current Score</div>
-        <div class="text-base font-semibold text-gray-800 sm:text-lg dark:text-gray-200">{@current_score}</div>
+      <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
+        <div class="text-xs text-zinc-500 sm:text-sm">Current Score</div>
+        <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@current_score}</div>
       </div>
 
       <%= if @attempt do %>
-        <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-gray-800">
-          <div class="text-xs text-gray-500 sm:text-sm">Attempt</div>
-          <div class="text-base font-semibold text-gray-800 sm:text-lg dark:text-gray-200">{@attempt}</div>
+        <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
+          <div class="text-xs text-zinc-500 sm:text-sm">Attempt</div>
+          <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@attempt}</div>
         </div>
       <% end %>
 
       <%= if @outcome do %>
-        <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-gray-800">
-          <div class="text-xs text-gray-500 sm:text-sm">Outcome</div>
+        <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
+          <div class="text-xs text-zinc-500 sm:text-sm">Outcome</div>
           <div class="text-base font-semibold text-blue-600 sm:text-lg">{@outcome}</div>
         </div>
       <% end %>
 
       <%= if @current_bet do %>
-        <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-gray-800">
-          <div class="text-xs text-gray-500 sm:text-sm">Current Bet</div>
-          <div class="text-base font-semibold text-gray-800 sm:text-lg dark:text-gray-200">{@current_bet}</div>
+        <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
+          <div class="text-xs text-zinc-500 sm:text-sm">Current Bet</div>
+          <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@current_bet}</div>
         </div>
       <% end %>
 
       <%= if @question do %>
-        <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-gray-800">
-          <div class="text-xs text-gray-500 sm:text-sm">Question</div>
-          <div class="text-base font-semibold text-gray-800 sm:text-lg dark:text-gray-200">{@question}</div>
+        <div class="min-w-[90px] rounded-lg bg-white px-3 py-2 shadow sm:min-w-[120px] sm:px-4 sm:py-3 dark:bg-zinc-900">
+          <div class="text-xs text-zinc-500 sm:text-sm">Question</div>
+          <div class="text-base font-semibold text-zinc-800 sm:text-lg dark:text-zinc-200">{@question}</div>
         </div>
       <% end %>
     </div>
@@ -138,11 +138,11 @@ defmodule GameSiteWeb.Components.LiveComponents do
 
       <div
         data-help-panel
-        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-700 shadow-lg sm:text-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+        class="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-700 shadow-lg sm:text-sm dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-800"
       >
-        <h3 class="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-100">How to play</h3>
+        <h3 class="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">How to play</h3>
 
-        <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+        <ul class="space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
           <%= for item <- @instructions do %>
             <li>
               <%= if item[:label] do %>

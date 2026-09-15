@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title default="GameSite" suffix=" · Phoenix Framework">
+    <.live_title default="GameSite" suffix=" · Games">
       {assigns[:page_title]}
     </.live_title>
     <.theme_init_script />
@@ -15,55 +16,48 @@
     </script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js">
     </script>
-    <style>
-      /* Custom styles here if needed */
-    </style>
   </head>
-  <body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+  <body class="flex min-h-screen flex-col bg-white text-zinc-700 antialiased dark:bg-zinc-950 dark:text-zinc-200">
+    <header class="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/90 backdrop-blur dark:border-zinc-800/80 dark:bg-zinc-950/90">
+      <!-- User Nav -->
+      <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+        <.link
+          navigate={~p"/"}
+          class="flex items-center gap-1.5 font-mono text-base font-semibold text-zinc-900 hover:text-black dark:text-zinc-100 dark:hover:text-white"
+        >
+          <span class="text-brand">~/</span>game_site
+        </.link>
 
-<!-- User Nav -->
-    <ul class="relative z-10 flex items-center gap-6 px-6 py-3 justify-end bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100">
-      <li>
-        <.theme_toggle />
-      </li>
-      <%= if @current_user do %>
-        <li class="truncate max-w-xs">{@current_user.email}</li>
-        <li>
-          <.link href={~p"/users/settings"} class="font-semibold hover:text-gray-700">
-            Settings
-          </.link>
-        </li>
-        <li>
-          <.link
-            href={~p"/users/log_out"}
-            method="delete"
-            class="font-semibold hover:text-gray-700"
-          >
-            Log out
-          </.link>
-        </li>
-      <% else %>
-        <li>
-          <.link href={~p"/users/register"} class="font-semibold hover:text-gray-700">
-            Register
-          </.link>
-        </li>
-        <li>
-          <.link href={~p"/users/log_in"} class="font-semibold hover:text-gray-700">
-            Log in
-          </.link>
-        </li>
-      <% end %>
-    </ul>
-    
-<!-- Navigation bar -->
-    <nav class="bg-gray-700 dark:bg-gray-800 z-20">
-      <div class="max-w-6xl mx-auto px-4">
-        <div class="flex flex-wrap justify-center gap-4 py-3 border">
+        <ul class="flex flex-wrap items-center gap-3 text-sm">
+          <li><.theme_toggle /></li>
+          <%= if @current_user do %>
+            <li class="hidden max-w-xs truncate font-mono text-xs text-zinc-500 sm:inline">
+              {@current_user.email}
+            </li>
+            <li>
+              <.link href={~p"/users/settings"} class="nav-link">Settings</.link>
+            </li>
+            <li>
+              <.link href={~p"/users/log_out"} method="delete" class="nav-link">Log out</.link>
+            </li>
+          <% else %>
+            <li>
+              <.link href={~p"/users/register"} class="nav-link">Register</.link>
+            </li>
+            <li>
+              <.link href={~p"/users/log_in"} class="nav-link">Log in</.link>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+
+      <!-- Navigation bar -->
+      <nav class="border-t border-zinc-200/80 dark:border-zinc-800/80">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-1 px-4 py-2">
           <.link navigate={~p"/"} class="nav-link">Home</.link>
           <.link navigate={~p"/scores"} class="nav-link">Scores</.link>
-          
-<!-- Single Player -->
+
+          <!-- Single Player -->
           <div x-data="{ open: false }" x-on:click.outside="open = false" class="relative">
             <button type="button" class="nav-link" x-on:click="open = !open">
               Single Player
@@ -73,9 +67,9 @@
               x-cloak
               x-show="open"
               x-transition
-              class="absolute left-0 mt-2 bg-white dark:bg-gray-800 rounded shadow-md min-w-[200px] z-30 overflow-hidden border border-gray-200 dark:border-gray-700"
+              class="absolute left-0 z-30 mt-2 min-w-[200px] overflow-hidden rounded-md border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
             >
-              <div class="flex flex-col">
+              <div class="flex flex-col py-1">
                 <.link navigate={~p"/guessing"} class="dropdown-link">Guessing Game</.link>
                 <.link navigate={~p"/math"} class="dropdown-link">Math Game</.link>
                 <.link navigate={~p"/rock-paper-scissors"} class="dropdown-link">
@@ -87,8 +81,8 @@
               </div>
             </div>
           </div>
-          
-<!-- Multiplayer -->
+
+          <!-- Multiplayer -->
           <div x-data="{ open: false }" x-on:click.outside="open = false" class="relative">
             <button type="button" class="nav-link" x-on:click="open = !open">
               Multiplayer
@@ -98,40 +92,41 @@
               x-cloak
               x-show="open"
               x-transition
-              class="absolute left-0 mt-2 bg-white dark:bg-gray-800 rounded shadow-md min-w-[200px] z-30 overflow-hidden border border-gray-200 dark:border-gray-700"
+              class="absolute left-0 z-30 mt-2 min-w-[200px] overflow-hidden rounded-md border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
             >
-              <div class="flex flex-col">
+              <div class="flex flex-col py-1">
                 <.link navigate={~p"/multi-poker"} class="dropdown-link">Poker</.link>
                 <.link navigate={~p"/daily-wordle"} class="dropdown-link">Daily Wordle</.link>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </nav>
-    
-<!-- Main content -->
-    <main class="flex-grow container mx-auto p-6">
+      </nav>
+    </header>
+
+    <!-- Main content -->
+    <main class="mx-auto w-full max-w-6xl flex-grow px-4 py-6 sm:px-6">
       {@inner_content}
     </main>
 
-    <style>
-      .nav-link {
-        @apply px-4 py-2 rounded-md text-gray-200 hover:bg-gray-600 hover:text-white font-semibold transition border border-white cursor-pointer bg-transparent;
-      }
-
-      .nav-link[aria-current="page"] {
-        @apply bg-gray-900 text-white;
-      }
-
-      .dropdown-link {
-        @apply px-3 py-2 text-gray-700 hover:bg-gray-100 transition;
-        white-space: nowrap;
-      }
-
-      [x-cloak] {
-        display: none !important;
-      }
-    </style>
+    <footer class="mt-16 border-t border-zinc-200/80 py-8 dark:border-zinc-800/80">
+      <div class="mx-auto flex w-full max-w-6xl flex-col items-center gap-2 px-4 text-center font-mono text-xs text-zinc-500 sm:px-6 dark:text-zinc-600">
+        <p>Built with Elixir &amp; Phoenix.</p>
+        <div class="flex items-center gap-3">
+          <a
+            href="https://github.com/adamvietro"
+            target="_blank"
+            rel="noopener"
+            class="hover:text-brand"
+          >
+            github.com/adamvietro
+          </a>
+          <span aria-hidden="true">&middot;</span>
+          <a href="https://blog.adamsites.com/" target="_blank" rel="noopener" class="hover:text-brand">
+            blog
+          </a>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

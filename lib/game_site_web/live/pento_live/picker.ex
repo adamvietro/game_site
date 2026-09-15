@@ -33,14 +33,7 @@ defmodule GameSiteWeb.PentoLive.Picker do
   def row(assigns) do
     ~H"""
     <.link navigate={~p"/pento/#{@puzzle}"}>
-      <div class="grid grid-cols-2 gap-4 p-4
-            divide-x divide-slate-300
-            border-2 border-slate-300
-            rounded-xl bg-gray-100
-            shadow-sm hover:shadow-lg
-            hover:bg-gray-200
-            transform hover:-translate-y-0.5
-            transition-all duration-200 cursor-pointer dark:bg-gray-800 dark:hover:bg-gray-700">
+      <div class="grid grid-cols-2 gap-4 p-4 divide-x divide-slate-300 border-2 border-slate-300 rounded-xl bg-zinc-100 shadow-sm hover:shadow-lg hover:bg-zinc-200 transform hover:-translate-y-0.5 transition-all duration-200 cursor-pointer dark:bg-zinc-900 dark:hover:bg-zinc-800">
         <div class="pr-4 space-y-2">
           <h3 class="text-xl sm:text-2xl">Pieces</h3>
           <.palette shape_names={@board.palette} />

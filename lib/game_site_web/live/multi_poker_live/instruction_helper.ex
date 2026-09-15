@@ -7,7 +7,7 @@ defmodule GameSiteWeb.MultiPokerLive.InstructionHelper do
       <button
         type="button"
         data-help-button
-        class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+        class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold text-zinc-700 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
         aria-label="Show game rules"
       >
         ?
@@ -15,11 +15,11 @@ defmodule GameSiteWeb.MultiPokerLive.InstructionHelper do
 
       <div
         data-help-panel
-        class="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-1rem)] rounded-xl border border-gray-200 bg-white p-3 shadow-lg text-xs sm:text-sm dark:bg-gray-800 dark:border-gray-700"
+        class="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-1rem)] rounded-xl border border-zinc-200 bg-white p-3 shadow-lg text-xs sm:text-sm dark:bg-zinc-900 dark:border-zinc-800"
       >
-        <h3 class="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-100">Poker Rules</h3>
+        <h3 class="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Poker Rules</h3>
 
-        <div class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+        <div class="space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
           <p>Each player is dealt 2 hole cards.</p>
           <p>Betting happens across pre-flop, flop, turn, and river.</p>
           <p>If all but one player folds, that player wins immediately.</p>

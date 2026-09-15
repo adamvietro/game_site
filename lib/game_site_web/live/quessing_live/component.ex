@@ -52,7 +52,7 @@ defmodule GameSiteWeb.GuessingLive.Component do
             value={@wager}
             max={@score}
             step="1"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600"
+            class="w-full rounded-lg border border-zinc-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700"
           />
         </div>
 
@@ -65,7 +65,7 @@ defmodule GameSiteWeb.GuessingLive.Component do
         </button>
       </div>
 
-      <p class="mt-2 text-xs text-gray-500">
+      <p class="mt-2 text-xs text-zinc-500">
         Max wager: {@score}
       </p>
     </div>
@@ -81,7 +81,7 @@ defmodule GameSiteWeb.GuessingLive.Component do
         case meta[:type] do
           :info -> "text-center text-sm font-medium text-green-600"
           :error -> "text-center text-sm font-medium text-red-600"
-          _ -> "text-center text-sm font-medium text-gray-600"
+          _ -> "text-center text-sm font-medium text-zinc-600"
         end
       }>
         {msg}

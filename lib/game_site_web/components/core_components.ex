@@ -66,7 +66,7 @@ defmodule GameSiteWeb.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white dark:bg-gray-800 p-14 shadow-lg ring-1 transition"
+              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white dark:bg-zinc-900 p-14 shadow-lg ring-1 transition"
             >
               <div class="absolute top-6 right-5">
                 <button
@@ -214,7 +214,7 @@ defmodule GameSiteWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white dark:bg-gray-900">
+      <div class="mt-10 space-y-8 rounded-lg border border-zinc-200 bg-zinc-50 p-6 sm:p-8 dark:border-zinc-800 dark:bg-zinc-900">
         {render_slot(@inner_block, f)}
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
           {render_slot(action, f)}
@@ -243,9 +243,13 @@ defmodule GameSiteWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 dark:bg-zinc-700 dark:hover:bg-zinc-600 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
-        @class
+        "phx-submit-loading:opacity-75 rounded-md bg-brand hover:bg-brand/90 py-2 px-3",
+        "text-sm font-semibold leading-6 text-zinc-950 active:text-zinc-950/80",
+        @class,
+        if(@rest[:disabled],
+          do: "bg-zinc-300 text-zinc-500 cursor-not-allowed dark:bg-zinc-700 dark:text-zinc-400",
+          else: "bg-brand hover:bg-brand/90"
+        )
       ]}
       {@rest}
     >
@@ -323,7 +327,7 @@ defmodule GameSiteWeb.CoreComponents do
 
     ~H"""
     <div>
-      <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+      <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input
           type="checkbox"
@@ -332,7 +336,7 @@ defmodule GameSiteWeb.CoreComponents do
           value="true"
           checked={@checked}
           key={@key}
-          class="rounded border-zinc-300 dark:border-zinc-600 dark:bg-zinc-700 text-zinc-900 focus:ring-0"
+          class="rounded border-zinc-300 bg-white text-brand focus:ring-0 dark:border-zinc-700 dark:bg-zinc-950"
           {@rest}
         />
         {@label}
@@ -349,7 +353,7 @@ defmodule GameSiteWeb.CoreComponents do
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-md border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 dark:text-zinc-100 shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class="mt-2 block w-full h-48 rounded-md border border-zinc-300 bg-white text-zinc-900 shadow-sm focus:border-brand focus:ring-0 sm:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
         multiple={@multiple}
         {@rest}
       >
@@ -369,8 +373,8 @@ defmodule GameSiteWeb.CoreComponents do
         id={@id}
         name={@name}
         class={[
-          "mt-2 block w-full rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
-          @errors == [] && "border-zinc-300 dark:border-zinc-600 focus:border-zinc-400",
+          "mt-2 block w-full rounded-lg bg-white text-zinc-900 placeholder:text-zinc-400 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem] dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600",
+          @errors == [] && "border-zinc-300 focus:border-brand dark:border-zinc-700",
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
         {@rest}
@@ -391,8 +395,8 @@ defmodule GameSiteWeb.CoreComponents do
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={[
-          "mt-2 block w-full rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-0 sm:text-sm sm:leading-6",
-          @errors == [] && "border-zinc-300 dark:border-zinc-600 focus:border-zinc-400",
+          "mt-2 block w-full rounded-lg bg-white text-zinc-900 placeholder:text-zinc-400 focus:ring-0 sm:text-sm sm:leading-6 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600",
+          @errors == [] && "border-zinc-300 focus:border-brand dark:border-zinc-700",
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
         {@rest}
@@ -410,7 +414,7 @@ defmodule GameSiteWeb.CoreComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800 dark:text-zinc-200">
+    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-200">
       {render_slot(@inner_block)}
     </label>
     """
@@ -443,10 +447,10 @@ defmodule GameSiteWeb.CoreComponents do
     ~H"""
     <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8 text-zinc-800 dark:text-zinc-100">
+        <h1 class="text-lg font-semibold leading-8 text-zinc-900 dark:text-zinc-100">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
           {render_slot(@subtitle)}
         </p>
       </div>
@@ -500,7 +504,7 @@ defmodule GameSiteWeb.CoreComponents do
         <tbody
           id={@id}
           phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-          class="relative divide-y divide-zinc-100 dark:divide-zinc-700 border-t border-zinc-200 dark:border-zinc-700 text-sm leading-6 text-zinc-700 dark:text-zinc-300"
+          class="relative divide-y divide-zinc-100 dark:divide-zinc-800 border-t border-zinc-200 dark:border-zinc-800 text-sm leading-6 text-zinc-700 dark:text-zinc-300"
         >
           <tr
             :for={row <- @rows}
@@ -557,7 +561,7 @@ defmodule GameSiteWeb.CoreComponents do
   def list(assigns) do
     ~H"""
     <div class="mt-14">
-      <dl class="-my-4 divide-y divide-zinc-100 dark:divide-zinc-700">
+      <dl class="-my-4 divide-y divide-zinc-100 dark:divide-zinc-800">
         <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
           <dt class="w-1/4 flex-none text-zinc-500 dark:text-zinc-400">{item.title}</dt>
           <dd class="text-zinc-700 dark:text-zinc-300">{render_slot(item)}</dd>
@@ -582,7 +586,7 @@ defmodule GameSiteWeb.CoreComponents do
     <div class="mt-16">
       <.link
         navigate={@navigate}
-        class="text-sm font-semibold leading-6 text-zinc-900 dark:text-zinc-100 hover:text-zinc-700 dark:hover:text-zinc-300"
+        class="text-sm font-semibold leading-6 text-zinc-600 hover:text-brand dark:text-zinc-300"
       >
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
         {render_slot(@inner_block)}
@@ -622,97 +626,58 @@ defmodule GameSiteWeb.CoreComponents do
   Renders a blocking inline script that applies the saved theme (light/dark/system)
   to `<html>` before any stylesheet loads, preventing a flash of the wrong theme.
 
-  Must be placed in `<head>`, before the stylesheet `<link>`. Include on every
-  layout/page that renders its own `<head>` (the root layout does not wrap every
-  page in this app — see `home.html.heex`, which renders `layout: false`).
+  Must be placed in `<head>`, before the stylesheet `<link>`. Click handling and
+  live system-preference updates are wired separately in `assets/js/app.js`
+  (`initThemeToggle`) — this only handles the pre-paint application.
   """
   def theme_init_script(assigns) do
     ~H"""
     <script>
       (function () {
-        var STORAGE_KEY = "theme";
-        var media = window.matchMedia("(prefers-color-scheme: dark)");
-
-        function isDark(theme) {
-          return theme === "dark" || (theme === "system" && media.matches);
-        }
-
-        function applyTheme(theme) {
-          document.documentElement.classList.toggle("dark", isDark(theme));
-        }
-
-        function currentTheme() {
-          try {
-            return localStorage.getItem(STORAGE_KEY) || "system";
-          } catch (e) {
-            return "system";
-          }
-        }
-
-        function updateButtons() {
-          var theme = currentTheme();
-          document.querySelectorAll("[data-theme-btn]").forEach(function (btn) {
-            var active = btn.getAttribute("data-theme-btn") === theme;
-            btn.classList.toggle("bg-gray-200", active);
-            btn.classList.toggle("dark:bg-gray-700", active);
-          });
-        }
-
-        window.setTheme = function (theme) {
-          try {
-            localStorage.setItem(STORAGE_KEY, theme);
-          } catch (e) {}
-          applyTheme(theme);
-          updateButtons();
-        };
-
-        applyTheme(currentTheme());
-
-        media.addEventListener("change", function () {
-          if (currentTheme() === "system") applyTheme("system");
-        });
-
-        document.addEventListener("DOMContentLoaded", updateButtons);
-        window.addEventListener("phx:page-loading-stop", updateButtons);
+        try {
+          var stored = localStorage.getItem("theme");
+          var isDark =
+            stored === "dark" ||
+            (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", isDark);
+        } catch (e) {}
       })();
     </script>
     """
   end
 
   @doc """
-  Renders a three-way light/dark/system theme toggle. Relies on `window.setTheme`,
-  defined by `theme_init_script/1`, which must be rendered earlier in `<head>`.
+  Renders a three-way light/dark/system theme toggle. Click handling and the
+  `data-active` state are wired in `assets/js/app.js` (`initThemeToggle`).
   """
   def theme_toggle(assigns) do
     ~H"""
     <div
+      class="flex items-center gap-0.5 rounded-md border border-zinc-300 p-0.5 dark:border-zinc-700"
+      role="group"
+      aria-label="Theme"
       id="theme-toggle"
-      phx-update="ignore"
-      class="flex items-center gap-1 rounded-md border border-gray-300 dark:border-gray-600 p-0.5"
     >
       <button
         type="button"
-        data-theme-btn="light"
-        onclick="window.setTheme('light')"
-        class="rounded p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+        data-theme-choice="light"
+        class="theme-toggle-btn"
         aria-label="Light theme"
       >
         <.icon name="hero-sun-mini" class="h-4 w-4" />
       </button>
       <button
         type="button"
-        data-theme-btn="system"
-        onclick="window.setTheme('system')"
-        class="rounded p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-        aria-label="Use system theme"
+        data-theme-choice="system"
+        class="theme-toggle-btn"
+        aria-label="System theme"
       >
         <.icon name="hero-computer-desktop-mini" class="h-4 w-4" />
       </button>
       <button
         type="button"
-        data-theme-btn="dark"
-        onclick="window.setTheme('dark')"
-        class="rounded p-1.5 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+        data-theme-choice="dark"
+        class="theme-toggle-btn"
         aria-label="Dark theme"
       >
         <.icon name="hero-moon-mini" class="h-4 w-4" />

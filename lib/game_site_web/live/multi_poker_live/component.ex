@@ -5,7 +5,7 @@ defmodule GameSiteWeb.MultiPokerLive.Component do
   def instructions(assigns) do
     ~H"""
     <h2 class="text-xl font-semibold mb-2">Poker Game Overview</h2>
-    <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700 dark:text-gray-300">
+    <ul class="list-disc list-inside mt-2 space-y-1 text-zinc-700 dark:text-zinc-300">
       <li>Here you can create or join a room to play some poker</li>
       <li>You must be logged in to create a room.</li>
       <li>There will be a max of 6 players per room.</li>
@@ -71,7 +71,7 @@ defmodule GameSiteWeb.MultiPokerLive.Component do
 
   def new_game(assigns) do
     ~H"""
-    <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:bg-gray-800">
+    <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:bg-zinc-900">
       <h2 class="mb-2 text-xl font-semibold text-zinc-800">Can't find a game you like?</h2>
 
       <%= if @current_user == nil do %>

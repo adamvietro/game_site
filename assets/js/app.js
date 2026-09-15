@@ -171,3 +171,47 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
+// Theme toggle (light/dark/system) — see the blocking script in root.html.heex's
+// <head> for the pre-paint theme application that avoids a flash of the wrong theme.
+function currentThemeChoice() {
+  try {
+    return localStorage.getItem("theme") || "system"
+  } catch (e) {
+    return "system"
+  }
+}
+
+function applyTheme(choice) {
+  const isDark =
+    choice === "dark" ||
+    (choice === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  document.documentElement.classList.toggle("dark", isDark)
+}
+
+function markActiveThemeButton(choice) {
+  document.querySelectorAll(".theme-toggle-btn").forEach(btn => {
+    btn.setAttribute("data-active", btn.dataset.themeChoice === choice ? "true" : "false")
+  })
+}
+
+function initThemeToggle() {
+  markActiveThemeButton(currentThemeChoice())
+
+  document.querySelectorAll(".theme-toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const choice = btn.dataset.themeChoice
+      try {
+        localStorage.setItem("theme", choice)
+      } catch (e) {}
+      applyTheme(choice)
+      markActiveThemeButton(choice)
+    })
+  })
+}
+
+document.addEventListener("DOMContentLoaded", initThemeToggle)
+
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+  if (currentThemeChoice() === "system") applyTheme("system")
+})
+
