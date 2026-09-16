@@ -7,13 +7,23 @@
 # This file is based on these images:
 #
 #   - https://hub.docker.com/r/hexpm/elixir/tags - for the build image
-#   - https://hub.docker.com/_/debian?tab=tags&page=1&name=bullseye-20250203-slim - for the release image
+#   - https://hub.docker.com/_/debian?tab=tags&page=1&name=bookworm-20260610-slim - for the release image
 #   - https://pkgs.org/ - resource for finding needed packages
-#   - Ex: hexpm/elixir:1.14.5-erlang-26.2.5.8-debian-bullseye-20250203-slim
+#   - Ex: hexpm/elixir:1.18.0-erlang-27.1.2-debian-bookworm-20260610-slim
 #
-ARG ELIXIR_VERSION=1.14.5
-ARG OTP_VERSION=26.2.5.8
-ARG DEBIAN_VERSION=bullseye-20250203-slim
+# IMPORTANT, two independent failure modes hit here before, keep both in mind:
+#   1. hexpm's images always carry a date suffix (e.g. -20260610), and hexpm
+#      periodically prunes old dated builds from Docker Hub — a tag that
+#      worked a year ago can simply stop existing. Check
+#      https://hub.docker.com/r/hexpm/elixir/tags for a current dated tag
+#      with these same ELIXIR_VERSION/OTP_VERSION (matching versions keeps
+#      prod identical to local dev), rather than guessing at version numbers.
+#   2. Debian "bullseye" (11) is EOL — its apt mirror has started 404ing on
+#      individual old package versions as they roll off deb.debian.org.
+#      Stay on "bookworm" (12, current stable) to avoid that decay.
+ARG ELIXIR_VERSION=1.18.0
+ARG OTP_VERSION=27.1.2
+ARG DEBIAN_VERSION=bookworm-20260610-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -68,7 +78,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates \
+  apt-get install -y --fix-missing libstdc++6 openssl libncurses5 locales ca-certificates \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
