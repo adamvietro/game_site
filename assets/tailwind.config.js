@@ -12,12 +12,6 @@ module.exports = {
     "../lib/game_site_web.ex",
     "../lib/game_site_web/**/*.*ex"
   ],
-  safelist: [
-    "bg-green-400",
-    "bg-yellow-300",
-    "bg-gray-300",
-    "bg-gray-100",
-  ],
   theme: {
     extend: {
       colors: {

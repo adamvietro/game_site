@@ -56,11 +56,11 @@ defmodule WordleLiveTest do
       assert new_socket.assigns.word == answer
 
       assert get_row_colors(new_socket) == [
-               "bg-green-400",
-               "bg-green-400",
-               "bg-green-400",
-               "bg-green-400",
-               "bg-green-400"
+               "tile-correct",
+               "tile-correct",
+               "tile-correct",
+               "tile-correct",
+               "tile-correct"
              ]
     end
 
@@ -96,11 +96,11 @@ defmodule WordleLiveTest do
       assert new_socket.assigns.round == 0
 
       assert get_row_colors(new_socket) == [
-               "bg-green-400",
-               "bg-green-400",
-               "bg-green-400",
-               "bg-green-400",
-               "bg-green-400"
+               "tile-correct",
+               "tile-correct",
+               "tile-correct",
+               "tile-correct",
+               "tile-correct"
              ]
     end
 
@@ -134,11 +134,11 @@ defmodule WordleLiveTest do
       assert new_socket.assigns.round == 0
 
       assert get_row_colors(new_socket) == [
-               "bg-gray-100",
-               "bg-gray-100",
-               "bg-gray-100",
-               "bg-gray-100",
-               "bg-gray-100"
+               "tile-empty",
+               "tile-empty",
+               "tile-empty",
+               "tile-empty",
+               "tile-empty"
              ]
     end
 

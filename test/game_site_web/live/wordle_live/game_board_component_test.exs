@@ -8,7 +8,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameBoardComponentTest do
   test "game_board renders labels and board classes" do
     board_state =
       Enum.reduce(0..29, %{}, fn index, acc ->
-        Map.put(acc, index, "bg-gray-100")
+        Map.put(acc, index, "tile-empty")
       end)
 
     entries = %{
@@ -30,7 +30,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameBoardComponentTest do
     assert html =~ "e"
     assert html =~ "l"
     assert html =~ "o"
-    assert html =~ "bg-gray-100"
+    assert html =~ "tile-empty"
   end
 
   test "keyboard_row renders letters and classes" do
@@ -38,7 +38,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameBoardComponentTest do
 
     keyboard =
       Enum.into(attr.letters, %{}, fn key ->
-        {key, "bg-gray-200"}
+        {key, "tile-absent"}
       end)
 
     html =
@@ -51,7 +51,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameBoardComponentTest do
     assert html =~ "w"
     assert html =~ "p"
     assert html =~ "phx-click=\"add_letter\""
-    assert html =~ "bg-gray-200"
+    assert html =~ "tile-absent"
   end
 
   test "keyboard_delete renders delete button" do
@@ -66,7 +66,7 @@ defmodule GameSiteWeb.Live.WordleLive.GameBoardComponentTest do
 
     keyboard =
       Enum.into(letters, %{}, fn key ->
-        {key, "bg-gray-200"}
+        {key, "tile-absent"}
       end)
 
     html =

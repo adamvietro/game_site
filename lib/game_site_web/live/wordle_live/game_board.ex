@@ -13,7 +13,7 @@ defmodule GameSiteWeb.WordleLive.GameBoard do
               "flex h-11 items-center justify-center rounded text-sm font-medium uppercase sm:h-12 sm:text-base " <>
                 Map.get(@board_state, index)
             }>
-            {label}
+            {if label == ".", do: "", else: label}
           </div>
         <% end %>
       </div>

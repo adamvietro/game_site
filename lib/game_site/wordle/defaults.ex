@@ -4,7 +4,7 @@ defmodule GameSite.Wordle.Defaults do
   @cells 30
 
   def starting_board do
-    0..(@cells - 1) |> Enum.into(%{}, &{&1, "bg-gray-100"})
+    0..(@cells - 1) |> Enum.into(%{}, &{&1, "tile-empty"})
   end
 
   def starting_entries do
@@ -12,7 +12,7 @@ defmodule GameSite.Wordle.Defaults do
   end
 
   def starting_keyboard do
-    Enum.into(@letters, %{}, &{String.to_atom(&1), "bg-gray-100"})
+    Enum.into(@letters, %{}, &{String.to_atom(&1), "tile-empty"})
   end
 
   defp row_name(1), do: :first

@@ -127,7 +127,7 @@ defmodule GameSite.Wordle.GameLogic do
         cond do
           {letter, index} in index_word ->
             letter_count = Map.update!(letter_count, letter, fn count -> count - 1 end)
-            {[letter, "bg-green-400"], letter_count}
+            {[letter, "tile-correct"], letter_count}
 
           true ->
             {{letter, index}, letter_count}
@@ -139,9 +139,9 @@ defmodule GameSite.Wordle.GameLogic do
         {letter, _index}, letter_count ->
           if letter in String.split(word, "", trim: true) and letter_count[letter] > 0 do
             letter_count = Map.update!(letter_count, letter, fn count -> count - 1 end)
-            {[letter, "bg-yellow-300"], letter_count}
+            {[letter, "tile-present"], letter_count}
           else
-            {[letter, "bg-gray-300"], letter_count}
+            {[letter, "tile-absent"], letter_count}
           end
 
         [letter, color], letter_count ->
@@ -250,10 +250,10 @@ defmodule GameSite.Wordle.GameLogic do
     }
   end
 
-  defp color_priority("bg-gray-100"), do: 0
-  defp color_priority("bg-gray-300"), do: 1
-  defp color_priority("bg-yellow-300"), do: 2
-  defp color_priority("bg-green-400"), do: 3
+  defp color_priority("tile-empty"), do: 0
+  defp color_priority("tile-absent"), do: 1
+  defp color_priority("tile-present"), do: 2
+  defp color_priority("tile-correct"), do: 3
   defp color_priority(_), do: 0
 
   defp reset_from_status("playing") do

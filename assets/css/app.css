@@ -63,3 +63,21 @@ a:hover {
 .theme-toggle-btn[data-active="true"] {
   @apply bg-brand text-zinc-950 hover:text-zinc-950 dark:hover:text-zinc-950;
 }
+
+/* Wordle tile/key states. Classes are set from GameSite.Wordle.{Defaults,GameLogic}, so
+   they're defined here (not as utilities) to give each state a light and a dark look. */
+.tile-empty {
+  @apply border border-zinc-300 bg-white text-zinc-800 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100;
+}
+
+.tile-absent {
+  @apply border border-zinc-400 bg-zinc-400 text-white dark:border-zinc-700 dark:bg-zinc-700 dark:text-zinc-100;
+}
+
+.tile-present {
+  @apply border border-yellow-500 bg-yellow-500 text-white dark:border-yellow-600 dark:bg-yellow-600;
+}
+
+.tile-correct {
+  @apply border border-green-600 bg-green-600 text-white dark:border-green-700 dark:bg-green-700;
+}
